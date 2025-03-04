@@ -31,7 +31,9 @@ export function HorizontalFilter({
           onClick={onReset}
           className={cn(
             "text-sm font-normal rounded-full px-4 h-9 border-0",
-            !hasSelection ? "bg-black text-white hover:bg-black/90" : "bg-gray-200 text-gray-600 hover:bg-gray-300",
+            !hasSelection
+              ? "bg-black text-white hover:bg-black/80 hover:text-white"
+              : "bg-gray-200 text-gray-600 hover:bg-gray-300",
           )}
         >
           All
@@ -40,9 +42,12 @@ export function HorizontalFilter({
           <Button
             variant="outline"
             onClick={onReset}
-            className="text-sm font-normal rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 px-2 border-0 w-9 h-9 flex items-center justify-center shrink-0 -ml-1"
+            className="text-sm font-normal rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 px-2 border-0 w-9 h-9 flex items-center justify-center shrink-0 -ml-1 group"
           >
-            <ArrowCounterClockwise weight="bold" className="h-4 w-4" />
+            <ArrowCounterClockwise
+              weight="bold"
+              className="h-4 w-4 transform transition-all duration-300 ease-out origin-center group-hover:-rotate-[60deg]"
+            />
             <span className="sr-only">Reset filters</span>
           </Button>
         )}
@@ -58,7 +63,7 @@ export function HorizontalFilter({
             className={cn(
               "text-sm font-normal rounded-full px-4 h-9 border-0 -ml-1 first:-ml-0",
               selectedType === type
-                ? "bg-black text-white hover:bg-black/90"
+                ? "bg-black text-white hover:bg-black/80 hover:text-white"
                 : "bg-gray-200 text-gray-600 hover:bg-gray-300",
             )}
             onClick={() => onTypeSelect(selectedType === type ? null : type)}
@@ -78,7 +83,7 @@ export function HorizontalFilter({
             className={cn(
               "text-sm font-normal rounded-full px-4 h-9 border-0 -ml-1 first:-ml-0",
               selectedTag === tag
-                ? "bg-black text-white hover:bg-black/90"
+                ? "bg-black text-white hover:bg-black/80 hover:text-white"
                 : "bg-gray-200 text-gray-600 hover:bg-gray-300",
             )}
             onClick={() => onTagSelect(selectedTag === tag ? null : tag)}

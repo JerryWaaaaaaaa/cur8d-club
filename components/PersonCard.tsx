@@ -1,18 +1,24 @@
+"use client"
+
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Globe } from "@phosphor-icons/react"
+import { ImagePlaceholder } from "./ImagePlaceholder"
 import type { Person } from "../types/person"
+import { useState } from "react"
 
 interface PersonCardProps {
   person: Person
 }
 
 export function PersonCard({ person }: PersonCardProps) {
+  const [imageError, setImageError] = useState(false)
+
   return (
     <div>
       <div className="aspect-square bg-gray-100 mb-4 relative overflow-hidden">
         <span className="absolute top-2 left-2 z-10 bg-black text-white text-xs px-2 py-1 rounded-full">
-          {person.type.charAt(0) + person.type.slice(1)}
+          {person.type.charAt(0).toUpperCase() + person.type.slice(1)}
         </span>
         {person.url && (
           <Button
@@ -27,7 +33,17 @@ export function PersonCard({ person }: PersonCardProps) {
             </a>
           </Button>
         )}
-        <Image src={person.image || "/placeholder.svg"} alt={person.name} fill className="object-contain p-8" />
+        {person.image && !imageError ? (
+          <Image
+            src={person.image || "/placeholder.svg"}
+            alt={person.name}
+            fill
+            className="object-contain p-8"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <ImagePlaceholder name={person.name} className="p-8" />
+        )}
       </div>
       <div className="space-y-1">
         <div className="flex items-center justify-between">

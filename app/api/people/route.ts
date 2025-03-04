@@ -46,7 +46,7 @@ export async function GET(request) {
       type: person.type?.toLowerCase() || "unknown",
       url: person.url,
       tags: person.tags || [],
-      image: person.image || `/placeholder.svg?text=${encodeURIComponent(person.name)}`,
+      image: person.image || null,
     }))
 
     return NextResponse.json({
