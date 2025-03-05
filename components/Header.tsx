@@ -24,7 +24,7 @@ export function Header({ tags, selectedTag, selectedType, onTagSelect, onTypeSel
           "linear-gradient(black 70%, rgba(0, 0, 0, 0.8) 85%, rgba(0, 0, 0, 0.6) 90%, rgba(0, 0, 0, 0.3) 95%, transparent)",
         WebkitMaskImage:
           "linear-gradient(black 70%, rgba(0, 0, 0, 0.8) 85%, rgba(0, 0, 0, 0.6) 90%, rgba(0, 0, 0, 0.3) 95%, transparent)",
-        background: "linear-gradient(white 70%, transparent)",
+        background: "linear-gradient(#FDFEFF 70%, transparent)",
       }}
     >
       <div className="container mx-auto px-4 pt-6 pb-8">
