@@ -1,5 +1,6 @@
 import { Manrope } from "next/font/google"
 import { HorizontalFilter } from "./horizontal-filter"
+import Image from "next/image"
 
 const manrope = Manrope({ subsets: ["latin"] })
 
@@ -26,16 +27,22 @@ export function Header({ tags, selectedTag, selectedType, onTagSelect, onTypeSel
         background: "linear-gradient(white 70%, transparent)",
       }}
     >
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col gap-8">
-          <div className="max-w-3xl">
-            <h1 className={`${manrope.className} text-[20px] leading-none font-light`}>
-              <span className="text-gray-400">Curated</span>
-              <br />
-              <span className="text-gray-600 block mt-2 font-light">
-                A personal curation of my favorite designers/studios/agencies/builders.
-              </span>
-            </h1>
+      <div className="container mx-auto px-4 pt-6 pb-8">
+        <div className="flex flex-col gap-4">
+          <div className="max-w-3xl space-y-2">
+            <div className="h-[82px] relative">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-3owh7eOHQaG8H8K2JBoBCUkGQpZvkt.svg"
+                alt="cur8d.club"
+                height={82}
+                width={328}
+                priority
+                className="object-contain object-left"
+              />
+            </div>
+            <p className={`${manrope.className} text-[20px] leading-none text-gray-900`}>
+              inspiring designers, builders, and studios.
+            </p>
           </div>
           <HorizontalFilter
             tags={tags}
