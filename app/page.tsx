@@ -100,7 +100,7 @@ export default function Page() {
   })
 
   return (
-    <div className={`min-h-screen ${manrope.className}`} style={{ backgroundColor: "#FDFEFF" }}>
+    <div className={`min-h-screen bg-white ${manrope.className}`}>
       <Header
         tags={allTags}
         selectedTag={selectedTag}

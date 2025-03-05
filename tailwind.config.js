@@ -3,7 +3,7 @@ import { fontFamily } from "tailwindcss/defaultTheme"
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
-  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "*.{js,ts,jsx,tsx,mdx}"],
+  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -17,7 +17,7 @@ module.exports = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "#FDFEFF",
+        background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(0, 0%, 0%)", // Black
