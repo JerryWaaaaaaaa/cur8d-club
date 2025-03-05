@@ -24,7 +24,7 @@ export function HorizontalFilter({
   const hasSelection = selectedTag !== null || selectedType !== null
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-4 -mb-4 scrollbar-hide">
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-3.5 overflow-x-auto pb-4 -mb-4 scrollbar-hide">
       <div className="flex items-center gap-1">
         <Button
           variant="outline"

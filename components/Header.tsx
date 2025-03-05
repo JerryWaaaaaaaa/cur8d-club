@@ -30,14 +30,14 @@ export function Header({ tags, selectedTag, selectedType, onTagSelect, onTypeSel
       <div className="container mx-auto px-4 pt-6 pb-8">
         <div className="flex flex-col gap-4">
           <div className="max-w-3xl space-y-2">
-            <div className="h-[82px] relative">
+            <div className="relative w-fit">
               <Image
                 src="/site-assets/logo.svg"
                 alt="cur8d.club"
                 height={82}
                 width={328}
                 priority
-                className="object-contain object-left"
+                className="object-contain object-left h-auto w-full max-w-[328px]"
               />
             </div>
             <p className={`${manrope.className} text-[20px] leading-none text-gray-900`}>
