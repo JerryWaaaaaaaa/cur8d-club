@@ -1,2 +1,2 @@
-# curated
-A personal curation of my favorite designers, studios, agencies, and builders
+# cur8d.club
+inspiring designers, builders, and studios.
