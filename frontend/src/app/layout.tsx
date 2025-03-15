@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Manrope } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import Script from "next/script";
@@ -67,8 +68,10 @@ export default function RootLayout({
           content="script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: http:; font-src 'self' https://fonts.gstatic.com data:;"
         />
       </head>
-      <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+      <body className={`${manrope.className} min-h-screen bg-background`}>
+        <NuqsAdapter>
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );
