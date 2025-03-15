@@ -5,6 +5,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import type { api as serverApi } from "@/trpc/server";
 import { Suspense, useEffect, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { motion } from "motion/react";
 
 import {
   hasAnyFilterApplied,
@@ -68,8 +69,15 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
         >
           <div className="grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-3 lg:grid-cols-4">
             {infiniteCollectables.data?.pages.map((page) =>
-              page.items.map((item) => (
-                <CollectableCard key={item.id} collectable={item} />
+              page.items.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                >
+                  <CollectableCard key={item.id} collectable={item} />
+                </motion.div>
               )),
             )}
           </div>
