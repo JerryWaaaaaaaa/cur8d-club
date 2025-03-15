@@ -1,0 +1,87 @@
+{
+  "source": {
+    "type": "automation",
+    "automation_id": "1b77e9d5-2422-80f1-aecb-004d9f0df0c2",
+    "action_id": "1b77e9d5-2422-8028-9e21-005a68f860f1",
+    "event_id": "bc5a50be-8fb2-433c-9923-e871a8a037a1",
+    "attempt": 1
+  },
+  "data": {
+    "object": "page",
+    "id": "1b37e9d5-2422-81c4-ba58-f63b1d8e3fa5",
+    "created_time": "2025-03-11T19:40:00.000Z",
+    "last_edited_time": "2025-03-15T20:52:00.000Z",
+    "created_by": {
+      "object": "user",
+      "id": "6f98f89d-e22e-4e7c-bef6-12c6f8aaa898"
+    },
+    "last_edited_by": {
+      "object": "user",
+      "id": "6f98f89d-e22e-4e7c-bef6-12c6f8aaa898"
+    },
+    "cover": null,
+    "icon": null,
+    "parent": {
+      "type": "database_id",
+      "database_id": "87a11304-065c-41ff-bf52-64164ccd36bc"
+    },
+    "archived": false,
+    "in_trash": false,
+    "properties": {
+      "type": {
+        "id": "%3AId%60",
+        "type": "select",
+        "select": {
+          "id": "52e99945-5ca2-48c0-9eb5-61848a5bd3f9",
+          "name": "Individual",
+          "color": "default"
+        }
+      },
+      "Description": { "id": "I%5C_q", "type": "rich_text", "rich_text": [] },
+      "Created time": {
+        "id": "Ii%3Cw",
+        "type": "created_time",
+        "created_time": "2025-03-11T19:40:00.000Z"
+      },
+      "tags": {
+        "id": "fiG%7B",
+        "type": "multi_select",
+        "multi_select": [
+          {
+            "id": "22bd8cc1-581c-466b-bedc-3dd30c403c59",
+            "name": "product",
+            "color": "green"
+          }
+        ]
+      },
+      "url": {
+        "id": "vqI%7D",
+        "type": "url",
+        "url": "https://paulinewee.com/"
+      },
+      "name": {
+        "id": "title",
+        "type": "title",
+        "title": [
+          {
+            "type": "text",
+            "text": { "content": "Pauline Wee", "link": null },
+            "annotations": {
+              "bold": false,
+              "italic": false,
+              "strikethrough": false,
+              "underline": false,
+              "code": false,
+              "color": "default"
+            },
+            "plain_text": "Pauline Wee",
+            "href": null
+          }
+        ]
+      }
+    },
+    "url": "https://www.notion.so/Pauline-Wee-1b37e9d5242281c4ba58f63b1d8e3fa5",
+    "public_url": "https://jerrywangzh.notion.site/Pauline-Wee-1b37e9d5242281c4ba58f63b1d8e3fa5",
+    "request_id": "a444cd25-8cf0-4820-9a1d-3bcf0073adaf"
+  }
+}
