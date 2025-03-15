@@ -45,25 +45,26 @@ export function HorizontalFilter({
         </Button>
 
         {/* Reset button */}
-        {hasAnySelection && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              void setParams({
-                ...params,
-                type: null,
-                tags: [],
-              });
-            }}
-            className="group -ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-0 bg-gray-200 px-2 text-sm font-normal text-gray-600 hover:bg-gray-300"
-          >
-            <ArrowCounterClockwise
-              weight="bold"
-              className="h-4 w-4 origin-center transform transition-all duration-300 ease-out group-hover:-rotate-[60deg]"
-            />
-            <span className="sr-only">Reset filters</span>
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          onClick={() => {
+            void setParams({
+              ...params,
+              type: null,
+              tags: [],
+            });
+          }}
+          className={cn(
+            "group -ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-0 bg-gray-200 px-2 text-sm font-normal text-gray-600 opacity-100 transition-all duration-300 ease-in-out hover:bg-gray-300",
+            !hasAnySelection && "pointer-events-none w-0 px-0 opacity-0",
+          )}
+        >
+          <ArrowCounterClockwise
+            weight="bold"
+            className="h-4 w-4 origin-center transform transition-all duration-300 ease-out group-hover:-rotate-[60deg]"
+          />
+          <span className="sr-only">Reset filters</span>
+        </Button>
       </div>
 
       <div className="h-full w-px shrink-0 bg-gray-200" />
