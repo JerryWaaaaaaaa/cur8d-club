@@ -48,7 +48,7 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
     <>
       {infiniteCollectables.isLoading && (
         <div className="flex h-[calc(100vh-36rem)] items-center justify-center">
-          <LoadingBall className="mt-12" ballType="cue-ball" />
+          <LoadingBall className="mt-12" />
         </div>
       )}
 
@@ -57,7 +57,7 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
           className="pb-24"
           dataLength={infiniteCollectables.data?.pages.length ?? 0}
           next={infiniteCollectables.fetchNextPage}
-          hasMore={infiniteCollectables.hasNextPage && false}
+          hasMore={infiniteCollectables.hasNextPage || false}
           scrollableTarget="scrollableDiv"
           style={{ overflow: "visible" }}
           loader={

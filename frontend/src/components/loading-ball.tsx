@@ -11,7 +11,7 @@ const BALL_TYPE_IMAGES = {
   "cue-ball": "/balls/cue-ball.svg",
 } as const;
 
-function LoadingBall({ className, ballType = "8-ball" }: LoadingBallProps) {
+function LoadingBall({ className, ballType = "cue-ball" }: LoadingBallProps) {
   return (
     <Image
       src={BALL_TYPE_IMAGES[ballType]}
