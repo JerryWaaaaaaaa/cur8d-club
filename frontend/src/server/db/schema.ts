@@ -8,6 +8,8 @@ import {
   pgTableCreator,
   timestamp,
   varchar,
+  text,
+  numeric,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -16,21 +18,20 @@ import {
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator((name) => `curated_${name}`);
+export const createTable = pgTableCreator((name) => `cur8d_${name}`);
 
-export const posts = createTable(
-  "post",
+export const collectables = createTable(
+  "collectable",
   {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar("name", { length: 256 }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
-    ),
+    id: varchar("id", { length: 36 }).primaryKey(),
+    createdAt: timestamp("created_at", { withTimezone: true }),
+    name: varchar("name", { length: 256 }).notNull(),
+    type: text("type").notNull(),
+    tags: text("tags").array(),
+    websiteUrl: text("website_url"),
+    ogImageUrl: text("og_image_url"),
   },
   (example) => ({
     nameIndex: index("name_idx").on(example.name),
-  })
+  }),
 );
