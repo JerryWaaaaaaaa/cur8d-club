@@ -1,2 +1,3 @@
 # cur8d.club
-inspiring designers, builders, and studios.
+Discover inspiring designers ✦ builders ✦ groups. 
+Curated by [Jerry](https://x.com/notjerrywang), updates every week.
