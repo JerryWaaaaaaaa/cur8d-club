@@ -52,7 +52,7 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
         </div>
       )}
 
-      {infiniteCollectables.isFetched && (
+      {!infiniteCollectables.isLoading && (
         <InfiniteScroll
           className="pb-24"
           dataLength={infiniteCollectables.data?.pages.length ?? 0}
