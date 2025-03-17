@@ -77,7 +77,7 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
                 key={item.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
+                transition={{ duration: 0.5, delay: (i % pageSize) * 0.1 }}
               >
                 <CollectableCard key={item.id} collectable={item} />
               </motion.div>
