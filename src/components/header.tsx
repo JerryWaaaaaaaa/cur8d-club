@@ -3,7 +3,6 @@ import { HorizontalFilter } from "./header/horizontal-filter";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ManifestoOverlay } from "./manifesto-overlay";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -54,13 +53,6 @@ export function Header({ typeOptions, tagOptions }: HeaderProps) {
                 </Link>
                 , updates every week.
               </p>
-              <ManifestoOverlay 
-                trigger={
-                  <button className="mt-0 text-gray-900 hover:underline text-left">
-                    Manifesto →
-                  </button>
-                } 
-              />
             </div>
           </div>
 
