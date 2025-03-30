@@ -3,6 +3,14 @@ import { HorizontalFilter } from "./header/horizontal-filter";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -53,6 +61,25 @@ export function Header({ typeOptions, tagOptions }: HeaderProps) {
                 </Link>
                 , updates every week.
               </p>
+              <Dialog>
+                <DialogTrigger className="text-l max-w-[70%] cursor-pointer leading-tight text-gray-900 hover:underline md:max-w-[400px]">
+                  manifesto
+                </DialogTrigger>
+                <DialogContent className="max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl">cur8d.club Manifesto</DialogTitle>
+                    <DialogDescription className="mt-4 text-base">
+                      Our mission is to celebrate and elevate the work of exceptional designers, builders, and creative groups who are pushing the boundaries of digital creation. We believe in the power of curation to cut through the noise and highlight truly innovative work that deserves recognition.
+                      <br /><br />
+                      In a world of endless scrolling and algorithm-driven content, cur8d.club stands as a thoughtfully assembled collection of inspirational creators who demonstrate excellence, originality, and impact in their fields. Each featured entity has been personally selected for their unique vision and contribution to the creative landscape.
+                      <br /><br />
+                      We value quality over quantity, meaningful creation over viral trends, and sustainable creative practices that contribute to a healthy digital ecosystem. Our curation philosophy centers on discovering voices that might otherwise be overlooked and connecting them with an audience that appreciates intentional, purpose-driven work.
+                      <br /><br />
+                      As we grow, we remain committed to regular updates, diverse representation, and maintaining a high standard for what it means to be featured in our collection. We invite you to explore, be inspired, and perhaps discover your next favorite creator.
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
