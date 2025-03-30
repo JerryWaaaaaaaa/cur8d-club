@@ -8,8 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { IconButton } from "@/components/ui/icon-button";
-import { InfoIcon } from "@/components/icons/InfoIcon";
 
 interface ContentDialogProps {
   children: ReactNode;
@@ -24,9 +22,7 @@ export function ContentDialog({
 }: ContentDialogProps) {
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{title}</DialogTitle>
