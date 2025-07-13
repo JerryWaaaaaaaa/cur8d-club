@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useMemo, useState } from "react";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
-import { CaretDown, CaretUp, Check } from "@phosphor-icons/react";
+import { CaretDown } from "@phosphor-icons/react";
+import { motion } from "motion/react";
 
 interface HorizontalFilterProps {
   tagOptions: string[];
@@ -45,15 +46,16 @@ export function HorizontalFilter({
               "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
               typeOpen
                 ? "bg-black text-white"
-                : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
             )}
           >
             {selectedTypeLabel}
-            {typeOpen ? (
-              <CaretUp weight="bold" className="h-4 w-4" />
-            ) : (
-              <CaretDown weight="bold" className="h-4 w-4" />
-            )}
+            <motion.div
+              animate={{ rotate: typeOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <CaretDown weight="fill" className="h-4 w-4" />
+            </motion.div>
           </button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
@@ -77,15 +79,16 @@ export function HorizontalFilter({
               "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
               tagOpen
                 ? "bg-black text-white"
-                : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
             )}
           >
             {selectedTagsLabel}
-            {tagOpen ? (
-              <CaretUp weight="bold" className="h-4 w-4" />
-            ) : (
-              <CaretDown weight="bold" className="h-4 w-4" />
-            )}
+            <motion.div
+              animate={{ rotate: tagOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <CaretDown weight="fill" className="h-4 w-4" />
+            </motion.div>
           </button>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
@@ -115,12 +118,12 @@ export function HorizontalFilter({
       <button
         onClick={() => setParams({ ...params, type: null, tags: [] })}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-all hover:bg-gray-300",
+          "flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-600 transition-all hover:bg-neutral-300",
           !hasAnySelection && "pointer-events-none opacity-0"
         )}
         aria-label="Reset filters"
       >
-        <ArrowCounterClockwise weight="bold" className="h-5 w-5" />
+        <ArrowCounterClockwise weight="fill" className="h-5 w-5" />
       </button>
     </div>
   );

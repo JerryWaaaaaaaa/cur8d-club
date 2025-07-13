@@ -50,7 +50,7 @@ export function Header({ typeOptions, tagOptions }: HeaderProps) {
             </div>
             {/* Right: Description/Links */}
             <div className={`${manrope.className} mt-0 flex w-full flex-col items-end justify-center md:mt-0 md:w-1/3 md:items-end md:justify-end`}>
-              <p className="text-l max-w-full text-right leading-tight text-gray-700 md:max-w-[400px]">
+              <p className="text-l max-w-full text-right leading-tight text-neutral-700 md:max-w-[400px]">
                 Discover inspiring designers every week. 
                 <br />
                 Curated by{" "}
@@ -58,19 +58,19 @@ export function Header({ typeOptions, tagOptions }: HeaderProps) {
                   href="https://x.com/notjerrywang"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-900 hover:underline"
+                  className="text-neutral-900 hover:underline"
                 >
                   ↳ @Jerry
                 </Link>
                 <br />
-                <span className="text-l leading-tight text-gray-700">
+                <span className="text-l leading-tight text-neutral-700">
                   Have someone in mind?{" "}
                 </span>
                 <Link
                   href="https://form.typeform.com/to/T4Xb0N7L"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-l leading-tight text-gray-900 hover:underline"
+                  className="text-l leading-tight text-neutral-900 hover:underline"
                 >
                    ↳ Submit a referral
                 </Link>
