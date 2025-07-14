@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { Suspense } from "react";
 import { api, HydrateClient } from "@/trpc/server";
 import { Header } from "@/components/header";
 import CollectableGrid from "@/components/collectable-grid";

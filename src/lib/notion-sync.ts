@@ -1,6 +1,5 @@
-import { env } from "@/env";
 import { Client as NotionClient } from "@notionhq/client";
-import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
 export const notion = new NotionClient({
   auth: process.env.NOTION_API_KEY,

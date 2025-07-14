@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { ArrowCounterClockwise } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
@@ -73,7 +72,7 @@ export function HorizontalFilter({
           {typeOptions.map((type) => (
             <DropdownMenu.Item
               key={type}
-              onSelect={() => setParams({ ...params, type: selectedType === type ? null : type })}
+              onSelect={() => void setParams({ ...params, type: selectedType === type ? null : type })}
               selected={selectedType === type}
             >
               {toTitleCase(type)}
@@ -112,9 +111,9 @@ export function HorizontalFilter({
                 onSelect={e => {
                   e.preventDefault(); // Prevent menu from closing
                   if (isSelected) {
-                    setParams({ ...params, tags: selectedTags.filter((t) => t !== tag) });
+                    void setParams({ ...params, tags: selectedTags.filter((t) => t !== tag) });
                   } else {
-                    setParams({ ...params, tags: [...(selectedTags || []), tag] });
+                    void setParams({ ...params, tags: [...(selectedTags || []), tag] });
                   }
                 }}
                 selected={isSelected}

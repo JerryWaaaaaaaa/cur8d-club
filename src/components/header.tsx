@@ -2,8 +2,6 @@ import { Manrope } from "next/font/google";
 import { HorizontalFilter } from "./header/horizontal-filter";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
-import { ContentDialog } from "@/components/ui/content-dialog";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
