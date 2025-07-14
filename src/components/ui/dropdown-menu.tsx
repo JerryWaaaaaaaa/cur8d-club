@@ -2,28 +2,44 @@ import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "@phosphor-icons/react";
 import * as React from "react";
+import { AnimatePresence, motion } from "motion/react";
 
 // Styled DropdownMenu Content
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof RadixDropdownMenu.Content>,
-  React.ComponentPropsWithoutRef<typeof RadixDropdownMenu.Content>
->(({ className, children, ...props }, ref) => (
-  <RadixDropdownMenu.Portal>
-    <RadixDropdownMenu.Content
-      ref={ref}
-      align="start"
-      sideOffset={8}
-      asChild={false}
-      className={cn(
-        "z-50 mt-0 min-w-[244px] rounded-3xl bg-neutral-200 py-1.5 px-1.5 flex flex-col gap-1.5",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </RadixDropdownMenu.Content>
-  </RadixDropdownMenu.Portal>
-));
+  React.ComponentPropsWithoutRef<typeof RadixDropdownMenu.Content> & { open?: boolean }
+>(({ className, children, open, ...props }, ref) => {
+  return (
+    <RadixDropdownMenu.Portal>
+      <AnimatePresence>
+        {open && (
+          <RadixDropdownMenu.Content
+            ref={ref}
+            align="start"
+            sideOffset={8}
+            asChild={false}
+            className={cn(
+              "z-50 mt-0 min-w-[244px] rounded-3xl bg-neutral-200 py-1.5 px-1.5 overflow-hidden",
+              className
+            )}
+            {...props}
+            style={{ ...props.style, overflow: "hidden" }}
+          >
+            <motion.div
+              className="flex flex-col gap-1.5"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              {children}
+            </motion.div>
+          </RadixDropdownMenu.Content>
+        )}
+      </AnimatePresence>
+    </RadixDropdownMenu.Portal>
+  );
+});
 DropdownMenuContent.displayName = "DropdownMenuContent";
 
 // Styled DropdownMenu Item

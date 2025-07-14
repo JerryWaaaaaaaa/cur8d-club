@@ -15,7 +15,7 @@ interface HeaderProps {
 export function Header({ typeOptions, tagOptions }: HeaderProps) {
   return (
     <header
-      className="sticky top-0 z-20 pb-16 pt-10"
+      className="sticky top-0 z-20 pt-10 pb-10"
       style={{
         backdropFilter: "blur(20px) brightness(1.1)",
         WebkitBackdropFilter: "blur(20px) brightness(1.1)",
