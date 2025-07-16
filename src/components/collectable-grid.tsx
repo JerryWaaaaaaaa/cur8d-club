@@ -1,9 +1,8 @@
 "use client";
 
 import { api } from "@/trpc/react";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import type { api as serverApi } from "@/trpc/server";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { motion } from "motion/react";
 
@@ -21,7 +20,7 @@ interface CollectableGridProps {
 }
 
 function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
-  const [filterParams, setFilterParams] = useCollectableFilterParams();
+  const [filterParams] = useCollectableFilterParams();
 
   const hasFilter = hasAnyFilterApplied(filterParams);
 

@@ -2,8 +2,6 @@ import { Manrope } from "next/font/google";
 import { HorizontalFilter } from "./header/horizontal-filter";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
-import { ContentDialog } from "@/components/ui/content-dialog";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -15,7 +13,7 @@ interface HeaderProps {
 export function Header({ typeOptions, tagOptions }: HeaderProps) {
   return (
     <header
-      className="sticky top-0 z-20 pb-16 pt-10"
+      className="sticky top-0 z-20 pt-10 pb-10"
       style={{
         backdropFilter: "blur(20px) brightness(1.1)",
         WebkitBackdropFilter: "blur(20px) brightness(1.1)",
@@ -28,21 +26,29 @@ export function Header({ typeOptions, tagOptions }: HeaderProps) {
     >
       <div className="container mx-auto px-4 pb-12">
         <div className="flex flex-col gap-4">
-          <div className="mb-4 flex flex-col items-start gap-4 md:flex-row md:items-end md:gap-7">
-            <div className="relative w-[200px] md:w-auto">
-              <Image
-                src="/site-assets/logo.svg"
-                alt="cur8d.club"
-                height={82}
-                width={328}
-                priority
-                className="h-auto w-full max-w-[200px] object-contain object-left md:max-w-[328px]"
-              />
+          {/* 3-column layout */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-stretch md:justify-between md:gap-0">
+            {/* Left: Filters */}
+            <div className="flex justify-start md:w-1/3 md:justify-start">
+              <HorizontalFilter tagOptions={tagOptions} typeOptions={typeOptions} />
             </div>
-            <div
-              className={`${manrope.className} mt-0 flex w-full flex-col justify-center md:mt-0 md:w-auto`}
-            >
-              <p className="text-l max-w-[70%] leading-tight text-gray-700 md:max-w-[400px]">
+            {/* Center: Logo */}
+            <div className="flex justify-center md:w-1/3 md:items-stretch md:justify-center">
+              <div className="relative flex h-full items-center justify-center">
+                <div className="relative aspect-[328/82] h-full max-h-[120px] w-auto">
+                  <Image
+                    src="/site-assets/logo.svg"
+                    alt="cur8d.club"
+                    fill
+                    priority
+                    className="object-contain object-center"
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Right: Description/Links */}
+            <div className={`${manrope.className} mt-0 flex w-full flex-col items-end justify-center md:mt-0 md:w-1/3 md:items-end md:justify-end`}>
+              <p className="text-l max-w-full text-right leading-tight text-neutral-700 md:max-w-[400px]">
                 Discover inspiring designers every week. 
                 <br />
                 Curated by{" "}
@@ -50,46 +56,25 @@ export function Header({ typeOptions, tagOptions }: HeaderProps) {
                   href="https://x.com/notjerrywang"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-900 hover:underline"
+                  className="text-neutral-900 hover:underline"
                 >
                   ↳ @Jerry
                 </Link>
                 <br />
-                <span className="text-l leading-tight text-gray-700">
+                <span className="text-l leading-tight text-neutral-700">
                   Have someone in mind?{" "}
                 </span>
                 <Link
                   href="https://form.typeform.com/to/T4Xb0N7L"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-l leading-tight text-gray-900 hover:underline"
+                  className="text-l leading-tight text-neutral-900 hover:underline"
                 >
                    ↳ Submit a referral
                 </Link>
-              
               </p>
-                              {/* <ContentDialog 
-                  title="cur8d.club Manifesto"
-                  description={
-                    <>
-                      Our mission is to celebrate and elevate the work of exceptional designers, builders, and creative groups who are pushing the boundaries of digital creation. We believe in the power of curation to cut through the noise and highlight truly innovative work that deserves recognition.
-                      <br /><br />
-                      In a world of endless scrolling and algorithm-driven content, cur8d.club stands as a thoughtfully assembled collection of inspirational creators who demonstrate excellence, originality, and impact in their fields. Each featured entity has been personally selected for their unique vision and contribution to the creative landscape.
-                      <br /><br />
-                      We value quality over quantity, meaningful creation over viral trends, and sustainable creative practices that contribute to a healthy digital ecosystem. Our curation philosophy centers on discovering voices that might otherwise be overlooked and connecting them with an audience that appreciates intentional, purpose-driven work.
-                      <br /><br />
-                      As we grow, we remain committed to regular updates, diverse representation, and maintaining a high standard for what it means to be featured in our collection. We invite you to explore, be inspired, and perhaps discover your next favorite creator.
-                    </>
-                  }
-                >
-                  <span className="text-l max-w-[70%] cursor-pointer leading-tight text-gray-900 hover:underline md:max-w-[400px]">
-                    Read the manifesto
-                  </span>
-                </ContentDialog> */}
             </div>
           </div>
-
-          <HorizontalFilter tagOptions={tagOptions} typeOptions={typeOptions} />
         </div>
       </div>
     </header>

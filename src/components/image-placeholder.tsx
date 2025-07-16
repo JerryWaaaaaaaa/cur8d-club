@@ -55,7 +55,7 @@ export function ImagePlaceholder({ name, className }: ImagePlaceholderProps) {
 
   return (
     <div
-      className={`flex h-full w-full items-center justify-center p-8 ${className}`}
+      className={`flex h-full w-full items-center justify-center p-16 ${className}`}
     >
       <div
         className="relative w-full"

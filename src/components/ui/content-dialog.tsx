@@ -6,8 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
+import type { ReactNode } from "react";
 
 interface ContentDialogProps {
   children: ReactNode;
