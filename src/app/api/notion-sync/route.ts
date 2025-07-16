@@ -19,13 +19,13 @@ async function cleanupOrphanedTags() {
     const allDbItems = await db.query.collectables.findMany();
     
     const itemsWithOrphanedTags = allDbItems.filter(item => 
-      item.tags && item.tags.some(tag => !validTags.has(tag))
+      item.tags?.some(tag => !validTags.has(tag))
     );
     
     if (itemsWithOrphanedTags.length > 0) {
       console.log(`Found ${itemsWithOrphanedTags.length} items with orphaned tags:`);
       itemsWithOrphanedTags.forEach(item => {
-        const orphanedTags = item.tags?.filter(tag => !validTags.has(tag)) || [];
+        const orphanedTags = item.tags?.filter(tag => !validTags.has(tag)) ?? [];
         console.log(`  - ${item.name}: removing tags [${orphanedTags.join(', ')}]`);
       });
     }
@@ -34,7 +34,7 @@ async function cleanupOrphanedTags() {
       db
         .update(collectables)
         .set({
-          tags: item.tags?.filter(tag => validTags.has(tag)) || []
+          tags: item.tags?.filter(tag => validTags.has(tag)) ?? []
         })
         .where(eq(collectables.id, item.id))
     );
