@@ -5,6 +5,51 @@ import { collectables } from "@/server/db/schema";
 import { eq, inArray, isNull, or, sql } from "drizzle-orm";
 import * as cheerio from "cheerio";
 
+async function cleanupOrphanedTags() {
+  try {
+    // Get all tags currently in use in Notion
+    const notionItems = await fetchNotionData();
+    const validTags = new Set(
+      notionItems.flatMap(item => item.tags)
+    );
+    
+    console.log(`Found ${validTags.size} valid tags in Notion:`, Array.from(validTags).sort());
+    
+    // Find all records with orphaned tags and update them
+    const allDbItems = await db.query.collectables.findMany();
+    
+    const itemsWithOrphanedTags = allDbItems.filter(item => 
+      item.tags && item.tags.some(tag => !validTags.has(tag))
+    );
+    
+    if (itemsWithOrphanedTags.length > 0) {
+      console.log(`Found ${itemsWithOrphanedTags.length} items with orphaned tags:`);
+      itemsWithOrphanedTags.forEach(item => {
+        const orphanedTags = item.tags?.filter(tag => !validTags.has(tag)) || [];
+        console.log(`  - ${item.name}: removing tags [${orphanedTags.join(', ')}]`);
+      });
+    }
+    
+    const cleanupPromises = itemsWithOrphanedTags.map(item => 
+      db
+        .update(collectables)
+        .set({
+          tags: item.tags?.filter(tag => validTags.has(tag)) || []
+        })
+        .where(eq(collectables.id, item.id))
+    );
+      
+    if (cleanupPromises.length > 0) {
+      await Promise.all(cleanupPromises);
+      console.log(`Successfully cleaned up ${cleanupPromises.length} records with orphaned tags`);
+    } else {
+      console.log("No orphaned tags found to clean up");
+    }
+  } catch (error) {
+    console.error("Error during orphaned tags cleanup:", error);
+  }
+}
+
 export async function GET() {
   const trueItems = await fetchNotionData();
 
@@ -74,6 +119,11 @@ export async function GET() {
   console.log("Deleting", deletedItems.length, "items");
   await Promise.all(dbPromises);
   console.log("Synced with Notion");
+
+  // Clean up orphaned tags after main sync
+  console.log("Starting orphaned tags cleanup...");
+  await cleanupOrphanedTags();
+  console.log("Finished orphaned tags cleanup");
 
   // Fetch OG image for altered row / new rows
 
