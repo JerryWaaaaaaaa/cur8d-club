@@ -1,19 +1,19 @@
 import { Manrope } from "next/font/google";
-import { HorizontalFilter } from "./header/horizontal-filter";
+import { HorizontalFilter } from "./horizontal-filter";
 import Image from "next/image";
 import Link from "next/link";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
-interface HeaderProps {
+interface DesktopNavProps {
   typeOptions: string[];
   tagOptions: string[];
 }
 
-export function Header({ typeOptions, tagOptions }: HeaderProps) {
+export function DesktopNav({ typeOptions, tagOptions }: DesktopNavProps) {
   return (
     <header
-      className="sticky top-0 z-20 pt-10 pb-10"
+      className="hidden md:block sticky top-0 z-20 pt-10 pb-10"
       style={{
         backdropFilter: "blur(20px) brightness(1.1)",
         WebkitBackdropFilter: "blur(20px) brightness(1.1)",
@@ -79,4 +79,4 @@ export function Header({ typeOptions, tagOptions }: HeaderProps) {
       </div>
     </header>
   );
-}
+} 

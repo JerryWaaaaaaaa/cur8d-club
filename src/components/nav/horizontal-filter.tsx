@@ -32,8 +32,8 @@ export function HorizontalFilter({
   // Responsive expertise label: show up to 2, then '+x more'
   let selectedTagsLabel = "All Expertise";
   if (selectedTags && selectedTags.length > 0) {
-    const shown = selectedTags.slice(0, 3).map(toTitleCase);
-    const extra = selectedTags.length - 3;
+    const shown = selectedTags.slice(0, 2).map(toTitleCase);
+    const extra = selectedTags.length - 2;
     if (extra > 0) {
       selectedTagsLabel = `${shown.join(", ")}, and ${extra}+`;
     } else {
@@ -86,17 +86,18 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none whitespace-nowrap max-w-xs overflow-hidden text-ellipsis",
+              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
               tagOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
             )}
-            style={{ maxWidth: 260 }}
+            style={{ maxWidth: 240 }}
           >
-            {selectedTagsLabel}
+            <span className="truncate max-w-[240px]">{selectedTagsLabel}</span>
             <motion.div
               animate={{ rotate: tagOpen ? 360 : 270 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="flex-shrink-0"
             >
               <CaretDown weight="fill" className="h-4 w-4" />
             </motion.div>
