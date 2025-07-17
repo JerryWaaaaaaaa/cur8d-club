@@ -70,8 +70,8 @@ export function MobileDropdown({
                     className={cn(
                       "flex items-center justify-center px-4 py-2 text-base font-normal rounded-full transition-colors relative basis-0 grow w-full",
                       isSelected(option)
-                        ? "bg-neutral-900 text-white"
-                        : "bg-neutral-50 text-neutral-900 hover:bg-neutral-100"
+                        ? "bg-neutral-50 text-neutral-900"
+                        : "text-neutral-900"
                     )}
                     whileTap={{ scale: 0.98 }}
                   >
