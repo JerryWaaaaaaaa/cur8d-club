@@ -4,7 +4,7 @@ import { ArrowCounterClockwise, CaretDown, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useMemo, useState } from "react";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { MobileDropdown } from "@/components/ui/mobile-dropdown";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -76,81 +76,43 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
         <div className="flex flex-wrap items-center justify-center gap-2.5 w-full">
           <div className="flex items-center gap-2.5 justify-center">
             {/* Type Dropdown */}
-            <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
-              <DropdownMenu.Trigger asChild>
-                <button
-                  className={cn(
+            <button
+              onClick={() => setTypeOpen(true)}
+                                className={cn(
                     "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none",
                     typeOpen
                       ? "bg-neutral-300 text-neutral-900"
                       : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
                   )}
-                >
-                  {selectedTypeLabel}
-                  <motion.div
-                    animate={{ rotate: typeOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                  >
-                    <CaretDown weight="fill" className="h-5 w-5" />
-                  </motion.div>
-                </button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content open={typeOpen} className="min-w-[200px]">
-                {typeOptions.map((type) => (
-                  <DropdownMenu.Item
-                    key={type}
-                    onSelect={() => void setParams({ ...params, type: selectedType === type ? null : type })}
-                    selected={selectedType === type}
-                  >
-                    {toTitleCase(type)}
-                  </DropdownMenu.Item>
-                ))}
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+            >
+              {selectedTypeLabel}
+              <motion.div
+                animate={{ rotate: typeOpen ? 180 : 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+              >
+                <CaretDown weight="fill" className="h-5 w-5" />
+              </motion.div>
+            </button>
 
             {/* Tag Dropdown (multi-select) */}
-            <DropdownMenu.Root open={tagOpen} onOpenChange={setTagOpen}>
-              <DropdownMenu.Trigger asChild>
-                <button
-                  className={cn(
+            <button
+              onClick={() => setTagOpen(true)}
+                                className={cn(
                     "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis",
                     tagOpen
                       ? "bg-neutral-300 text-neutral-900"
                       : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
                   )}
-                >
-                  <span className="truncate">{selectedTagsLabel}</span>
-                  <motion.div
-                    animate={{ rotate: tagOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="flex-shrink-0"
-                  >
-                    <CaretDown weight="fill" className="h-5 w-5" />
-                  </motion.div>
-                </button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content open={tagOpen} className="min-w-[200px]">
-                {tagOptions.map((tag) => {
-                  const isSelected = selectedTags?.includes(tag);
-                  return (
-                    <DropdownMenu.Item
-                      key={tag}
-                      onSelect={e => {
-                        e.preventDefault(); // Prevent menu from closing
-                        if (isSelected) {
-                          void setParams({ ...params, tags: selectedTags.filter((t) => t !== tag) });
-                        } else {
-                          void setParams({ ...params, tags: [...(selectedTags || []), tag] });
-                        }
-                      }}
-                      selected={isSelected}
-                    >
-                      {toTitleCase(tag)}
-                    </DropdownMenu.Item>
-                  );
-                })}
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
+            >
+              <span className="truncate">{selectedTagsLabel}</span>
+              <motion.div
+                animate={{ rotate: tagOpen ? 180 : 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="flex-shrink-0"
+              >
+                <CaretDown weight="fill" className="h-5 w-5" />
+              </motion.div>
+            </button>
 
             {/* Reset button */}
             {hasAnySelection && (
@@ -172,6 +134,37 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
         </div>
       </div>
 
+      {/* Mobile Dropdowns */}
+      <MobileDropdown
+        open={typeOpen}
+        onOpenChange={setTypeOpen}
+        title="Type"
+        options={typeOptions}
+        selectedOptions={selectedType ? [selectedType] : []}
+        onOptionSelect={(type) => {
+          const newType = selectedType === type ? null : type;
+          void setParams({ ...params, type: newType });
+        }}
+        multiSelect={false}
+      />
+
+      <MobileDropdown
+        open={tagOpen}
+        onOpenChange={setTagOpen}
+        title="Tags"
+        options={tagOptions}
+        selectedOptions={selectedTags || []}
+        onOptionSelect={(tag) => {
+          const isSelected = selectedTags?.includes(tag);
+          if (isSelected) {
+            void setParams({ ...params, tags: selectedTags.filter((t) => t !== tag) });
+          } else {
+            void setParams({ ...params, tags: [...(selectedTags || []), tag] });
+          }
+        }}
+        multiSelect={true}
+      />
+
       {/* Info Overlay */}
       <AnimatePresence>
         {infoOpen && (
@@ -179,63 +172,73 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/10 backdrop-blur-[96px]"
             onClick={() => setInfoOpen(false)}
           >
+            {/* Content */}
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative mx-4 max-w-sm rounded-3xl bg-white p-8 shadow-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="relative w-full max-w-sm h-screen flex flex-col justify-end pt-3 px-2 pb-safe"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button */}
-              <button
-                onClick={() => setInfoOpen(false)}
-                className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-colors hover:bg-neutral-300"
-              >
-                <X weight="fill" className="h-4 w-4" />
-              </button>
+              <div className="flex flex-col gap-2 h-full">
+                {/* Content Container */}
+                <div className="flex flex-col gap-5 flex-1 items-center justify-center">
+                  {/* Logo */}
+                  <div className="relative h-20 w-48">
+                    <Image
+                      src="/site-assets/logo.svg"
+                      alt="cur8d.club"
+                      fill
+                      priority
+                      className="object-contain object-center"
+                    />
+                  </div>
 
-              {/* Content */}
-              <div className="flex flex-col items-center gap-5 text-center">
-                {/* Logo */}
-                <div className="relative h-12 w-36">
-                  <Image
-                    src="/site-assets/logo.svg"
-                    alt="cur8d.club"
-                    fill
-                    priority
-                    className="object-contain object-center"
-                  />
+                  {/* Info text */}
+                  <div className="flex flex-col items-center gap-0.5 text-base text-neutral-900 text-center">
+                    <p>Discover inspiring designers every week.</p>
+                    <p>
+                      Curated by{" "}
+                      <Link
+                        href="https://x.com/notjerrywang"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:no-underline"
+                      >
+                        ↳ @Jerry
+                      </Link>
+                    </p>
+                    <p>
+                      Have someone in mind?{" "}
+                      <Link
+                        href="https://form.typeform.com/to/T4Xb0N7L"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:no-underline"
+                      >
+                        ↳ Submit a referral
+                      </Link>
+                    </p>
+                  </div>
                 </div>
 
-                {/* Info text */}
-                <div className="flex flex-col items-center gap-2 text-base text-neutral-900">
-                  <p>Discover inspiring designers every week.</p>
-                  <p>
-                    Curated by{" "}
-                    <Link
-                      href="https://x.com/notjerrywang"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:no-underline"
-                    >
-                      ↳ @Jerry
-                    </Link>
-                  </p>
-                  <p>
-                    Have someone in mind?{" "}
-                    <Link
-                      href="https://form.typeform.com/to/T4Xb0N7L"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:no-underline"
-                    >
-                      ↳ Submit a referral
-                    </Link>
-                  </p>
-                </div>
+                {/* Dismiss Button */}
+                <motion.button
+                  onClick={() => setInfoOpen(false)}
+                  className="flex h-20 w-full items-center justify-center rounded-full text-neutral-900 transition-colors hover:bg-neutral-200 shrink-0"
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <motion.div
+                    whileHover={{ rotate: 90 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                  >
+                    <X className="h-6 w-6" />
+                  </motion.div>
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>

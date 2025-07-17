@@ -46,9 +46,9 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
               )}
             >
               <div className="flex w-[22px] flex-shrink-0 items-center justify-center">
-                <Globe className="h-3.5 w-3.5 text-gray-700" />
+                <Globe className="h-3.5 w-3.5 text-neutral-700" />
               </div>
-              <span className="whitespace-nowrap pl-0 text-xs text-gray-700">
+                              <span className="whitespace-nowrap pl-0 text-xs text-neutral-700">
                 Visit
               </span>
               <span className="sr-only">Visit</span>
@@ -74,7 +74,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
             {collectable.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-700"
+                                  className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700"
               >
                 {tag.charAt(0).toUpperCase() + tag.slice(1)}
               </span>
@@ -84,7 +84,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
       </div>
       <div className="space-y-0">
         <div className="flex items-center justify-center">
-          <h2 className="mt-3 font-medium text-center text-gray-700">{collectable.name}</h2>
+                          <h2 className="mt-3 font-medium text-center text-neutral-700">{collectable.name}</h2>
         </div>
       </div>
     </a>
