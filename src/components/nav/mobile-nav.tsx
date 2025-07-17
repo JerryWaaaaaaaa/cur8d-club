@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowCounterClockwise, CaretDown, CheckCircle, X } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CaretDown, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useMemo, useState } from "react";
@@ -31,9 +31,9 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
   let selectedTagsLabel = "All Expertise";
   if (selectedTags && selectedTags.length > 0) {
     if (selectedTags.length === 1) {
-      selectedTagsLabel = toTitleCase(selectedTags[0] || "");
+      selectedTagsLabel = toTitleCase(selectedTags[0] ?? "");
     } else {
-      const firstTag = toTitleCase(selectedTags[0] || "");
+      const firstTag = toTitleCase(selectedTags[0] ?? "");
       const extraCount = selectedTags.length - 1;
       selectedTagsLabel = `${firstTag}, +${extraCount}`;
     }
