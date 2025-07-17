@@ -58,7 +58,7 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
 
       {!infiniteCollectables.isLoading && allItems?.length > 0 && (
         <InfiniteScroll
-          className="pb-24"
+          className="pb-24 md:pb-24"
           dataLength={infiniteCollectables.data?.pages.length ?? 0}
           next={infiniteCollectables.fetchNextPage}
           hasMore={infiniteCollectables.hasNextPage || false}
@@ -70,7 +70,7 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
             </div>
           }
         >
-          <div className="grid grid-cols-2 gap-x-6 gap-y-12 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {allItems?.map((item, i) => (
               <motion.div
                 key={item.id}

@@ -1,5 +1,6 @@
 import { api, HydrateClient } from "@/trpc/server";
-import { Header } from "@/components/header";
+import { DesktopNav } from "@/components/nav/desktop-nav";
+import { MobileNav } from "@/components/nav/mobile-nav";
 import CollectableGrid from "@/components/collectable-grid";
 
 const COLLECTABLE_PER_PAGE = 12;
@@ -16,9 +17,15 @@ export default async function Home() {
 
   return (
     <HydrateClient>
-      <Header tagOptions={allTags} typeOptions={allTypes} />
+      {/* Desktop Navigation */}
+      <DesktopNav tagOptions={allTags} typeOptions={allTypes} />
 
-      <main className="container mx-auto px-4 pb-8 pt-8">
+      {/* Mobile Navigation */}
+      <div className="block md:hidden">
+        <MobileNav tagOptions={allTags} typeOptions={allTypes} />
+      </div>
+
+      <main className="container mx-auto px-4 pt-20 pb-32 md:pt-8 md:pb-8">
         <CollectableGrid
           initialData={initialInfiniteScrollData}
           pageSize={COLLECTABLE_PER_PAGE}
