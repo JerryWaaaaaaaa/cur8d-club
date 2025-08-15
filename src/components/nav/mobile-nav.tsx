@@ -8,6 +8,7 @@ import { MobileDropdown } from "@/components/ui/mobile-dropdown";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import { SubmissionForm } from "@/components/submission-form";
 
 interface MobileNavProps {
   tagOptions: string[];
@@ -17,6 +18,7 @@ interface MobileNavProps {
 export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
   const [params, setParams] = useCollectableFilterParams();
   const { type: selectedType, tags: selectedTags } = params;
+  const [submissionFormOpen, setSubmissionFormOpen] = useState(false);
 
   const hasAnySelection = useMemo(() => {
     return selectedType || (selectedTags && selectedTags.length > 0);
@@ -214,14 +216,15 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
                     </p>
                     <p>
                       Have someone in mind?{" "}
-                      <Link
-                        href="https://form.typeform.com/to/T4Xb0N7L"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => {
+                          setInfoOpen(false);
+                          setSubmissionFormOpen(true);
+                        }}
                         className="underline hover:no-underline"
                       >
                         ↳ Submit a referral
-                      </Link>
+                      </button>
                     </p>
                   </div>
                 </div>
@@ -244,6 +247,12 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Submission Form */}
+      <SubmissionForm 
+        open={submissionFormOpen} 
+        onOpenChange={setSubmissionFormOpen} 
+      />
     </>
   );
 } 
