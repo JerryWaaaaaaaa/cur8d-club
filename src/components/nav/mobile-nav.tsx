@@ -140,7 +140,6 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
       <MobileDropdown
         open={typeOpen}
         onOpenChange={setTypeOpen}
-        title="Type"
         options={typeOptions}
         selectedOptions={selectedType ? [selectedType] : []}
         onOptionSelect={(type) => {
@@ -153,7 +152,6 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
       <MobileDropdown
         open={tagOpen}
         onOpenChange={setTagOpen}
-        title="Tags"
         options={tagOptions}
         selectedOptions={selectedTags || []}
         onOptionSelect={(tag) => {
