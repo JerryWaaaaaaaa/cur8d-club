@@ -225,7 +225,7 @@ export function SubmissionForm({ open, onOpenChange }: SubmissionFormProps) {
                   onClick={handleNext}
                   disabled={selectedExpertise.length !== 3}
                 >
-                  Continue
+                  {selectedExpertise.length === 3 ? "Continue" : `${selectedExpertise.length}/3 selected`}
                 </Button>
                 {/* <span className="text-sm text-gray-500">press Enter ↵</span> */}
               </div>
