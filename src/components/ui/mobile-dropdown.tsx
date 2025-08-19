@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "motion/react";
 interface MobileDropdownProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
   options: string[];
   selectedOptions?: string[];
   onOptionSelect: (option: string) => void;
@@ -16,7 +15,6 @@ interface MobileDropdownProps {
 export function MobileDropdown({
   open,
   onOpenChange,
-  _title,
   options,
   selectedOptions = [],
   onOptionSelect,
