@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       designerUrl,
       expertiseAreas,
-      referrerUrl: referrerUrl || null,
+      referrerUrl: referrerUrl ?? null,
     }).returning();
 
     return NextResponse.json({ success: true, submission: submission[0] });

@@ -16,7 +16,7 @@ interface MobileDropdownProps {
 export function MobileDropdown({
   open,
   onOpenChange,
-  title,
+  _title,
   options,
   selectedOptions = [],
   onOptionSelect,
