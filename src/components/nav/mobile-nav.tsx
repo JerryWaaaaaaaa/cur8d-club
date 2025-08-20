@@ -200,9 +200,8 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
 
                   {/* Info text */}
                   <div className="flex flex-col items-center gap-0.5 text-base text-neutral-900 text-center">
-                    <p>Discover inspiring designers every week.</p>
                     <p>
-                      Curated by{" "}
+                      Made by{" "}
                       <Link
                         href="https://x.com/notjerrywang"
                         target="_blank"
