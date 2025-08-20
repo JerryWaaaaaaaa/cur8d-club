@@ -36,3 +36,17 @@ export const collectables = createTable(
     nameIndex: index("name_idx").on(example.name),
   }),
 );
+
+export const submissions = createTable(
+  "submission",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    createdAt: timestamp("created_at", { withTimezone: true }),
+    designerUrl: text("designer_url").notNull(),
+    expertiseAreas: text("expertise_areas").array().notNull(),
+    referrerUrl: text("referrer_url"),
+  },
+  (submission) => ({
+    createdAtIndex: index("created_at_idx").on(submission.createdAt),
+  }),
+);
