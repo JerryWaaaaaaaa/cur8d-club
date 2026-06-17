@@ -2,6 +2,7 @@
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
 import {
+  boolean,
   index,
   pgTableCreator,
   timestamp,
@@ -31,7 +32,8 @@ export const collectables = createTable(
     ogImageLastFetchedAt: timestamp("og_image_last_fetched_at", {
       withTimezone: true,
     }),
-    linkBrokenAt: timestamp("link_broken_at", { withTimezone: true }),
+    isReported: boolean("is_reported").notNull().default(false),
+    isBroken: boolean("is_broken").notNull().default(false),
   },
   (example) => ({
     nameIndex: index("name_idx").on(example.name),

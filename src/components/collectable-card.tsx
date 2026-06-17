@@ -29,12 +29,10 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   const [imageError, setImageError] = useState(false);
   const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const utils = api.useUtils();
 
-  const reportMutation = api.collectable.reportBrokenLink.useMutation({
+  const reportMutation = api.collectable.reportLink.useMutation({
     onSuccess: () => {
-      toast("We received the report and will update the link accordingly.");
-      void utils.collectable.getInfiniteScroll.invalidate();
+      toast("Thanks - we'll review this link and update it if needed.");
     },
   });
 

@@ -8,7 +8,6 @@ import {
   sql,
   arrayOverlaps,
   asc,
-  isNull,
 } from "drizzle-orm";
 
 const COLLECTABLE_PER_PAGE = 12;
@@ -51,7 +50,7 @@ export const collectableRouter = createTRPCRouter({
         .limit(limit + 1)
         .where(
           and(
-            isNull(collectables.linkBrokenAt),
+            eq(collectables.isBroken, false),
             type ? eq(collectables.type, type) : sql`TRUE`,
             tags && tags.length > 0
               ? arrayOverlaps(collectables.tags, tags)
@@ -112,13 +111,18 @@ export const collectableRouter = createTRPCRouter({
     return uniqueTypes as string[];
   }),
 
-  reportBrokenLink: publicProcedure
+  reportLink: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .update(collectables)
-        .set({ linkBrokenAt: new Date() })
-        .where(eq(collectables.id, input.id));
+        .set({ isReported: true })
+        .where(
+          and(
+            eq(collectables.id, input.id),
+            eq(collectables.isReported, false),
+          ),
+        );
 
       return { success: true };
     }),

@@ -95,7 +95,7 @@ export async function GET() {
         updatedAt: new Date(item.updatedAt),
         type: item.type,
         tags: item.tags,
-        ...(urlAltered ? { linkBrokenAt: null } : {}),
+        ...(urlAltered ? { isReported: false, isBroken: false } : {}),
       })
       .where(eq(collectables.id, item.id));
   });
