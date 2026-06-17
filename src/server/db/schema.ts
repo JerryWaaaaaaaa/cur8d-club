@@ -31,6 +31,7 @@ export const collectables = createTable(
     ogImageLastFetchedAt: timestamp("og_image_last_fetched_at", {
       withTimezone: true,
     }),
+    linkBrokenAt: timestamp("link_broken_at", { withTimezone: true }),
   },
   (example) => ({
     nameIndex: index("name_idx").on(example.name),

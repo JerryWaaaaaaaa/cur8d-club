@@ -82,8 +82,11 @@ export async function GET() {
   );
 
   // Update existing items in db
-  const updatePromises = updatedItems.map((item) =>
-    db
+  const updatePromises = updatedItems.map((item) => {
+    const dbItem = dbItems.find((dbItem) => dbItem.id === item.id);
+    const urlAltered = dbItem?.websiteUrl !== item.websiteUrl;
+
+    return db
       .update(collectables)
       .set({
         name: item.name,
@@ -92,9 +95,10 @@ export async function GET() {
         updatedAt: new Date(item.updatedAt),
         type: item.type,
         tags: item.tags,
+        ...(urlAltered ? { linkBrokenAt: null } : {}),
       })
-      .where(eq(collectables.id, item.id)),
-  );
+      .where(eq(collectables.id, item.id));
+  });
 
   dbPromises.push(...updatePromises);
 
