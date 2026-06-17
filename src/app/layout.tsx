@@ -5,6 +5,8 @@ import { Manrope } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { TRPCReactProvider } from "@/trpc/react";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -71,7 +73,12 @@ export default function RootLayout({
       </head>
       <body className={`${manrope.className} min-h-screen bg-background`}>
         <NuqsAdapter>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>
+            <TooltipProvider delayDuration={300}>
+              {children}
+              <Toaster />
+            </TooltipProvider>
+          </TRPCReactProvider>
         </NuqsAdapter>
         <Analytics />
       </body>
