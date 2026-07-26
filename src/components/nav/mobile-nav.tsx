@@ -9,13 +9,24 @@ import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { SubmissionForm } from "@/components/submission-form";
+import { useViewParams } from "@/hooks/params-parsers/use-view-params";
+import { ViewToggle } from "./view-toggle";
+import { MobileCaseStudyFilter } from "./mobile-case-study-filter";
 
 interface MobileNavProps {
   tagOptions: string[];
   typeOptions: string[];
+  caseStudyTypeOptions: string[];
+  caseStudyIndustryOptions: string[];
 }
 
-export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
+export function MobileNav({
+  tagOptions,
+  typeOptions,
+  caseStudyTypeOptions,
+  caseStudyIndustryOptions,
+}: MobileNavProps) {
+  const [{ view }] = useViewParams();
   const [params, setParams] = useCollectableFilterParams();
   const { type: selectedType, tags: selectedTags } = params;
   const [submissionFormOpen, setSubmissionFormOpen] = useState(false);
@@ -63,18 +74,34 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
             />
           </div>
           
-          {/* Info Button */}
-          <button
-            onClick={() => setInfoOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-neutral-200 px-4 py-2 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
-          >
-            Info
-          </button>
+          <div className="flex items-center gap-2">
+            <ViewToggle />
+
+            {/* Info Button */}
+            <button
+              onClick={() => setInfoOpen(true)}
+              className="flex items-center gap-2 rounded-full bg-neutral-200 px-4 py-2 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
+            >
+              Info
+            </button>
+          </div>
         </div>
       </div>
 
+      {view === "case-study" && (
+        <MobileCaseStudyFilter
+          typeOptions={caseStudyTypeOptions}
+          industryOptions={caseStudyIndustryOptions}
+        />
+      )}
+
       {/* Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-white via-white via-[35%] to-transparent p-5">
+      <div
+        className={cn(
+          "fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-white via-white via-[35%] to-transparent p-5",
+          view === "case-study" && "hidden",
+        )}
+      >
         <div className="flex flex-wrap items-center justify-center gap-2.5 w-full">
           <div className="flex items-center gap-2.5 justify-center">
             {/* Type Dropdown */}

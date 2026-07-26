@@ -13,6 +13,9 @@ export const env = createEnv({
       .default("development"),
     NOTION_DATABASE_ID: z.string(),
     NOTION_API_KEY: z.string(),
+    NOTION_CASE_STUDY_DATABASE_ID: z.string(),
+    ANTHROPIC_API_KEY: z.string(),
+    BLOB_READ_WRITE_TOKEN: z.string(),
   },
 
   /**
@@ -31,6 +34,9 @@ export const env = createEnv({
   runtimeEnv: {
     NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
     NOTION_API_KEY: process.env.NOTION_API_KEY,
+    NOTION_CASE_STUDY_DATABASE_ID: process.env.NOTION_CASE_STUDY_DATABASE_ID,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,

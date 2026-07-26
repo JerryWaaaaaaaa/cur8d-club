@@ -6,16 +6,37 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { SubmissionForm } from "../submission-form";
+import { useViewParams } from "@/hooks/params-parsers/use-view-params";
+import { ViewToggle } from "./view-toggle";
+import { CaseStudyFilter } from "./case-study-filter";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
 interface DesktopNavProps {
   typeOptions: string[];
   tagOptions: string[];
+  caseStudyTypeOptions: string[];
+  caseStudyIndustryOptions: string[];
 }
 
-export function DesktopNav({ typeOptions, tagOptions }: DesktopNavProps) {
+export function DesktopNav({
+  typeOptions,
+  tagOptions,
+  caseStudyTypeOptions,
+  caseStudyIndustryOptions,
+}: DesktopNavProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [{ view }] = useViewParams();
+
+  const filters =
+    view === "case-study" ? (
+      <CaseStudyFilter
+        typeOptions={caseStudyTypeOptions}
+        industryOptions={caseStudyIndustryOptions}
+      />
+    ) : (
+      <HorizontalFilter tagOptions={tagOptions} typeOptions={typeOptions} />
+    );
 
   return (
     <>
@@ -36,8 +57,9 @@ export function DesktopNav({ typeOptions, tagOptions }: DesktopNavProps) {
             {/* Mobile and Desktop: 3-column layout */}
             <div className="hidden lg:flex flex-col gap-3 md:gap-4 lg:gap-6 md:flex-row md:items-center md:justify-between">
               {/* Left: Filters */}
-              <div className="flex justify-start md:flex-1 md:justify-start">
-                <HorizontalFilter tagOptions={tagOptions} typeOptions={typeOptions} />
+              <div className="flex flex-col items-start gap-3 md:flex-1">
+                <ViewToggle />
+                {filters}
               </div>
               {/* Center: Logo */}
               <div className="flex justify-center md:w-[160px] lg:w-[200px] md:flex-shrink-0 md:items-center md:justify-center">
@@ -108,8 +130,9 @@ export function DesktopNav({ typeOptions, tagOptions }: DesktopNavProps) {
                   </p>
                 </div>
                 {/* Filters */}
-                <div className="flex justify-start">
-                  <HorizontalFilter tagOptions={tagOptions} typeOptions={typeOptions} />
+                <div className="flex flex-col items-start gap-3">
+                  <ViewToggle />
+                  {filters}
                 </div>
               </div>
               
