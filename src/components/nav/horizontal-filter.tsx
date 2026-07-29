@@ -26,7 +26,10 @@ export function HorizontalFilter({
 
   // Helper for showing selected tags as comma-separated
   function toTitleCase(str: string) {
-    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    return str.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase(),
+    );
   }
 
   // Responsive expertise label: show up to 2, then '+x more'
@@ -40,11 +43,16 @@ export function HorizontalFilter({
       selectedTagsLabel = shown.join(", ");
     }
   }
-  const selectedTypeLabel = selectedType ? toTitleCase(selectedType) : "All Types";
+  const selectedTypeLabel = selectedType
+    ? toTitleCase(selectedType)
+    : "All Types";
 
   // Add state to track open status for each dropdown
   const [typeOpen, setTypeOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
+
+  // Nothing to filter by — don't render controls that can't do anything.
+  if (typeOptions.length === 0 && tagOptions.length === 0) return null;
 
   return (
     <div className="flex items-center gap-2 pb-0 pt-0">
@@ -56,7 +64,7 @@ export function HorizontalFilter({
               "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
               typeOpen
                 ? "bg-black text-white"
-                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
             )}
           >
             {selectedTypeLabel}
@@ -72,7 +80,12 @@ export function HorizontalFilter({
           {typeOptions.map((type) => (
             <DropdownMenu.Item
               key={type}
-              onSelect={() => void setParams({ ...params, type: selectedType === type ? null : type })}
+              onSelect={() =>
+                void setParams({
+                  ...params,
+                  type: selectedType === type ? null : type,
+                })
+              }
               selected={selectedType === type}
             >
               {toTitleCase(type)}
@@ -89,11 +102,11 @@ export function HorizontalFilter({
               "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
               tagOpen
                 ? "bg-black text-white"
-                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
             )}
             style={{ maxWidth: 240 }}
           >
-            <span className="truncate max-w-[240px]">{selectedTagsLabel}</span>
+            <span className="max-w-[240px] truncate">{selectedTagsLabel}</span>
             <motion.div
               animate={{ rotate: tagOpen ? 360 : 270 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -109,12 +122,18 @@ export function HorizontalFilter({
             return (
               <DropdownMenu.Item
                 key={tag}
-                onSelect={e => {
+                onSelect={(e) => {
                   e.preventDefault(); // Prevent menu from closing
                   if (isSelected) {
-                    void setParams({ ...params, tags: selectedTags.filter((t) => t !== tag) });
+                    void setParams({
+                      ...params,
+                      tags: selectedTags.filter((t) => t !== tag),
+                    });
                   } else {
-                    void setParams({ ...params, tags: [...(selectedTags || []), tag] });
+                    void setParams({
+                      ...params,
+                      tags: [...(selectedTags || []), tag],
+                    });
                   }
                 }}
                 selected={isSelected}
@@ -131,7 +150,7 @@ export function HorizontalFilter({
         onClick={() => setParams({ ...params, type: null, tags: [] })}
         className={cn(
           "flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300",
-          !hasAnySelection && "pointer-events-none opacity-0"
+          !hasAnySelection && "pointer-events-none opacity-0",
         )}
         aria-label="Reset filters"
       >

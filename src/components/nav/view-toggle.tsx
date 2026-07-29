@@ -1,7 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useViewParams, type View } from "@/hooks/params-parsers/use-view-params";
+import {
+  useViewParams,
+  type View,
+} from "@/hooks/params-parsers/use-view-params";
 
 const OPTIONS: { value: View; label: string }[] = [
   { value: "designer", label: "Designers" },
@@ -16,7 +19,8 @@ export function ViewToggle({ className }: { className?: string }) {
       role="tablist"
       aria-label="Browse mode"
       className={cn(
-        "inline-flex items-center gap-0.5 rounded-full bg-neutral-200/70 p-0.5",
+        // h-9 matches the filter pills (py-2 + text-sm) so the row lines up.
+        "inline-flex h-9 flex-shrink-0 items-center gap-0.5 rounded-full bg-neutral-200/70 p-0.5",
         className,
       )}
     >
@@ -31,7 +35,7 @@ export function ViewToggle({ className }: { className?: string }) {
             aria-selected={isActive}
             onClick={() => setViewParams({ view: option.value })}
             className={cn(
-              "whitespace-nowrap rounded-full px-3 py-1 text-xs transition-colors duration-200",
+              "flex h-8 items-center whitespace-nowrap rounded-full px-3.5 text-sm transition-colors duration-200",
               isActive
                 ? "bg-foreground text-background"
                 : "text-neutral-600 hover:text-neutral-900",

@@ -56,78 +56,89 @@ export function CaseStudyFilter({
 
   const triggerClasses = (isOpen: boolean) =>
     cn(
-      "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
+      "flex h-9 items-center gap-2 rounded-full px-4 text-sm font-normal transition-colors focus:outline-none",
       isOpen
         ? "bg-black text-white"
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
     );
 
+  // An empty database means empty dropdowns — show nothing rather than
+  // controls that can't do anything.
+  if (typeOptions.length === 0 && industryOptions.length === 0) return null;
+
   return (
     <div className="flex items-center gap-2 pb-0 pt-0">
-      <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
-        <DropdownMenu.Trigger asChild>
-          <button className={triggerClasses(typeOpen)} style={{ maxWidth: 240 }}>
-            <span className="max-w-[240px] truncate">
-              {buildLabel(selectedTypes, "All Types")}
-            </span>
-            <motion.div
-              animate={{ rotate: typeOpen ? 360 : 270 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="flex-shrink-0"
+      {typeOptions.length > 0 && (
+        <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
+          <DropdownMenu.Trigger asChild>
+            <button
+              className={triggerClasses(typeOpen)}
+              style={{ maxWidth: 240 }}
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
-            </motion.div>
-          </button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content open={typeOpen}>
-          {typeOptions.map((type) => (
-            <DropdownMenu.Item
-              key={type}
-              onSelect={(e) => {
-                e.preventDefault();
-                toggle("types", type);
-              }}
-              selected={selectedTypes.includes(type)}
-            >
-              {toTitleCase(type)}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+              <span className="max-w-[240px] truncate">
+                {buildLabel(selectedTypes, "All Types")}
+              </span>
+              <motion.div
+                animate={{ rotate: typeOpen ? 360 : 270 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="flex-shrink-0"
+              >
+                <CaretDown weight="fill" className="h-4 w-4" />
+              </motion.div>
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content open={typeOpen}>
+            {typeOptions.map((type) => (
+              <DropdownMenu.Item
+                key={type}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  toggle("types", type);
+                }}
+                selected={selectedTypes.includes(type)}
+              >
+                {toTitleCase(type)}
+              </DropdownMenu.Item>
+            ))}
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      )}
 
-      <DropdownMenu.Root open={industryOpen} onOpenChange={setIndustryOpen}>
-        <DropdownMenu.Trigger asChild>
-          <button
-            className={triggerClasses(industryOpen)}
-            style={{ maxWidth: 240 }}
-          >
-            <span className="max-w-[240px] truncate">
-              {buildLabel(selectedIndustries, "All Industries")}
-            </span>
-            <motion.div
-              animate={{ rotate: industryOpen ? 360 : 270 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="flex-shrink-0"
+      {industryOptions.length > 0 && (
+        <DropdownMenu.Root open={industryOpen} onOpenChange={setIndustryOpen}>
+          <DropdownMenu.Trigger asChild>
+            <button
+              className={triggerClasses(industryOpen)}
+              style={{ maxWidth: 240 }}
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
-            </motion.div>
-          </button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content open={industryOpen}>
-          {industryOptions.map((industry) => (
-            <DropdownMenu.Item
-              key={industry}
-              onSelect={(e) => {
-                e.preventDefault();
-                toggle("industries", industry);
-              }}
-              selected={selectedIndustries.includes(industry)}
-            >
-              {toTitleCase(industry)}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+              <span className="max-w-[240px] truncate">
+                {buildLabel(selectedIndustries, "All Industries")}
+              </span>
+              <motion.div
+                animate={{ rotate: industryOpen ? 360 : 270 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="flex-shrink-0"
+              >
+                <CaretDown weight="fill" className="h-4 w-4" />
+              </motion.div>
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content open={industryOpen}>
+            {industryOptions.map((industry) => (
+              <DropdownMenu.Item
+                key={industry}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  toggle("industries", industry);
+                }}
+                selected={selectedIndustries.includes(industry)}
+              >
+                {toTitleCase(industry)}
+              </DropdownMenu.Item>
+            ))}
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      )}
 
       <button
         onClick={() => setParams({ ...params, types: [], industries: [] })}

@@ -59,46 +59,55 @@ export function MobileCaseStudyFilter({
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
     );
 
+  // No options means an empty bottom bar — hide it entirely.
+  if (typeOptions.length === 0 && industryOptions.length === 0) return null;
+
   return (
     <>
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-white via-white via-[35%] to-transparent p-5">
         <div className="flex w-full flex-wrap items-center justify-center gap-2.5">
           <div className="flex items-center justify-center gap-2.5">
-            <button
-              onClick={() => setTypeOpen(true)}
-              className={triggerClasses(typeOpen)}
-            >
-              <span className="truncate">
-                {buildLabel(selectedTypes, "All Types")}
-              </span>
-              <motion.div
-                animate={{ rotate: typeOpen ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="flex-shrink-0"
+            {typeOptions.length > 0 && (
+              <button
+                onClick={() => setTypeOpen(true)}
+                className={triggerClasses(typeOpen)}
               >
-                <CaretDown weight="fill" className="h-5 w-5" />
-              </motion.div>
-            </button>
+                <span className="truncate">
+                  {buildLabel(selectedTypes, "All Types")}
+                </span>
+                <motion.div
+                  animate={{ rotate: typeOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                  className="flex-shrink-0"
+                >
+                  <CaretDown weight="fill" className="h-5 w-5" />
+                </motion.div>
+              </button>
+            )}
 
-            <button
-              onClick={() => setIndustryOpen(true)}
-              className={triggerClasses(industryOpen)}
-            >
-              <span className="truncate">
-                {buildLabel(selectedIndustries, "All Industries")}
-              </span>
-              <motion.div
-                animate={{ rotate: industryOpen ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="flex-shrink-0"
+            {industryOptions.length > 0 && (
+              <button
+                onClick={() => setIndustryOpen(true)}
+                className={triggerClasses(industryOpen)}
               >
-                <CaretDown weight="fill" className="h-5 w-5" />
-              </motion.div>
-            </button>
+                <span className="truncate">
+                  {buildLabel(selectedIndustries, "All Industries")}
+                </span>
+                <motion.div
+                  animate={{ rotate: industryOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                  className="flex-shrink-0"
+                >
+                  <CaretDown weight="fill" className="h-5 w-5" />
+                </motion.div>
+              </button>
+            )}
 
             {hasAnySelection && (
               <button
-                onClick={() => setParams({ ...params, types: [], industries: [] })}
+                onClick={() =>
+                  setParams({ ...params, types: [], industries: [] })
+                }
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 p-2 text-neutral-900 transition-all hover:bg-neutral-300"
                 aria-label="Reset filters"
               >

@@ -41,7 +41,7 @@ export function DesktopNav({
   return (
     <>
       <header
-        className="hidden md:block sticky top-0 z-20 pt-6 md:pt-8 lg:pt-10 pb-6 md:pb-8 lg:pb-10"
+        className="sticky top-0 z-20 hidden pb-6 pt-6 md:block md:pb-8 md:pt-8 lg:pb-10 lg:pt-10"
         style={{
           backdropFilter: "blur(20px) brightness(1.1)",
           WebkitBackdropFilter: "blur(20px) brightness(1.1)",
@@ -52,17 +52,16 @@ export function DesktopNav({
           background: "linear-gradient(white 72%, transparent)",
         }}
       >
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 pb-4 md:pb-6">
+        <div className="container mx-auto px-4 pb-4 md:px-6 md:pb-6 lg:px-8">
           <div className="flex flex-col gap-3 md:gap-4">
             {/* Mobile and Desktop: 3-column layout */}
-            <div className="hidden lg:flex flex-col gap-3 md:gap-4 lg:gap-6 md:flex-row md:items-center md:justify-between">
-              {/* Left: Filters */}
-              <div className="flex flex-col items-start gap-3 md:flex-1">
-                <ViewToggle />
-                {filters}
-              </div>
+            <div className="hidden flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4 lg:flex lg:gap-6">
+              {/* Left: spacer that keeps the logo optically centred. The
+                  controls need more room than this column can give, so they
+                  get their own full-width row below. */}
+              <div className="md:flex-1" />
               {/* Center: Logo */}
-              <div className="flex justify-center md:w-[160px] lg:w-[200px] md:flex-shrink-0 md:items-center md:justify-center">
+              <div className="flex justify-center md:w-[160px] md:flex-shrink-0 md:items-center md:justify-center lg:w-[200px]">
                 <div className="relative flex h-full items-center justify-center">
                   <div className="relative h-[40px] w-[150px] md:h-[44px] md:w-[160px] lg:h-[48px] lg:w-[180px]">
                     <Image
@@ -76,8 +75,10 @@ export function DesktopNav({
                 </div>
               </div>
               {/* Right: Description/Links */}
-              <div className={`${manrope.className} mt-0 flex w-full flex-col items-end justify-center md:mt-0 md:flex-1 md:items-end md:justify-center`}>
-                <p className="text-sm md:text-base lg:text-l max-w-full text-right leading-tight text-neutral-700 md:max-w-[300px] lg:max-w-[400px]">
+              <div
+                className={`${manrope.className} mt-0 flex w-full flex-col items-end justify-center md:mt-0 md:flex-1 md:items-end md:justify-center`}
+              >
+                <p className="lg:text-l max-w-full text-right text-sm leading-tight text-neutral-700 md:max-w-[300px] md:text-base lg:max-w-[400px]">
                   Made by{" "}
                   <Link
                     href="https://x.com/notjerrywang"
@@ -88,26 +89,33 @@ export function DesktopNav({
                     @Jerry ↵
                   </Link>
                   <br />
-                  <span className="text-sm md:text-base lg:text-l leading-tight text-neutral-700">
+                  <span className="lg:text-l text-sm leading-tight text-neutral-700 md:text-base">
                     Have someone in mind?{" "}
                   </span>
                   <button
                     onClick={() => setIsFormOpen(true)}
-                    className="text-sm md:text-base lg:text-l leading-tight text-neutral-900 hover:underline"
+                    className="lg:text-l text-sm leading-tight text-neutral-900 hover:underline md:text-base"
                   >
-                     Submit a referral ↵
+                    Submit a referral ↵
                   </button>
                 </p>
               </div>
             </div>
 
+            {/* Desktop: controls get the full container width so the toggle
+                and both filters sit on one line. */}
+            <div className="hidden items-center gap-2 lg:flex">
+              <ViewToggle />
+              {filters}
+            </div>
+
             {/* Tablet: 2-column layout with left content and right logo */}
-            <div className="lg:hidden flex flex-col md:flex-row md:items-start md:justify-between">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between lg:hidden">
               {/* Left: Description and Filters stacked vertically */}
-              <div className="flex flex-col gap-3 md:gap-3 md:flex-1">
+              <div className="flex flex-col gap-3 md:flex-1 md:gap-3">
                 {/* Description text */}
                 <div className={`${manrope.className} flex flex-col`}>
-                  <p className="text-sm md:text-base lg:text-l max-w-full leading-tight text-neutral-700">
+                  <p className="lg:text-l max-w-full text-sm leading-tight text-neutral-700 md:text-base">
                     Made by{" "}
                     <Link
                       href="https://x.com/notjerrywang"
@@ -118,7 +126,7 @@ export function DesktopNav({
                       @Jerry ↵
                     </Link>
                     <br />
-                    <span className="text-sm md:text-base lg:text-l leading-tight text-neutral-700">
+                    <span className="lg:text-l text-sm leading-tight text-neutral-700 md:text-base">
                       Have someone in mind?{" "}
                       <button
                         onClick={() => setIsFormOpen(true)}
@@ -130,12 +138,12 @@ export function DesktopNav({
                   </p>
                 </div>
                 {/* Filters */}
-                <div className="flex flex-col items-start gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <ViewToggle />
                   {filters}
                 </div>
               </div>
-              
+
               {/* Right: Logo */}
               <div className="flex justify-end md:flex-shrink-0 md:items-start">
                 <div className="relative flex h-full items-center justify-center">
@@ -154,11 +162,8 @@ export function DesktopNav({
           </div>
         </div>
       </header>
-      
-      <SubmissionForm 
-        open={isFormOpen} 
-        onOpenChange={setIsFormOpen} 
-      />
+
+      <SubmissionForm open={isFormOpen} onOpenChange={setIsFormOpen} />
     </>
   );
-} 
+}
