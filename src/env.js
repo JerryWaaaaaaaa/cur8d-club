@@ -13,9 +13,13 @@ export const env = createEnv({
       .default("development"),
     NOTION_DATABASE_ID: z.string(),
     NOTION_API_KEY: z.string(),
-    NOTION_CASE_STUDY_DATABASE_ID: z.string(),
-    ANTHROPIC_API_KEY: z.string(),
-    BLOB_READ_WRITE_TOKEN: z.string(),
+
+    // Case study support is optional: the site builds and serves the designer
+    // view without any of these. Missing credentials disable the case study
+    // sync rather than failing the build.
+    NOTION_CASE_STUDY_DATABASE_ID: z.string().optional(),
+    ANTHROPIC_API_KEY: z.string().optional(),
+    BLOB_READ_WRITE_TOKEN: z.string().optional(),
   },
 
   /**

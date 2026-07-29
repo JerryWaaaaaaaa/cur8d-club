@@ -14,13 +14,21 @@ export default async function Home({ searchParams }: HomeProps) {
   const { view } = await searchParams;
   const isCaseStudyView = view === "case-study";
 
-  const [allTags, allTypes, caseStudyTypes, caseStudyIndustries] =
-    await Promise.all([
-      api.collectable.getUniqueTags(),
-      api.collectable.getUniqueTypes(),
-      api.caseStudy.getUniqueTypes(),
-      api.caseStudy.getUniqueIndustries(),
-    ]);
+  const [allTags, allTypes] = await Promise.all([
+    api.collectable.getUniqueTags(),
+    api.collectable.getUniqueTypes(),
+  ]);
+
+  // Only read the case study tables when that view is actually being shown.
+  // Switching views is a full server round trip (the `view` param is not
+  // shallow), so the real options are fetched before the filters are visible —
+  // and the designer view stays up even if the case study table is absent.
+  const [caseStudyTypes, caseStudyIndustries] = isCaseStudyView
+    ? await Promise.all([
+        api.caseStudy.getUniqueTypes(),
+        api.caseStudy.getUniqueIndustries(),
+      ])
+    : [[], []];
 
   const nav = (
     <>

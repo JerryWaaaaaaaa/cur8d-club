@@ -23,6 +23,11 @@ export async function mirrorToBlob(
 ): Promise<string | null> {
   if (isBlobUrl(sourceUrl)) return sourceUrl;
 
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    console.warn("BLOB_READ_WRITE_TOKEN not set — skipping mirror of", sourceUrl);
+    return null;
+  }
+
   try {
     const response = await fetch(sourceUrl);
     if (!response.ok) {
@@ -52,6 +57,13 @@ export async function uploadFileToBlob(
   key: string,
   contentType: string,
 ): Promise<string> {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is not set. Create a Vercel Blob store, then copy " +
+        "the token into your local .env before running this script.",
+    );
+  }
+
   const blob = await put(key, data, {
     access: "public",
     contentType,

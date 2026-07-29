@@ -101,6 +101,19 @@ function needsEnrichment(item: NotionCaseStudy, dbItem: DbCaseStudy) {
 }
 
 export async function GET() {
+  // The daily cron runs whether or not case studies have been set up yet, so
+  // treat missing credentials as "nothing to do" rather than an error.
+  if (!process.env.NOTION_CASE_STUDY_DATABASE_ID || !process.env.NOTION_API_KEY) {
+    return NextResponse.json({
+      skipped: "case study sync is not configured",
+      missing: [
+        !process.env.NOTION_CASE_STUDY_DATABASE_ID &&
+          "NOTION_CASE_STUDY_DATABASE_ID",
+        !process.env.NOTION_API_KEY && "NOTION_API_KEY",
+      ].filter(Boolean),
+    });
+  }
+
   const trueItems = await fetchCaseStudyData();
   const dbItems = await db.query.caseStudies.findMany();
 

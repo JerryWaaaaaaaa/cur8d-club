@@ -1,8 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import * as cheerio from "cheerio";
 
-const anthropic = new Anthropic();
-
 // Short summaries only — this is a card caption, not an article.
 const MAX_TOKENS = 300;
 const MAX_SOURCE_CHARS = 12_000;
@@ -52,6 +50,11 @@ export async function generateSummary({
   types,
   industries,
 }: SummaryInput): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn("ANTHROPIC_API_KEY not set — skipping summary for", name);
+    return null;
+  }
+
   const source = sourceText ?? (url ? await fetchPageText(url) : null);
 
   if (!source) {
@@ -69,6 +72,8 @@ export async function generateSummary({
     .join("\n");
 
   try {
+    const anthropic = new Anthropic();
+
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: MAX_TOKENS,
