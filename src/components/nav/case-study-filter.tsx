@@ -140,22 +140,23 @@ export function CaseStudyFilter({
         </DropdownMenu.Root>
       )}
 
-      <button
-        onClick={() => setParams({ ...params, types: [], industries: [] })}
-        className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300",
-          !hasAnySelection && "pointer-events-none opacity-0",
-        )}
-        aria-label="Reset filters"
-      >
-        <motion.span
-          whileHover={{ rotate: -60 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-          style={{ display: "inline-flex" }}
+      {/* Only takes up space once there's something to reset — the header
+          column is narrow enough that the idle 36px matters. */}
+      {hasAnySelection && (
+        <button
+          onClick={() => setParams({ ...params, types: [], industries: [] })}
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300"
+          aria-label="Reset filters"
         >
-          <ArrowCounterClockwise weight="fill" className="h-5 w-5" />
-        </motion.span>
-      </button>
+          <motion.span
+            whileHover={{ rotate: -60 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            style={{ display: "inline-flex" }}
+          >
+            <ArrowCounterClockwise weight="fill" className="h-5 w-5" />
+          </motion.span>
+        </button>
+      )}
     </div>
   );
 }

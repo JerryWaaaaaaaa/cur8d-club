@@ -37,7 +37,10 @@ export function MobileNav({
 
   // Helper for showing selected tags as comma-separated
   function toTitleCase(str: string) {
-    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    return str.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase(),
+    );
   }
 
   // Improved expertise label: show first item + count for overflow
@@ -51,7 +54,9 @@ export function MobileNav({
       selectedTagsLabel = `${firstTag}, +${extraCount}`;
     }
   }
-  const selectedTypeLabel = selectedType ? toTitleCase(selectedType) : "All Types";
+  const selectedTypeLabel = selectedType
+    ? toTitleCase(selectedType)
+    : "All Types";
 
   // Add state to track open status for each dropdown
   const [typeOpen, setTypeOpen] = useState(false);
@@ -61,7 +66,7 @@ export function MobileNav({
   return (
     <>
       {/* Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-white from-[13%] via-white via-[80%] to-transparent p-5">
+      <div className="fixed left-0 right-0 top-0 z-50 bg-gradient-to-b from-white from-[13%] via-white via-[80%] to-transparent p-5">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="relative h-12 w-36">
@@ -73,7 +78,7 @@ export function MobileNav({
               className="object-contain object-left"
             />
           </div>
-          
+
           <div className="flex items-center gap-2">
             <ViewToggle />
 
@@ -102,17 +107,17 @@ export function MobileNav({
           view === "case-study" && "hidden",
         )}
       >
-        <div className="flex flex-wrap items-center justify-center gap-2.5 w-full">
-          <div className="flex items-center gap-2.5 justify-center">
+        <div className="flex w-full flex-wrap items-center justify-center gap-2.5">
+          <div className="flex items-center justify-center gap-2.5">
             {/* Type Dropdown */}
             <button
               onClick={() => setTypeOpen(true)}
-                                className={cn(
-                    "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none",
-                    typeOpen
-                      ? "bg-neutral-300 text-neutral-900"
-                      : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
-                  )}
+              className={cn(
+                "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none",
+                typeOpen
+                  ? "bg-neutral-300 text-neutral-900"
+                  : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
+              )}
             >
               {selectedTypeLabel}
               <motion.div
@@ -126,12 +131,12 @@ export function MobileNav({
             {/* Tag Dropdown (multi-select) */}
             <button
               onClick={() => setTagOpen(true)}
-                                className={cn(
-                    "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis",
-                    tagOpen
-                      ? "bg-neutral-300 text-neutral-900"
-                      : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
-                  )}
+              className={cn(
+                "flex max-w-[160px] items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none",
+                tagOpen
+                  ? "bg-neutral-300 text-neutral-900"
+                  : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
+              )}
             >
               <span className="truncate">{selectedTagsLabel}</span>
               <motion.div
@@ -147,7 +152,7 @@ export function MobileNav({
             {hasAnySelection && (
               <button
                 onClick={() => setParams({ ...params, type: null, tags: [] })}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300 p-2"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 p-2 text-neutral-900 transition-all hover:bg-neutral-300"
                 aria-label="Reset filters"
               >
                 <motion.span
@@ -184,7 +189,10 @@ export function MobileNav({
         onOptionSelect={(tag) => {
           const isSelected = selectedTags?.includes(tag);
           if (isSelected) {
-            void setParams({ ...params, tags: selectedTags.filter((t) => t !== tag) });
+            void setParams({
+              ...params,
+              tags: selectedTags.filter((t) => t !== tag),
+            });
           } else {
             void setParams({ ...params, tags: [...(selectedTags || []), tag] });
           }
@@ -208,12 +216,12 @@ export function MobileNav({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="relative w-full max-w-sm h-screen flex flex-col justify-end pt-3 px-2 pb-safe"
+              className="pb-safe relative flex h-screen w-full max-w-sm flex-col justify-end px-2 pt-3"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col gap-2 h-full">
+              <div className="flex h-full flex-col gap-2">
                 {/* Content Container */}
-                <div className="flex flex-col gap-5 flex-1 items-center justify-center">
+                <div className="flex flex-1 flex-col items-center justify-center gap-5">
                   {/* Logo */}
                   <div className="relative h-20 w-48">
                     <Image
@@ -226,7 +234,7 @@ export function MobileNav({
                   </div>
 
                   {/* Info text */}
-                  <div className="flex flex-col items-center gap-0.5 text-base text-neutral-900 text-center">
+                  <div className="flex flex-col items-center gap-0.5 text-center text-base text-neutral-900">
                     <p>
                       Made by{" "}
                       <Link
@@ -256,7 +264,7 @@ export function MobileNav({
                 {/* Dismiss Button */}
                 <motion.button
                   onClick={() => setInfoOpen(false)}
-                  className="flex h-20 w-full items-center justify-center rounded-full text-neutral-900 transition-colors hover:bg-neutral-200 shrink-0"
+                  className="flex h-20 w-full shrink-0 items-center justify-center rounded-full text-neutral-900 transition-colors hover:bg-neutral-200"
                   whileTap={{ scale: 0.98 }}
                 >
                   <motion.div
@@ -273,10 +281,10 @@ export function MobileNav({
       </AnimatePresence>
 
       {/* Submission Form */}
-      <SubmissionForm 
-        open={submissionFormOpen} 
-        onOpenChange={setSubmissionFormOpen} 
+      <SubmissionForm
+        open={submissionFormOpen}
+        onOpenChange={setSubmissionFormOpen}
       />
     </>
   );
-} 
+}

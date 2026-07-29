@@ -55,11 +55,12 @@ export function DesktopNav({
         <div className="container mx-auto px-4 pb-4 md:px-6 md:pb-6 lg:px-8">
           <div className="flex flex-col gap-3 md:gap-4">
             {/* Mobile and Desktop: 3-column layout */}
-            <div className="hidden flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4 lg:flex lg:gap-6">
-              {/* Left: spacer that keeps the logo optically centred. The
-                  controls need more room than this column can give, so they
-                  get their own full-width row below. */}
-              <div className="md:flex-1" />
+            <div className="hidden flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4 lg:flex lg:gap-6">
+              {/* Left: controls, top-aligned with the logo and the text */}
+              <div className="flex flex-wrap items-center gap-2 md:flex-1">
+                <ViewToggle />
+                {filters}
+              </div>
               {/* Center: Logo */}
               <div className="flex justify-center md:w-[160px] md:flex-shrink-0 md:items-center md:justify-center lg:w-[200px]">
                 <div className="relative flex h-full items-center justify-center">
@@ -100,13 +101,6 @@ export function DesktopNav({
                   </button>
                 </p>
               </div>
-            </div>
-
-            {/* Desktop: controls get the full container width so the toggle
-                and both filters sit on one line. */}
-            <div className="hidden items-center gap-2 lg:flex">
-              <ViewToggle />
-              {filters}
             </div>
 
             {/* Tablet: 2-column layout with left content and right logo */}
