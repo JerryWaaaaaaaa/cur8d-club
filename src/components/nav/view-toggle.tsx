@@ -8,7 +8,7 @@ import {
 
 const OPTIONS: { value: View; label: string }[] = [
   { value: "designer", label: "Designers" },
-  { value: "case-study", label: "Case Studies" },
+  { value: "case-study", label: "Projects" },
 ];
 
 export function ViewToggle({ className }: { className?: string }) {
