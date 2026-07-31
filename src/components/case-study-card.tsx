@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { ArrowUpRight } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { type api as serverApi } from "@/trpc/server";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,9 @@ interface CaseStudyCardProps {
   caseStudy: CaseStudy;
 }
 
+// Same seeds as the designer card, so both grids share one hover personality.
+const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
+
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -26,6 +30,8 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [mediaError, setMediaError] = useState(false);
+  const [hoverRotation, setHoverRotation] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   const hasVideo =
     caseStudy.mediaType === "video" && caseStudy.videoUrl !== null && !mediaError;
@@ -54,15 +60,24 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
   }, [hasVideo]);
 
   const handleMouseEnter = () => {
-    if (!hasVideo || prefersReducedMotion()) return;
-    void videoRef.current?.play().catch(() => undefined);
+    if (hasVideo) void videoRef.current?.play().catch(() => undefined);
+    if (prefersReducedMotion()) return;
+    const seed =
+      HOVER_ROTATION_SEEDS[
+        Math.floor(Math.random() * HOVER_ROTATION_SEEDS.length)
+      ]!;
+    setHoverRotation(seed);
+    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
     const video = videoRef.current;
-    if (!hasVideo || !video) return;
-    video.pause();
-    video.currentTime = 0;
+    if (hasVideo && video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+    setIsHovered(false);
+    setHoverRotation(0);
   };
 
   const media = hasVideo ? (
@@ -74,7 +89,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
       loop
       playsInline
       preload="metadata"
-      className="h-full w-full object-cover"
+      className="h-full w-full object-contain p-16"
       onError={() => setMediaError(true)}
     />
   ) : caseStudy.coverImageUrl && !mediaError ? (
@@ -83,11 +98,11 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
       alt={caseStudy.name}
       fill
       unoptimized
-      className="object-cover"
+      className="object-contain p-16"
       onError={() => setMediaError(true)}
     />
   ) : (
-    <ImagePlaceholder name={caseStudy.name} fill />
+    <ImagePlaceholder name={caseStudy.name} />
   );
 
   const metadata = [caseStudy.infoRole, caseStudy.infoTeam].filter(Boolean);
@@ -99,21 +114,82 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="relative aspect-video overflow-hidden rounded-sm bg-muted">
-        {media}
-
+      <div
+        className={cn(
+          "relative z-0 mb-3 aspect-square overflow-hidden bg-muted",
+          "origin-center transition-transform duration-300 ease-out",
+          isHovered && "z-10",
+          "motion-reduce:transition-none",
+        )}
+        style={{
+          transform:
+            hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
+        }}
+      >
         {caseStudy.websiteUrl && (
           <a
             href={caseStudy.websiteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute inset-0 z-10"
+            className="absolute inset-0 z-0"
             aria-label={`Visit ${caseStudy.name}`}
           />
         )}
 
+        {caseStudy.types && caseStudy.types.length > 0 && (
+          <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
+            {caseStudy.types.map((type) => (
+              <span
+                key={type}
+                className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background"
+              >
+                {toTitleCase(type)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {caseStudy.websiteUrl && (
+          <div className="absolute right-3 top-3 z-10">
+            <a
+              href={caseStudy.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "flex h-[22px] cursor-pointer items-center overflow-hidden rounded-full",
+                "bg-neutral-200 transition-all duration-200 ease-out hover:bg-neutral-300",
+                "w-[22px] group-hover:w-[104px]",
+              )}
+            >
+              <div className="flex w-[22px] flex-shrink-0 items-center justify-center">
+                <ArrowUpRight className="h-3.5 w-3.5 text-neutral-700" />
+              </div>
+              <span className="whitespace-nowrap pl-0 text-xs text-neutral-700">
+                Visit Project
+              </span>
+              <span className="sr-only">Visit Project</span>
+            </a>
+          </div>
+        )}
+
+        <div
+          className={cn(
+            "absolute inset-0 origin-center",
+            "transition-transform duration-300 ease-out",
+            "motion-reduce:transition-none",
+          )}
+          style={{
+            transform:
+              hoverRotation !== 0
+                ? `rotate(${-hoverRotation * 2}deg) scale(1.05)`
+                : undefined,
+          }}
+        >
+          {media}
+        </div>
+
         {caseStudy.industries && caseStudy.industries.length > 0 && (
-          <div className="pointer-events-none absolute bottom-3 left-3 z-20 flex flex-wrap gap-1.5">
+          <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
             {caseStudy.industries.map((industry) => (
               <span
                 key={industry}
@@ -126,7 +202,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
         )}
       </div>
 
-      <div className="mt-3 flex flex-col gap-1.5">
+      <div className="mt-4 flex flex-col gap-1.5">
         {caseStudy.websiteUrl ? (
           <a
             href={caseStudy.websiteUrl}
@@ -147,9 +223,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
         )}
 
         {metadata.length > 0 && (
-          <p className={cn("text-xs text-neutral-500")}>
-            {metadata.join(" · ")}
-          </p>
+          <p className="text-xs text-neutral-500">{metadata.join(" · ")}</p>
         )}
       </div>
     </div>

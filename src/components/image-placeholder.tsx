@@ -1,12 +1,6 @@
 interface ImagePlaceholderProps {
   name: string;
   className?: string;
-  /**
-   * Stretch the colour block to the whole frame instead of insetting a 2:1
-   * swatch. Used by the landscape case study cards; the square designer cards
-   * keep the inset look.
-   */
-  fill?: boolean;
 }
 
 // Expanded Bauhaus and Swiss style inspired color palette
@@ -37,11 +31,7 @@ const bauhausColors = [
   "#E9C46A", // Saffron
 ];
 
-export function ImagePlaceholder({
-  name,
-  className,
-  fill = false,
-}: ImagePlaceholderProps) {
+export function ImagePlaceholder({ name, className }: ImagePlaceholderProps) {
   // Get initials from name (up to 2 characters)
   const initials = name
     .split(/[^a-zA-Z]/)
@@ -62,17 +52,6 @@ export function ImagePlaceholder({
   const colorStyle = {
     backgroundColor: backgroundColor,
   };
-
-  if (fill) {
-    return (
-      <div
-        className={`flex h-full w-full items-center justify-center ${className ?? ""}`}
-        style={colorStyle}
-      >
-        <span className="text-4xl font-medium text-white">{initials}</span>
-      </div>
-    );
-  }
 
   return (
     <div
