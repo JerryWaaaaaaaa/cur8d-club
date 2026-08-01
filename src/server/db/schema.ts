@@ -40,6 +40,47 @@ export const collectables = createTable(
   }),
 );
 
+export const caseStudies = createTable(
+  "case_study",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    createdAt: timestamp("created_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+    name: varchar("name", { length: 256 }).notNull(),
+    websiteUrl: text("website_url"),
+
+    // "video" when a demo video is available, otherwise "website".
+    mediaType: text("media_type").notNull().default("website"),
+    videoUrl: text("video_url"),
+    posterUrl: text("poster_url"),
+
+    // Screenshot cover, only fetched for website-type entries.
+    coverImageUrl: text("cover_image_url"),
+    coverImageLastFetchedAt: timestamp("cover_image_last_fetched_at", {
+      withTimezone: true,
+    }),
+
+    // Notion "Type" is a multi-select here, unlike the designer database.
+    types: text("types").array(),
+    industries: text("industries").array(),
+    infoRole: text("info_role"),
+    infoTeam: text("info_team"),
+
+    // Raw source copy (e.g. tweet text) used as AI summary input when the
+    // linked page cannot be scraped.
+    sourceText: text("source_text"),
+    aiSummary: text("ai_summary"),
+    aiSummaryGeneratedAt: timestamp("ai_summary_generated_at", {
+      withTimezone: true,
+    }),
+
+    isBroken: boolean("is_broken").notNull().default(false),
+  },
+  (caseStudy) => ({
+    nameIndex: index("case_study_name_idx").on(caseStudy.name),
+  }),
+);
+
 export const submissions = createTable(
   "submission",
   {

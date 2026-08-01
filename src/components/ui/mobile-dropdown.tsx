@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { CheckCircle, X } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
@@ -39,7 +42,15 @@ export function MobileDropdown({
     return selectedOptions.includes(option);
   };
 
-  return (
+  // The triggers live inside the collapsible filter sheet, which is animated
+  // with a transform — that would make this overlay's `fixed` positioning
+  // resolve against the sheet instead of the viewport. Portalling to the body
+  // keeps it full screen wherever it is rendered from.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -104,6 +115,7 @@ export function MobileDropdown({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 } 

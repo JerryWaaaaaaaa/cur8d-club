@@ -3,6 +3,10 @@
     {
       "path": "/api/notion-sync",
       "schedule": "25 19 * * *"
+    },
+    {
+      "path": "/api/case-study-sync",
+      "schedule": "35 19 * * *"
     }
   ]
 }

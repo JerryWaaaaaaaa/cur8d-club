@@ -35,7 +35,10 @@ export function HorizontalFilter({
 
   // Helper for showing selected tags as comma-separated
   function toTitleCase(str: string) {
-    return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+    return str.replace(
+      /\w\S*/g,
+      (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase(),
+    );
   }
 
   // Responsive expertise label: show up to 2, then '+x more'
@@ -49,32 +52,37 @@ export function HorizontalFilter({
       selectedTagsLabel = shown.join(", ");
     }
   }
-  const selectedTypeLabel = selectedType ? toTitleCase(selectedType) : "All Types";
+  const selectedTypeLabel = selectedType
+    ? toTitleCase(selectedType)
+    : "All Types";
 
   // Add state to track open status for each dropdown
   const [typeOpen, setTypeOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
 
+  // Nothing to filter by — don't render controls that can't do anything.
+  if (typeOptions.length === 0 && tagOptions.length === 0) return null;
+
   return (
-    <div className="flex items-center gap-2 pb-0 pt-0">
+    <div className="flex items-center gap-2.5 pb-0 pt-0">
       {/* Type Dropdown */}
       <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               typeOpen
                 ? "bg-black text-white"
-                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
             )}
           >
             {selectedTypeLabel}
             <motion.div
-              animate={{ rotate: typeOpen ? 360 : 270 }}
+              animate={{ rotate: typeOpen ? 180 : 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
+              <CaretDown weight="fill" className="h-5 w-5" />
             </motion.div>
           </button>
         </DropdownMenu.Trigger>
@@ -82,7 +90,12 @@ export function HorizontalFilter({
           {typeOptions.map((type) => (
             <DropdownMenu.Item
               key={type}
-              onSelect={() => void setParams({ ...params, type: selectedType === type ? null : type })}
+              onSelect={() =>
+                void setParams({
+                  ...params,
+                  type: selectedType === type ? null : type,
+                })
+              }
               selected={selectedType === type}
             >
               {toTitleCase(type)}
@@ -96,20 +109,20 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               tagOpen
                 ? "bg-black text-white"
-                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
             )}
             style={{ maxWidth: 240 }}
           >
-            <span className="truncate max-w-[240px]">{selectedTagsLabel}</span>
+            <span className="max-w-[240px] truncate">{selectedTagsLabel}</span>
             <motion.div
-              animate={{ rotate: tagOpen ? 360 : 270 }}
+              animate={{ rotate: tagOpen ? 180 : 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className="flex-shrink-0"
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
+              <CaretDown weight="fill" className="h-5 w-5" />
             </motion.div>
           </button>
         </DropdownMenu.Trigger>
@@ -119,12 +132,18 @@ export function HorizontalFilter({
             return (
               <DropdownMenu.Item
                 key={tag}
-                onSelect={e => {
+                onSelect={(e) => {
                   e.preventDefault(); // Prevent menu from closing
                   if (isSelected) {
-                    void setParams({ ...params, tags: selectedTags.filter((t) => t !== tag) });
+                    void setParams({
+                      ...params,
+                      tags: selectedTags.filter((t) => t !== tag),
+                    });
                   } else {
-                    void setParams({ ...params, tags: [...(selectedTags || []), tag] });
+                    void setParams({
+                      ...params,
+                      tags: [...(selectedTags || []), tag],
+                    });
                   }
                 }}
                 selected={isSelected}
@@ -141,7 +160,7 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               sortOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
@@ -149,10 +168,10 @@ export function HorizontalFilter({
           >
             {getSortLabel(selectedSort)}
             <motion.div
-              animate={{ rotate: sortOpen ? 360 : 270 }}
+              animate={{ rotate: sortOpen ? 180 : 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
+              <CaretDown weight="fill" className="h-5 w-5" />
             </motion.div>
           </button>
         </DropdownMenu.Trigger>
@@ -169,25 +188,24 @@ export function HorizontalFilter({
         </DropdownMenu.Content>
       </DropdownMenu.Root>
 
-      {/* Reset button (moved to right of expertise dropdown) */}
-      <button
-        onClick={() =>
-          setParams({ ...params, type: null, tags: [], sort: DEFAULT_SORT })
-        }
-        className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300",
-          !hasAnySelection && "pointer-events-none opacity-0"
-        )}
-        aria-label="Reset filters"
-      >
-        <motion.span
-          whileHover={{ rotate: -60 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-          style={{ display: "inline-flex" }}
+      {/* Reset button — only occupies space once a filter is applied. */}
+      {hasAnySelection && (
+        <button
+          onClick={() =>
+            setParams({ ...params, type: null, tags: [], sort: DEFAULT_SORT })
+          }
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300"
+          aria-label="Reset filters"
         >
-          <ArrowCounterClockwise weight="fill" className="h-5 w-5" />
-        </motion.span>
-      </button>
+          <motion.span
+            whileHover={{ rotate: -60 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            style={{ display: "inline-flex" }}
+          >
+            <ArrowCounterClockwise weight="fill" className="h-5 w-5" />
+          </motion.span>
+        </button>
+      )}
     </div>
   );
 }

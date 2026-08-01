@@ -2,56 +2,73 @@
 
 import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
-import { HelpCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { type api as serverApi } from "@/trpc/server";
-import { api } from "@/trpc/react";
-import { ImagePlaceholder } from "./image-placeholder";
-import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { badgeScaleForPointer, type CoverBox } from "@/lib/cursor-badge";
-import { toast } from "sonner";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ImagePlaceholder } from "./image-placeholder";
 
-type Collectable = Awaited<
-  ReturnType<(typeof serverApi)["collectable"]["getInfiniteScroll"]>
+type CaseStudy = Awaited<
+  ReturnType<(typeof serverApi)["caseStudy"]["getInfiniteScroll"]>
 >["items"][number];
 
-interface CollectableCardProps {
-  collectable: Collectable;
+interface CaseStudyCardProps {
+  caseStudy: CaseStudy;
 }
 
+// Same seeds as the designer card, so both grids share one hover personality.
 const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
 
-export function CollectableCard({ collectable }: CollectableCardProps) {
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function toTitleCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
-  const [imageError, setImageError] = useState(false);
+  const [mediaError, setMediaError] = useState(false);
   const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
-  const reportMutation = api.collectable.reportLink.useMutation({
-    onSuccess: () => {
-      toast("Thanks - we'll review this link and update it if needed.");
-    },
-  });
+  const hasVideo =
+    caseStudy.mediaType === "video" && caseStudy.videoUrl !== null && !mediaError;
 
-  const handleReportClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    reportMutation.mutate({ id: collectable.id });
-  };
+  // On touch devices there is no hover, so play whichever card is on screen.
+  useEffect(() => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    if (!hasVideo || !video || !container) return;
+    if (window.matchMedia("(hover: hover)").matches) return;
+    if (prefersReducedMotion()) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          void video.play().catch(() => undefined);
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.6 },
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [hasVideo]);
 
   const handleMouseEnter = (event: React.MouseEvent) => {
     // Place the badge before it becomes visible, otherwise it flashes at
     // wherever the pointer left it last.
     positionBadge(event);
     setIsHovered(true);
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (hasVideo) void videoRef.current?.play().catch(() => undefined);
+    if (prefersReducedMotion()) return;
     const seed =
       HOVER_ROTATION_SEEDS[
         Math.floor(Math.random() * HOVER_ROTATION_SEEDS.length)
@@ -60,6 +77,11 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   };
 
   const handleMouseLeave = () => {
+    const video = videoRef.current;
+    if (hasVideo && video) {
+      video.pause();
+      video.currentTime = 0;
+    }
     setIsHovered(false);
     setHoverRotation(0);
   };
@@ -97,6 +119,33 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
   };
 
+  const media = hasVideo ? (
+    <video
+      ref={videoRef}
+      src={caseStudy.videoUrl!}
+      poster={caseStudy.posterUrl ?? undefined}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      className="h-full w-full object-contain p-16"
+      onError={() => setMediaError(true)}
+    />
+  ) : caseStudy.coverImageUrl && !mediaError ? (
+    <Image
+      src={caseStudy.coverImageUrl}
+      alt={caseStudy.name}
+      fill
+      unoptimized
+      className="object-contain p-16"
+      onError={() => setMediaError(true)}
+    />
+  ) : (
+    <ImagePlaceholder name={caseStudy.name} />
+  );
+
+  const metadata = [caseStudy.infoRole, caseStudy.infoTeam].filter(Boolean);
+
   return (
     <div
       ref={containerRef}
@@ -133,97 +182,63 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
                 : undefined,
           }}
         >
-          {collectable.ogImageUrl && !imageError ? (
-            <Image
-              src={collectable.ogImageUrl}
-              alt={collectable.name}
-              fill
-              unoptimized
-              className="object-contain p-16"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <ImagePlaceholder name={collectable.name} />
-          )}
+          {media}
         </div>
 
-        {collectable.type && (
-          <span className="pointer-events-none absolute left-3 top-3 z-10 flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background">
-            {collectable.type.charAt(0).toUpperCase() +
-              collectable.type.slice(1)}
-          </span>
+        {caseStudy.types && caseStudy.types.length > 0 && (
+          <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
+            {caseStudy.types.map((type) => (
+              <span
+                key={type}
+                className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background"
+              >
+                {toTitleCase(type)}
+              </span>
+            ))}
+          </div>
         )}
 
-        {collectable.tags && collectable.tags.length > 0 && (
+        {caseStudy.industries && caseStudy.industries.length > 0 && (
           <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
-            {collectable.tags.map((tag) => (
+            {caseStudy.industries.map((industry) => (
               <span
-                key={tag}
+                key={industry}
                 className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700"
               >
-                {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                {toTitleCase(industry)}
               </span>
             ))}
           </div>
         )}
       </div>
 
-      <h2 className="mt-3 text-center font-medium text-neutral-700">
-        {collectable.name}
-      </h2>
+      <div className="mt-4 flex flex-col gap-1.5">
+        <h2 className="font-medium text-neutral-900">{caseStudy.name}</h2>
 
-      {/* Covers the whole card — artwork and name are one click target. Sits
-          above the media so it actually receives the click. */}
-      {collectable.websiteUrl && (
+        {caseStudy.aiSummary && (
+          <p className="text-sm leading-snug text-neutral-600">
+            {caseStudy.aiSummary}
+          </p>
+        )}
+
+        {metadata.length > 0 && (
+          <p className="text-xs text-neutral-500">{metadata.join(" · ")}</p>
+        )}
+      </div>
+
+      {/* Covers the whole card — artwork, title and description are all one
+          click target. Sits above the media so it actually receives the click. */}
+      {caseStudy.websiteUrl && (
         <a
-          href={collectable.websiteUrl}
+          href={caseStudy.websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="absolute inset-0 z-20 cursor-none"
-          aria-label={`Visit ${collectable.name}`}
+          aria-label={`Visit ${caseStudy.name}`}
         />
       )}
 
-      {/* Mirrors the frame's box and rotation so the button rides along with
-          the tilt, while living outside the frame's z-0 stacking context —
-          otherwise it would sit under the full-card link and be unclickable. */}
-      {collectable.websiteUrl && (
-        <div
-          className={cn(
-            "pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full",
-            "origin-center transition-transform duration-300 ease-out",
-            "motion-reduce:transition-none",
-          )}
-          style={{
-            transform:
-              hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
-          }}
-        >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  "pointer-events-auto absolute right-3 top-3 flex h-[22px] w-[22px]",
-                  "cursor-pointer items-center justify-center rounded-full",
-                  "opacity-0 transition-opacity duration-200 group-hover:opacity-100",
-                  "text-neutral-400 hover:text-neutral-500",
-                )}
-                onClick={handleReportClick}
-                disabled={reportMutation.isPending}
-              >
-                <HelpCircle className="h-3.5 w-3.5" />
-                <span className="sr-only">Report broken link.</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Report broken link.
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      )}
-
-      {collectable.websiteUrl && (
+      {caseStudy.websiteUrl && (
         <span
           ref={badgeRef}
           aria-hidden="true"
@@ -235,7 +250,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
           )}
         >
           <ArrowUpRight weight="bold" className="h-3 w-3" />
-          Visit
+          Visit Project
         </span>
       )}
     </div>
