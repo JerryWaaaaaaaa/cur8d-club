@@ -1,16 +1,11 @@
 "use client";
 
-import {
-  ArrowCounterClockwise,
-  CaretDown,
-  CaretUp,
-  X,
-} from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MobileDropdown } from "@/components/ui/mobile-dropdown";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { SubmissionForm } from "@/components/submission-form";
@@ -77,7 +72,6 @@ export function MobileNav({
   const [typeOpen, setTypeOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
 
   // Collapsible filter sheet: when collapsed the sheet slides down off screen
   // and only the chevron handle stays visible. The offset is the measured
@@ -239,13 +233,29 @@ export function MobileNav({
           {/* View Toggle */}
           <ViewToggle fullWidth />
 
-          {/* Info Button */}
-          <button
-            onClick={() => setInfoOpen(true)}
-            className="flex w-full items-center justify-center rounded-full bg-neutral-200 px-5 py-3 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
-          >
-            Info
-          </button>
+          {/* Info text — used to live behind an Info button and a modal */}
+          <div className="flex flex-col items-center gap-0.5 px-5 pt-1.5 text-center text-base text-neutral-900">
+            <p>
+              Made by{" "}
+              <Link
+                href="https://x.com/notjerrywang"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:no-underline"
+              >
+                ↳ @Jerry
+              </Link>
+            </p>
+            <p>
+              Have someone in mind?{" "}
+              <button
+                onClick={() => setSubmissionFormOpen(true)}
+                className="underline hover:no-underline"
+              >
+                ↳ Submit a referral
+              </button>
+            </p>
+          </div>
         </div>
       </motion.div>
 
@@ -294,86 +304,6 @@ export function MobileNav({
         }}
         multiSelect={false}
       />
-
-      {/* Info Overlay */}
-      <AnimatePresence>
-        {infoOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/10 backdrop-blur-[96px]"
-            onClick={() => setInfoOpen(false)}
-          >
-            {/* Content */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="pb-safe relative flex h-screen w-full max-w-sm flex-col justify-end px-2 pt-3"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex h-full flex-col gap-2">
-                {/* Content Container */}
-                <div className="flex flex-1 flex-col items-center justify-center gap-5">
-                  {/* Logo */}
-                  <div className="relative h-20 w-48">
-                    <Image
-                      src="/site-assets/logo.svg"
-                      alt="cur8d.club"
-                      fill
-                      priority
-                      className="object-contain object-center"
-                    />
-                  </div>
-
-                  {/* Info text */}
-                  <div className="flex flex-col items-center gap-0.5 text-center text-base text-neutral-900">
-                    <p>
-                      Made by{" "}
-                      <Link
-                        href="https://x.com/notjerrywang"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline hover:no-underline"
-                      >
-                        ↳ @Jerry
-                      </Link>
-                    </p>
-                    <p>
-                      Have someone in mind?{" "}
-                      <button
-                        onClick={() => {
-                          setInfoOpen(false);
-                          setSubmissionFormOpen(true);
-                        }}
-                        className="underline hover:no-underline"
-                      >
-                        ↳ Submit a referral
-                      </button>
-                    </p>
-                  </div>
-                </div>
-
-                {/* Dismiss Button */}
-                <motion.button
-                  onClick={() => setInfoOpen(false)}
-                  className="flex h-20 w-full shrink-0 items-center justify-center rounded-full text-neutral-900 transition-colors hover:bg-neutral-200"
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <motion.div
-                    whileHover={{ rotate: 90 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                  >
-                    <X className="h-6 w-6" />
-                  </motion.div>
-                </motion.button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Submission Form */}
       <SubmissionForm
