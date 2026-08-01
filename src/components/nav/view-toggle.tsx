@@ -35,7 +35,7 @@ export function ViewToggle({ className }: { className?: string }) {
             aria-selected={isActive}
             onClick={() => setViewParams({ view: option.value })}
             className={cn(
-              "flex h-8 items-center whitespace-nowrap rounded-full px-3 text-sm transition-colors duration-200",
+              "flex h-8 items-center whitespace-nowrap rounded-full px-3.5 text-base transition-colors duration-200",
               isActive
                 ? "bg-foreground text-background"
                 : "text-neutral-600 hover:text-neutral-900",

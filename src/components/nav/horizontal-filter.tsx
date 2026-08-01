@@ -65,13 +65,13 @@ export function HorizontalFilter({
   if (typeOptions.length === 0 && tagOptions.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2 pb-0 pt-0">
+    <div className="flex items-center gap-2.5 pb-0 pt-0">
       {/* Type Dropdown */}
       <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               typeOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
@@ -79,10 +79,10 @@ export function HorizontalFilter({
           >
             {selectedTypeLabel}
             <motion.div
-              animate={{ rotate: typeOpen ? 360 : 270 }}
+              animate={{ rotate: typeOpen ? 180 : 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
+              <CaretDown weight="fill" className="h-5 w-5" />
             </motion.div>
           </button>
         </DropdownMenu.Trigger>
@@ -109,7 +109,7 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               tagOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
@@ -118,11 +118,11 @@ export function HorizontalFilter({
           >
             <span className="max-w-[240px] truncate">{selectedTagsLabel}</span>
             <motion.div
-              animate={{ rotate: tagOpen ? 360 : 270 }}
+              animate={{ rotate: tagOpen ? 180 : 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
               className="flex-shrink-0"
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
+              <CaretDown weight="fill" className="h-5 w-5" />
             </motion.div>
           </button>
         </DropdownMenu.Trigger>
@@ -160,7 +160,7 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               sortOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
@@ -168,10 +168,10 @@ export function HorizontalFilter({
           >
             {getSortLabel(selectedSort)}
             <motion.div
-              animate={{ rotate: sortOpen ? 360 : 270 }}
+              animate={{ rotate: sortOpen ? 180 : 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <CaretDown weight="fill" className="h-4 w-4" />
+              <CaretDown weight="fill" className="h-5 w-5" />
             </motion.div>
           </button>
         </DropdownMenu.Trigger>

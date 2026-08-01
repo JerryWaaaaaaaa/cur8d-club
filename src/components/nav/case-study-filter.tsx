@@ -56,7 +56,7 @@ export function CaseStudyFilter({
 
   const triggerClasses = (isOpen: boolean) =>
     cn(
-      "flex h-9 items-center gap-2 rounded-full px-4 text-sm font-normal transition-colors focus:outline-none",
+      "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
       isOpen
         ? "bg-black text-white"
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
@@ -67,7 +67,7 @@ export function CaseStudyFilter({
   if (typeOptions.length === 0 && industryOptions.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-2 pb-0 pt-0">
+    <div className="flex items-center gap-2.5 pb-0 pt-0">
       {typeOptions.length > 0 && (
         <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
           <DropdownMenu.Trigger asChild>
@@ -79,11 +79,11 @@ export function CaseStudyFilter({
                 {buildLabel(selectedTypes, "All Types")}
               </span>
               <motion.div
-                animate={{ rotate: typeOpen ? 360 : 270 }}
+                animate={{ rotate: typeOpen ? 180 : 0 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="flex-shrink-0"
               >
-                <CaretDown weight="fill" className="h-4 w-4" />
+                <CaretDown weight="fill" className="h-5 w-5" />
               </motion.div>
             </button>
           </DropdownMenu.Trigger>
@@ -115,11 +115,11 @@ export function CaseStudyFilter({
                 {buildLabel(selectedIndustries, "All Industries")}
               </span>
               <motion.div
-                animate={{ rotate: industryOpen ? 360 : 270 }}
+                animate={{ rotate: industryOpen ? 180 : 0 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="flex-shrink-0"
               >
-                <CaretDown weight="fill" className="h-4 w-4" />
+                <CaretDown weight="fill" className="h-5 w-5" />
               </motion.div>
             </button>
           </DropdownMenu.Trigger>
