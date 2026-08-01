@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowCounterClockwise, CaretDown, X } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CaretDown, CaretUp, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MobileDropdown } from "@/components/ui/mobile-dropdown";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
@@ -58,9 +58,27 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
   const [sortOpen, setSortOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
+  // Collapsible filter sheet: when collapsed the sheet slides down off screen
+  // and only the chevron handle stays visible.
+  const [sheetExpanded, setSheetExpanded] = useState(true);
+  const sheetContentRef = useRef<HTMLDivElement>(null);
+  const [sheetContentHeight, setSheetContentHeight] = useState(0);
+
+  useEffect(() => {
+    const element = sheetContentRef.current;
+    if (!element) return;
+
+    const measure = () => setSheetContentHeight(element.offsetHeight);
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
-      {/* Top Bar */}
+      {/* Top Bar — logo only, all controls live in the bottom sheet */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-white from-[13%] via-white via-[80%] to-transparent p-5">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -73,106 +91,127 @@ export function MobileNav({ tagOptions, typeOptions }: MobileNavProps) {
               className="object-contain object-left"
             />
           </div>
-          
+        </div>
+      </div>
+
+      {/* Bottom Filter Sheet */}
+      <motion.div
+        className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-white via-white via-[35%] to-transparent px-5 pt-8"
+        animate={{ y: sheetExpanded ? 0 : sheetContentHeight }}
+        transition={{ type: "spring", stiffness: 320, damping: 34 }}
+      >
+        {/* Handle — collapses / expands the sheet */}
+        <button
+          onClick={() => setSheetExpanded((expanded) => !expanded)}
+          aria-expanded={sheetExpanded}
+          aria-label={sheetExpanded ? "Hide filters" : "Show filters"}
+          className="mx-auto mb-2.5 flex h-9 w-16 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-colors hover:bg-neutral-300"
+        >
+          <motion.div
+            animate={{ rotate: sheetExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            <CaretUp weight="fill" className="h-5 w-5" />
+          </motion.div>
+        </button>
+
+        {/* Stacked, full-width controls */}
+        <div ref={sheetContentRef} className="flex w-full flex-col gap-2.5 pb-5">
+          {/* Type Dropdown */}
+          <button
+            onClick={() => setTypeOpen(true)}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 rounded-full px-5 py-3 text-base font-normal transition-colors focus:outline-none",
+              typeOpen
+                ? "bg-neutral-300 text-neutral-900"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+            )}
+          >
+            <span className="truncate">{selectedTypeLabel}</span>
+            <motion.div
+              animate={{ rotate: typeOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="flex-shrink-0"
+            >
+              <CaretDown weight="fill" className="h-5 w-5" />
+            </motion.div>
+          </button>
+
+          {/* Tag Dropdown (multi-select) */}
+          <button
+            onClick={() => setTagOpen(true)}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 rounded-full px-5 py-3 text-base font-normal transition-colors focus:outline-none",
+              tagOpen
+                ? "bg-neutral-300 text-neutral-900"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+            )}
+          >
+            <span className="truncate">{selectedTagsLabel}</span>
+            <motion.div
+              animate={{ rotate: tagOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="flex-shrink-0"
+            >
+              <CaretDown weight="fill" className="h-5 w-5" />
+            </motion.div>
+          </button>
+
+          {/* Sort Dropdown */}
+          <button
+            onClick={() => setSortOpen(true)}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 rounded-full px-5 py-3 text-base font-normal transition-colors focus:outline-none",
+              sortOpen
+                ? "bg-neutral-300 text-neutral-900"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+            )}
+          >
+            <span className="truncate">{getSortLabel(selectedSort)}</span>
+            <motion.div
+              animate={{ rotate: sortOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="flex-shrink-0"
+            >
+              <CaretDown weight="fill" className="h-5 w-5" />
+            </motion.div>
+          </button>
+
+          {/* Reset button */}
+          {hasAnySelection && (
+            <button
+              onClick={() =>
+                setParams({
+                  ...params,
+                  type: null,
+                  tags: [],
+                  sort: DEFAULT_SORT,
+                })
+              }
+              className="flex w-full items-center justify-between gap-2 rounded-full bg-neutral-200 px-5 py-3 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
+              aria-label="Reset filters"
+            >
+              <span className="truncate">Reset filters</span>
+              <motion.span
+                whileHover={{ rotate: -60 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="flex-shrink-0"
+                style={{ display: "inline-flex" }}
+              >
+                <ArrowCounterClockwise weight="fill" className="h-5 w-5" />
+              </motion.span>
+            </button>
+          )}
+
           {/* Info Button */}
           <button
             onClick={() => setInfoOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-neutral-200 px-4 py-2 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
+            className="flex w-full items-center justify-center rounded-full bg-neutral-200 px-5 py-3 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
           >
             Info
           </button>
         </div>
-      </div>
-
-      {/* Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-white via-white via-[35%] to-transparent p-5">
-        <div className="flex flex-wrap items-center justify-center gap-2.5 w-full">
-          <div className="flex items-center gap-2.5 justify-center">
-            {/* Type Dropdown */}
-            <button
-              onClick={() => setTypeOpen(true)}
-                                className={cn(
-                    "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none",
-                    typeOpen
-                      ? "bg-neutral-300 text-neutral-900"
-                      : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
-                  )}
-            >
-              {selectedTypeLabel}
-              <motion.div
-                animate={{ rotate: typeOpen ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-              >
-                <CaretDown weight="fill" className="h-5 w-5" />
-              </motion.div>
-            </button>
-
-            {/* Tag Dropdown (multi-select) */}
-            <button
-              onClick={() => setTagOpen(true)}
-                                className={cn(
-                    "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis",
-                    tagOpen
-                      ? "bg-neutral-300 text-neutral-900"
-                      : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
-                  )}
-            >
-              <span className="truncate">{selectedTagsLabel}</span>
-              <motion.div
-                animate={{ rotate: tagOpen ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="flex-shrink-0"
-              >
-                <CaretDown weight="fill" className="h-5 w-5" />
-              </motion.div>
-            </button>
-
-            {/* Sort Dropdown */}
-            <button
-              onClick={() => setSortOpen(true)}
-              className={cn(
-                "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis",
-                sortOpen
-                  ? "bg-neutral-300 text-neutral-900"
-                  : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
-              )}
-            >
-              <span className="truncate">{getSortLabel(selectedSort)}</span>
-              <motion.div
-                animate={{ rotate: sortOpen ? 180 : 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="flex-shrink-0"
-              >
-                <CaretDown weight="fill" className="h-5 w-5" />
-              </motion.div>
-            </button>
-
-            {/* Reset button */}
-            {hasAnySelection && (
-              <button
-                onClick={() =>
-                  setParams({
-                    ...params,
-                    type: null,
-                    tags: [],
-                    sort: DEFAULT_SORT,
-                  })
-                }
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300 p-2"
-                aria-label="Reset filters"
-              >
-                <motion.span
-                  whileHover={{ rotate: -60 }}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                  style={{ display: "inline-flex" }}
-                >
-                  <ArrowCounterClockwise weight="fill" className="h-5 w-5" />
-                </motion.span>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      </motion.div>
 
       {/* Mobile Dropdowns */}
       <MobileDropdown

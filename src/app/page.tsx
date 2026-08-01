@@ -27,7 +27,7 @@ export default async function Home() {
         <MobileNav tagOptions={allTags} typeOptions={allTypes} />
       </div>
 
-      <main className="container mx-auto px-4 pt-20 pb-32 md:pt-8 md:pb-8">
+      <main className="container mx-auto px-4 pt-20 pb-72 md:pt-8 md:pb-8">
         <CollectableGrid
           initialData={initialInfiniteScrollData}
           pageSize={COLLECTABLE_PER_PAGE}
