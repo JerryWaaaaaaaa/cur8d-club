@@ -66,7 +66,7 @@ export default async function Home({ searchParams }: HomeProps) {
     return (
       <HydrateClient>
         {nav}
-        <main className="container mx-auto px-4 pb-32 pt-20 md:px-6 md:pb-28 md:pt-8">
+        <main className="container mx-auto px-4 pb-72 pt-20 md:px-6 md:pb-28 md:pt-8">
           <CaseStudyGrid
             initialData={initialCaseStudies}
             pageSize={COLLECTABLE_PER_PAGE}
@@ -86,7 +86,7 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <HydrateClient>
       {nav}
-      <main className="container mx-auto px-4 pb-32 pt-20 md:px-6 md:pb-28 md:pt-8">
+      <main className="container mx-auto px-4 pb-72 pt-20 md:px-6 md:pb-28 md:pt-8">
         <CollectableGrid
           initialData={initialInfiniteScrollData}
           pageSize={COLLECTABLE_PER_PAGE}
