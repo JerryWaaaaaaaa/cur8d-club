@@ -8,7 +8,7 @@
  * needs changing, both grids read this one switch.
  */
 export const CURSOR_BADGE_SCALING = {
-  enabled: true,
+  enabled: false,
   /** Full size while further than this many px from the cover's edge. */
   shrinkWithin: 50,
   /** Scale once the pointer reaches the edge. */
