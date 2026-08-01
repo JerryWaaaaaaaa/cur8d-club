@@ -29,6 +29,7 @@ function toTitleCase(value: string) {
 export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
   const [mediaError, setMediaError] = useState(false);
   const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -60,6 +61,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
   }, [hasVideo]);
 
   const handleMouseEnter = () => {
+    setIsHovered(true);
     if (hasVideo) void videoRef.current?.play().catch(() => undefined);
     if (prefersReducedMotion()) return;
     const seed =
@@ -67,7 +69,6 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
         Math.floor(Math.random() * HOVER_ROTATION_SEEDS.length)
       ]!;
     setHoverRotation(seed);
-    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
@@ -78,6 +79,19 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
     }
     setIsHovered(false);
     setHoverRotation(0);
+  };
+
+  // Positioned by hand rather than through state: this fires on every mouse
+  // move, and re-rendering the card that often is wasteful.
+  const handleMouseMove = (event: React.MouseEvent) => {
+    const container = containerRef.current;
+    const badge = badgeRef.current;
+    if (!container || !badge) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    badge.style.transform = `translate3d(${x + 14}px, ${y + 14}px, 0)`;
   };
 
   const media = hasVideo ? (
@@ -110,15 +124,18 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
   return (
     <div
       ref={containerRef}
-      className="group relative block"
+      // Lifted while hovered so the tilted frame and the cursor badge, which
+      // both spill past the card's bounds, aren't painted over by the
+      // neighbouring card.
+      className={cn("group relative block", isHovered && "z-30")}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onMouseMove={handleMouseMove}
     >
       <div
         className={cn(
           "relative z-0 mb-3 aspect-square overflow-hidden bg-muted",
           "origin-center transition-transform duration-300 ease-out",
-          isHovered && "z-10",
           "motion-reduce:transition-none",
         )}
         style={{
@@ -126,52 +143,6 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
             hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
         }}
       >
-        {caseStudy.websiteUrl && (
-          <a
-            href={caseStudy.websiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute inset-0 z-0"
-            aria-label={`Visit ${caseStudy.name}`}
-          />
-        )}
-
-        {caseStudy.types && caseStudy.types.length > 0 && (
-          <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
-            {caseStudy.types.map((type) => (
-              <span
-                key={type}
-                className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background"
-              >
-                {toTitleCase(type)}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {caseStudy.websiteUrl && (
-          <div className="absolute right-3 top-3 z-10">
-            <a
-              href={caseStudy.websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "flex h-[22px] cursor-pointer items-center overflow-hidden rounded-full",
-                "bg-neutral-200 transition-all duration-200 ease-out hover:bg-neutral-300",
-                "w-[22px] group-hover:w-[104px]",
-              )}
-            >
-              <div className="flex w-[22px] flex-shrink-0 items-center justify-center">
-                <ArrowUpRight className="h-3.5 w-3.5 text-neutral-700" />
-              </div>
-              <span className="whitespace-nowrap pl-0 text-xs text-neutral-700">
-                Visit Project
-              </span>
-              <span className="sr-only">Visit Project</span>
-            </a>
-          </div>
-        )}
-
         <div
           className={cn(
             "absolute inset-0 origin-center",
@@ -188,6 +159,19 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
           {media}
         </div>
 
+        {caseStudy.types && caseStudy.types.length > 0 && (
+          <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
+            {caseStudy.types.map((type) => (
+              <span
+                key={type}
+                className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background"
+              >
+                {toTitleCase(type)}
+              </span>
+            ))}
+          </div>
+        )}
+
         {caseStudy.industries && caseStudy.industries.length > 0 && (
           <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
             {caseStudy.industries.map((industry) => (
@@ -203,18 +187,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
       </div>
 
       <div className="mt-4 flex flex-col gap-1.5">
-        {caseStudy.websiteUrl ? (
-          <a
-            href={caseStudy.websiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="cursor-pointer"
-          >
-            <h2 className="font-medium text-neutral-900">{caseStudy.name}</h2>
-          </a>
-        ) : (
-          <h2 className="font-medium text-neutral-900">{caseStudy.name}</h2>
-        )}
+        <h2 className="font-medium text-neutral-900">{caseStudy.name}</h2>
 
         {caseStudy.aiSummary && (
           <p className="text-sm leading-snug text-neutral-600">
@@ -226,6 +199,34 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
           <p className="text-xs text-neutral-500">{metadata.join(" · ")}</p>
         )}
       </div>
+
+      {/* Covers the whole card — artwork, title and description are all one
+          click target. Sits above the media so it actually receives the click. */}
+      {caseStudy.websiteUrl && (
+        <a
+          href={caseStudy.websiteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute inset-0 z-20"
+          aria-label={`Visit ${caseStudy.name}`}
+        />
+      )}
+
+      {caseStudy.websiteUrl && (
+        <span
+          ref={badgeRef}
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute left-0 top-0 z-30 flex h-7 items-center gap-1",
+            "whitespace-nowrap rounded-full bg-foreground px-3 text-xs text-background",
+            "transition-opacity duration-200",
+            isHovered ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <ArrowUpRight weight="bold" className="h-3 w-3" />
+          Visit Project
+        </span>
+      )}
     </div>
   );
 }

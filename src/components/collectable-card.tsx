@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Globe } from "@phosphor-icons/react";
+import { ArrowUpRight } from "@phosphor-icons/react";
 import { HelpCircle } from "lucide-react";
 import { type api as serverApi } from "@/trpc/server";
 import { api } from "@/trpc/react";
 import { ImagePlaceholder } from "./image-placeholder";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -26,6 +26,8 @@ interface CollectableCardProps {
 const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
 
 export function CollectableCard({ collectable }: CollectableCardProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
   const [imageError, setImageError] = useState(false);
   const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -43,13 +45,13 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   };
 
   const handleMouseEnter = () => {
+    setIsHovered(true);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const seed =
       HOVER_ROTATION_SEEDS[
         Math.floor(Math.random() * HOVER_ROTATION_SEEDS.length)
       ]!;
     setHoverRotation(seed);
-    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
@@ -57,17 +59,34 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     setHoverRotation(0);
   };
 
+  // Positioned by hand rather than through state: this fires on every mouse
+  // move, and re-rendering the card that often is wasteful.
+  const handleMouseMove = (event: React.MouseEvent) => {
+    const container = containerRef.current;
+    const badge = badgeRef.current;
+    if (!container || !badge) return;
+
+    const rect = container.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    badge.style.transform = `translate3d(${x + 14}px, ${y + 14}px, 0)`;
+  };
+
   return (
     <div
-      className="group relative block"
+      ref={containerRef}
+      // Lifted while hovered so the tilted frame and the cursor badge, which
+      // both spill past the card's bounds, aren't painted over by the
+      // neighbouring card.
+      className={cn("group relative block", isHovered && "z-30")}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onMouseMove={handleMouseMove}
     >
       <div
         className={cn(
           "relative z-0 mb-3 aspect-square overflow-hidden bg-muted",
           "origin-center transition-transform duration-300 ease-out",
-          isHovered && "z-10",
           "motion-reduce:transition-none",
         )}
         style={{
@@ -75,66 +94,6 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
             hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
         }}
       >
-        {collectable.websiteUrl && (
-          <a
-            href={collectable.websiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute inset-0 z-0"
-            aria-label={`Visit ${collectable.name}`}
-          />
-        )}
-
-        {collectable.type && (
-          <span className="absolute left-3 top-3 z-10 flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background">
-            {collectable.type.charAt(0).toUpperCase() +
-              collectable.type.slice(1)}
-          </span>
-        )}
-
-        {collectable.websiteUrl && (
-          <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    "flex h-[22px] w-[22px] items-center justify-center rounded-full",
-                    "opacity-0 transition-opacity duration-200 group-hover:opacity-100",
-                    "text-neutral-400 hover:text-neutral-500",
-                  )}
-                  onClick={handleReportClick}
-                  disabled={reportMutation.isPending}
-                >
-                  <HelpCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only">Report broken link.</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                Report broken link.
-              </TooltipContent>
-            </Tooltip>
-            <a
-              href={collectable.websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "flex h-[22px] cursor-pointer items-center overflow-hidden rounded-full",
-                "bg-neutral-200 transition-all duration-200 ease-out hover:bg-neutral-300",
-                "w-[22px] group-hover:w-[54px]",
-              )}
-            >
-              <div className="flex w-[22px] flex-shrink-0 items-center justify-center">
-                <Globe className="h-3.5 w-3.5 text-neutral-700" />
-              </div>
-              <span className="whitespace-nowrap pl-0 text-xs text-neutral-700">
-                Visit
-              </span>
-              <span className="sr-only">Visit</span>
-            </a>
-          </div>
-        )}
-
         <div
           className={cn(
             "absolute inset-0 origin-center",
@@ -162,8 +121,15 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
           )}
         </div>
 
+        {collectable.type && (
+          <span className="pointer-events-none absolute left-3 top-3 z-10 flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background">
+            {collectable.type.charAt(0).toUpperCase() +
+              collectable.type.slice(1)}
+          </span>
+        )}
+
         {collectable.tags && collectable.tags.length > 0 && (
-          <div className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
+          <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
             {collectable.tags.map((tag) => (
               <span
                 key={tag}
@@ -176,21 +142,62 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         )}
       </div>
 
-      {collectable.websiteUrl ? (
+      <h2 className="mt-3 text-center font-medium text-neutral-700">
+        {collectable.name}
+      </h2>
+
+      {/* Covers the whole card — artwork and name are one click target. Sits
+          above the media so it actually receives the click. */}
+      {collectable.websiteUrl && (
         <a
           href={collectable.websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block cursor-pointer"
+          className="absolute inset-0 z-20"
+          aria-label={`Visit ${collectable.name}`}
+        />
+      )}
+
+      {/* Above the overlay so reporting stays clickable. */}
+      {collectable.websiteUrl && (
+        <div className="absolute right-3 top-3 z-30">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  "flex h-[22px] w-[22px] items-center justify-center rounded-full",
+                  "opacity-0 transition-opacity duration-200 group-hover:opacity-100",
+                  "text-neutral-400 hover:text-neutral-500",
+                )}
+                onClick={handleReportClick}
+                disabled={reportMutation.isPending}
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                <span className="sr-only">Report broken link.</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Report broken link.
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
+
+      {collectable.websiteUrl && (
+        <span
+          ref={badgeRef}
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute left-0 top-0 z-30 flex h-7 items-center gap-1",
+            "whitespace-nowrap rounded-full bg-foreground px-3 text-xs text-background",
+            "transition-opacity duration-200",
+            isHovered ? "opacity-100" : "opacity-0",
+          )}
         >
-          <h2 className="mt-3 text-center font-medium text-neutral-700">
-            {collectable.name}
-          </h2>
-        </a>
-      ) : (
-        <h2 className="mt-3 text-center font-medium text-neutral-700">
-          {collectable.name}
-        </h2>
+          <ArrowUpRight weight="bold" className="h-3 w-3" />
+          Visit
+        </span>
       )}
     </div>
   );
