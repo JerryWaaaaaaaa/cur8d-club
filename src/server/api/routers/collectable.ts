@@ -8,13 +8,41 @@ import {
   sql,
   arrayOverlaps,
   asc,
+  desc,
 } from "drizzle-orm";
+import { DEFAULT_SORT, SORT_VALUES, type SortValue } from "@/lib/sort-options";
 
 const COLLECTABLE_PER_PAGE = 12;
+
+/**
+ * `createdAt` is nullable, so both time-based orderings push nulls to the end
+ * rather than letting Postgres default them to the top of a DESC sort. Name is
+ * the tiebreaker so offset pagination stays deterministic.
+ */
+function getOrderBy(sort: SortValue) {
+  switch (sort) {
+    case "recent":
+      return [
+        sql`${collectables.createdAt} DESC NULLS LAST`,
+        asc(collectables.name),
+      ];
+    case "earliest":
+      return [
+        sql`${collectables.createdAt} ASC NULLS LAST`,
+        asc(collectables.name),
+      ];
+    case "name-desc":
+      return [desc(collectables.name)];
+    case "name-asc":
+    default:
+      return [asc(collectables.name)];
+  }
+}
 
 const FILTER_QUERY_OBJECT = z.object({
   type: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  sort: z.enum(SORT_VALUES).default(DEFAULT_SORT),
 });
 
 const FILTER_QUERY_OBJECT_WITH_PAGINATION = FILTER_QUERY_OBJECT.extend({
@@ -34,7 +62,7 @@ export const collectableRouter = createTRPCRouter({
   getInfiniteScroll: publicProcedure
     .input(FILTER_QUERY_OBJECT_WITH_PAGINATION)
     .query(async ({ ctx, input }) => {
-      const { type, tags, cursor, limit } = input;
+      const { type, tags, cursor, limit, sort } = input;
 
       const query = ctx.db
         .selectDistinct({
@@ -58,7 +86,7 @@ export const collectableRouter = createTRPCRouter({
           ),
         )
         .offset(cursor)
-        .orderBy(asc(collectables.name));
+        .orderBy(...getOrderBy(sort));
 
       const items = await query;
       let nextCursor: number | undefined = undefined;
