@@ -8,6 +8,7 @@ import { api } from "@/trpc/react";
 import { ImagePlaceholder } from "./image-placeholder";
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { badgeScaleForPointer, type CoverBox } from "@/lib/cursor-badge";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -27,6 +28,7 @@ const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
 
 export function CollectableCard({ collectable }: CollectableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const coverRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const [imageError, setImageError] = useState(false);
   const [hoverRotation, setHoverRotation] = useState(0);
@@ -74,7 +76,25 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     const rect = container.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+
+    // Layout offsets rather than getBoundingClientRect: the cover is rotated
+    // while hovered, and its bounding box is the enlarged one that encloses
+    // the tilt, not the square the pointer actually sees.
+    const cover = coverRef.current;
+    const coverBox: CoverBox | null = cover
+      ? {
+          left: rect.left + cover.offsetLeft,
+          top: rect.top + cover.offsetTop,
+          width: cover.offsetWidth,
+          height: cover.offsetHeight,
+        }
+      : null;
+
+    const scale = badgeScaleForPointer(coverBox, event.clientX, event.clientY);
+
+    // scale sits last so it is applied first, around the badge's own centre —
+    // that keeps the centre pinned to the pointer at any size.
+    badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
   };
 
   return (
@@ -89,6 +109,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
       onMouseMove={positionBadge}
     >
       <div
+        ref={coverRef}
         className={cn(
           "relative z-0 mb-3 aspect-square overflow-hidden bg-muted",
           "origin-center transition-transform duration-300 ease-out",
