@@ -3,6 +3,7 @@ import { DesktopNav } from "@/components/nav/desktop-nav";
 import { MobileNav } from "@/components/nav/mobile-nav";
 import CollectableGrid from "@/components/collectable-grid";
 import CaseStudyGrid from "@/components/case-study-grid";
+import { DEFAULT_SORT } from "@/lib/sort-options";
 
 const COLLECTABLE_PER_PAGE = 12;
 
@@ -75,6 +76,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const initialInfiniteScrollData = await api.collectable.getInfiniteScroll({
     type: undefined,
     tags: [],
+    sort: DEFAULT_SORT,
     limit: COLLECTABLE_PER_PAGE,
   });
 

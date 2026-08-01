@@ -12,6 +12,12 @@ import { SubmissionForm } from "@/components/submission-form";
 import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 import { ViewToggle } from "./view-toggle";
 import { MobileCaseStudyFilter } from "./mobile-case-study-filter";
+import {
+  DEFAULT_SORT,
+  SORT_OPTIONS,
+  getSortLabel,
+  getSortValueFromLabel,
+} from "@/lib/sort-options";
 
 interface MobileNavProps {
   tagOptions: string[];
@@ -28,12 +34,16 @@ export function MobileNav({
 }: MobileNavProps) {
   const [{ view }] = useViewParams();
   const [params, setParams] = useCollectableFilterParams();
-  const { type: selectedType, tags: selectedTags } = params;
+  const { type: selectedType, tags: selectedTags, sort: selectedSort } = params;
   const [submissionFormOpen, setSubmissionFormOpen] = useState(false);
 
   const hasAnySelection = useMemo(() => {
-    return selectedType || (selectedTags && selectedTags.length > 0);
-  }, [selectedType, selectedTags]);
+    return (
+      selectedType ||
+      (selectedTags && selectedTags.length > 0) ||
+      selectedSort !== DEFAULT_SORT
+    );
+  }, [selectedType, selectedTags, selectedSort]);
 
   // Helper for showing selected tags as comma-separated
   function toTitleCase(str: string) {
@@ -61,6 +71,7 @@ export function MobileNav({
   // Add state to track open status for each dropdown
   const [typeOpen, setTypeOpen] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
   return (
@@ -148,10 +159,37 @@ export function MobileNav({
               </motion.div>
             </button>
 
+            {/* Sort Dropdown */}
+            <button
+              onClick={() => setSortOpen(true)}
+              className={cn(
+                "flex items-center gap-2 rounded-full px-4 py-2 text-base font-normal transition-colors focus:outline-none whitespace-nowrap max-w-[160px] overflow-hidden text-ellipsis",
+                sortOpen
+                  ? "bg-neutral-300 text-neutral-900"
+                  : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+              )}
+            >
+              <span className="truncate">{getSortLabel(selectedSort)}</span>
+              <motion.div
+                animate={{ rotate: sortOpen ? 180 : 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="flex-shrink-0"
+              >
+                <CaretDown weight="fill" className="h-5 w-5" />
+              </motion.div>
+            </button>
+
             {/* Reset button */}
             {hasAnySelection && (
               <button
-                onClick={() => setParams({ ...params, type: null, tags: [] })}
+                onClick={() =>
+                  setParams({
+                    ...params,
+                    type: null,
+                    tags: [],
+                    sort: DEFAULT_SORT,
+                  })
+                }
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 p-2 text-neutral-900 transition-all hover:bg-neutral-300"
                 aria-label="Reset filters"
               >
@@ -198,6 +236,20 @@ export function MobileNav({
           }
         }}
         multiSelect={true}
+      />
+
+      <MobileDropdown
+        open={sortOpen}
+        onOpenChange={setSortOpen}
+        options={SORT_OPTIONS.map((option) => option.label)}
+        selectedOptions={[getSortLabel(selectedSort)]}
+        onOptionSelect={(label) => {
+          const sort = getSortValueFromLabel(label);
+          if (sort) {
+            void setParams({ ...params, sort });
+          }
+        }}
+        multiSelect={false}
       />
 
       {/* Info Overlay */}
