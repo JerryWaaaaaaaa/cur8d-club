@@ -44,7 +44,10 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     reportMutation.mutate({ id: collectable.id });
   };
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = (event: React.MouseEvent) => {
+    // Place the badge before it becomes visible, otherwise it flashes at
+    // wherever the pointer left it last.
+    positionBadge(event);
     setIsHovered(true);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const seed =
@@ -60,8 +63,10 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   };
 
   // Positioned by hand rather than through state: this fires on every mouse
-  // move, and re-rendering the card that often is wasteful.
-  const handleMouseMove = (event: React.MouseEvent) => {
+  // move, and re-rendering the card that often is wasteful. The second
+  // translate centres the badge on the pointer, since it stands in for the
+  // cursor rather than trailing it.
+  const positionBadge = (event: React.MouseEvent) => {
     const container = containerRef.current;
     const badge = badgeRef.current;
     if (!container || !badge) return;
@@ -69,7 +74,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     const rect = container.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    badge.style.transform = `translate3d(${x + 14}px, ${y + 14}px, 0)`;
+    badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
   };
 
   return (
@@ -78,10 +83,10 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
       // Lifted while hovered so the tilted frame and the cursor badge, which
       // both spill past the card's bounds, aren't painted over by the
       // neighbouring card.
-      className={cn("group relative block", isHovered && "z-30")}
+      className={cn("group relative block cursor-none", isHovered && "z-30")}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onMouseMove={handleMouseMove}
+      onMouseMove={positionBadge}
     >
       <div
         className={cn(
@@ -153,20 +158,33 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
           href={collectable.websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute inset-0 z-20"
+          className="absolute inset-0 z-20 cursor-none"
           aria-label={`Visit ${collectable.name}`}
         />
       )}
 
-      {/* Above the overlay so reporting stays clickable. */}
+      {/* Mirrors the frame's box and rotation so the button rides along with
+          the tilt, while living outside the frame's z-0 stacking context —
+          otherwise it would sit under the full-card link and be unclickable. */}
       {collectable.websiteUrl && (
-        <div className="absolute right-3 top-3 z-30">
+        <div
+          className={cn(
+            "pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full",
+            "origin-center transition-transform duration-300 ease-out",
+            "motion-reduce:transition-none",
+          )}
+          style={{
+            transform:
+              hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
+          }}
+        >
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 type="button"
                 className={cn(
-                  "flex h-[22px] w-[22px] items-center justify-center rounded-full",
+                  "pointer-events-auto absolute right-3 top-3 flex h-[22px] w-[22px]",
+                  "cursor-pointer items-center justify-center rounded-full",
                   "opacity-0 transition-opacity duration-200 group-hover:opacity-100",
                   "text-neutral-400 hover:text-neutral-500",
                 )}
@@ -191,7 +209,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
           className={cn(
             "pointer-events-none absolute left-0 top-0 z-30 flex h-7 items-center gap-1",
             "whitespace-nowrap rounded-full bg-foreground px-3 text-xs text-background",
-            "transition-opacity duration-200",
+            "transition-opacity duration-75",
             isHovered ? "opacity-100" : "opacity-0",
           )}
         >

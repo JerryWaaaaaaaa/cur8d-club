@@ -60,7 +60,10 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
     return () => observer.disconnect();
   }, [hasVideo]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = (event: React.MouseEvent) => {
+    // Place the badge before it becomes visible, otherwise it flashes at
+    // wherever the pointer left it last.
+    positionBadge(event);
     setIsHovered(true);
     if (hasVideo) void videoRef.current?.play().catch(() => undefined);
     if (prefersReducedMotion()) return;
@@ -82,8 +85,10 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
   };
 
   // Positioned by hand rather than through state: this fires on every mouse
-  // move, and re-rendering the card that often is wasteful.
-  const handleMouseMove = (event: React.MouseEvent) => {
+  // move, and re-rendering the card that often is wasteful. The second
+  // translate centres the badge on the pointer, since it stands in for the
+  // cursor rather than trailing it.
+  const positionBadge = (event: React.MouseEvent) => {
     const container = containerRef.current;
     const badge = badgeRef.current;
     if (!container || !badge) return;
@@ -91,7 +96,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
     const rect = container.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    badge.style.transform = `translate3d(${x + 14}px, ${y + 14}px, 0)`;
+    badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
   };
 
   const media = hasVideo ? (
@@ -127,10 +132,10 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
       // Lifted while hovered so the tilted frame and the cursor badge, which
       // both spill past the card's bounds, aren't painted over by the
       // neighbouring card.
-      className={cn("group relative block", isHovered && "z-30")}
+      className={cn("group relative block cursor-none", isHovered && "z-30")}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onMouseMove={handleMouseMove}
+      onMouseMove={positionBadge}
     >
       <div
         className={cn(
@@ -207,7 +212,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
           href={caseStudy.websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute inset-0 z-20"
+          className="absolute inset-0 z-20 cursor-none"
           aria-label={`Visit ${caseStudy.name}`}
         />
       )}
@@ -219,7 +224,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
           className={cn(
             "pointer-events-none absolute left-0 top-0 z-30 flex h-7 items-center gap-1",
             "whitespace-nowrap rounded-full bg-foreground px-3 text-xs text-background",
-            "transition-opacity duration-200",
+            "transition-opacity duration-75",
             isHovered ? "opacity-100" : "opacity-0",
           )}
         >
