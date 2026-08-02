@@ -29,11 +29,19 @@ interface CollectableCardProps {
 // and their bands are offset so the blur accumulates gradually — untouched at
 // the panel's top edge, fully frosted by the time the text begins.
 const DESCRIPTION_BLUR_LAYERS = [
-  { blur: 1, stops: "transparent 0%, #000 14%, #000 28%, transparent 42%" },
-  { blur: 2, stops: "transparent 14%, #000 28%, #000 42%, transparent 56%" },
-  { blur: 4, stops: "transparent 28%, #000 42%, #000 56%, transparent 70%" },
-  { blur: 8, stops: "transparent 42%, #000 56%, #000 100%" },
+  { blur: 1, stops: "transparent 0%, #000 10%, #000 19%, transparent 29%" },
+  { blur: 2, stops: "transparent 10%, #000 19%, #000 29%, transparent 38%" },
+  { blur: 4, stops: "transparent 19%, #000 29%, #000 38%, transparent 48%" },
+  { blur: 8, stops: "transparent 29%, #000 38%, #000 100%" },
 ] as const;
+
+// Softens both ends of the text rather than cutting lines off at them, so a
+// description that runs past the frame trails away instead of stopping dead.
+// The paragraph's own padding is deeper than these bands at both ends, which
+// is what keeps the first and last lines out of them: a description that fits
+// never touches the fade, and one that doesn't only fades where it continues.
+const DESCRIPTION_TEXT_MASK =
+  "linear-gradient(to bottom, transparent 0px, #000 32px, #000 calc(100% - 40px), transparent 100%)";
 
 export function CollectableCard({ collectable }: CollectableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -135,25 +143,30 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         })}
 
         {/* Rises with the blur rather than against it: nothing at the top,
-            holding at 70% from halfway down, where the text sits. */}
+            holding at 70% from the point the text starts. */}
         <div
           aria-hidden="true"
           className={cn(
             "pointer-events-none absolute inset-0",
-            "bg-gradient-to-t from-white/70 from-50% to-white/0",
+            "bg-gradient-to-t from-white/70 from-65% to-white/0",
           )}
         />
 
-        {/* Kept to the frosted half so no line is ever read against the sharp
-            artwork. mt-auto holds a one-line description at the bottom. */}
+        {/* Sized to the frosted part of the panel, so no line is ever read
+            against the sharp artwork. mt-auto holds a short description at the
+            bottom instead of stranding it at the top of the box. */}
         <div
           ref={descriptionRef}
           className={cn(
-            "scrollbar-hide absolute inset-x-0 bottom-0 flex h-1/2 flex-col",
+            "scrollbar-hide absolute inset-x-0 bottom-0 flex h-[65%] flex-col",
             "overflow-y-auto overscroll-contain",
           )}
+          style={{
+            maskImage: DESCRIPTION_TEXT_MASK,
+            WebkitMaskImage: DESCRIPTION_TEXT_MASK,
+          }}
         >
-          <p className="mt-auto p-5 text-sm leading-snug text-neutral-700">
+          <p className="mt-auto px-5 pb-12 pt-8 text-sm leading-snug text-neutral-700">
             {collectable.aiDescription}
           </p>
         </div>
