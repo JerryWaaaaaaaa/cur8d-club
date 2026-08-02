@@ -195,7 +195,10 @@ export async function GET() {
   // Describe rows whose URL is new or has moved — the old description belongs
   // to a page this entry no longer points at — then spend what is left of the
   // per-run budget backfilling rows that have never had one.
-  const itemsToDescribe = [...urlAlteredItems, ...newItems].map((item) => ({
+  const itemsToDescribe: DescribableItem[] = [
+    ...urlAlteredItems,
+    ...newItems,
+  ].map((item) => ({
     id: item.id,
     name: item.name,
     websiteUrl: item.websiteUrl,
@@ -233,13 +236,20 @@ export async function GET() {
   });
 }
 
-async function generateDescriptionAndUpdateDb(item: {
+/**
+ * The fields a description needs, common to a freshly fetched Notion row and a
+ * row already in the database. Notion always gives an array of tags; the column
+ * is nullable, so the shared type takes the wider of the two.
+ */
+interface DescribableItem {
   id: string;
   name: string;
   websiteUrl: string;
   type: string | null;
   tags: string[] | null;
-}) {
+}
+
+async function generateDescriptionAndUpdateDb(item: DescribableItem) {
   const description = await generateDesignerDescription({
     name: item.name,
     url: item.websiteUrl,
