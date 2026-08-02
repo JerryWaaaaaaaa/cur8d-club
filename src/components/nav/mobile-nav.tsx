@@ -6,11 +6,11 @@ import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectab
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MobileDropdown } from "@/components/ui/mobile-dropdown";
 import { motion } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { SubmissionForm } from "@/components/submission-form";
 import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 import { ViewToggle } from "./view-toggle";
+import { Logo } from "./logo";
 import { MobileCaseStudyFilter } from "./mobile-case-study-filter";
 import {
   DEFAULT_SORT,
@@ -99,15 +99,7 @@ export function MobileNav({
       <div className="fixed left-0 right-0 top-0 z-50 bg-gradient-to-b from-white from-[13%] via-white via-[80%] to-transparent p-5">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="relative h-12 w-36">
-            <Image
-              src="/site-assets/logo.svg"
-              alt="cur8d.club"
-              fill
-              priority
-              className="object-contain object-left"
-            />
-          </div>
+          <Logo align="left" className="h-12 w-36" />
 
         </div>
       </div>

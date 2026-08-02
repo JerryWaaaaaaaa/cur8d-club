@@ -84,10 +84,20 @@ export default {
             height: "0",
           },
         },
+        "logo-ball-spin": {
+          from: {
+            transform: "rotate(0deg)",
+          },
+          to: {
+            transform: "rotate(360deg)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // Kept in sync with SPIN_DURATION_MS in src/components/nav/logo.tsx.
+        "logo-ball-spin": "logo-ball-spin 0.6s cubic-bezier(0.45, 0, 0.2, 1) both",
       },
     },
   },
