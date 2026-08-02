@@ -35,12 +35,18 @@ const DESCRIPTION_BLUR_LAYERS = [
   { blur: 8, stops: "transparent 29%, #000 38%, #000 100%" },
 ] as const;
 
-// Softens both ends of the text rather than cutting lines off at them, so a
-// description that runs past the frame trails away instead of stopping dead.
-// The paragraph's own padding is deeper than these bands at both ends, which
-// is what keeps the first and last lines out of them: a description that fits
-// never touches the fade, and one that doesn't only fades where it continues.
+// Lines dissolve as they scroll off the top rather than meeting the sharper
+// artwork head on. The paragraph's top padding matches the band, so the first
+// line is never inside it.
 const DESCRIPTION_TEXT_MASK =
+  "linear-gradient(to bottom, transparent 0px, #000 32px)";
+
+// The same treatment at the bottom, as the cue that the description carries on
+// past the frame. Only applied while it actually does: reserving room for this
+// band in the padding instead would be dead space to scroll through on every
+// card, and enough of it to push descriptions that would otherwise fit into
+// scrolling at all.
+const DESCRIPTION_TEXT_MASK_WITH_MORE =
   "linear-gradient(to bottom, transparent 0px, #000 32px, #000 calc(100% - 40px), transparent 100%)";
 
 // A straight ramp into a flat 70% leaves a corner where the two meet: the
@@ -75,6 +81,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   const descriptionRef = useRef<HTMLDivElement>(null);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
 
   const reportMutation = api.collectable.reportLink.useMutation({
     onSuccess: () => {
@@ -95,7 +102,18 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     // Rewound while the description is still parked below the frame, so the
     // next reader starts at its first line without seeing the text jump.
     if (descriptionRef.current) descriptionRef.current.scrollTop = 0;
+    syncHasMoreBelow();
     setIsHovered(true);
+  };
+
+  // Drives the bottom fade. Cheap enough to run on every scroll event: React
+  // bails out when the answer has not changed, which is all but two frames of
+  // any given scroll. The pixel of slack absorbs fractional layout, which can
+  // otherwise leave a card permanently one hair short of its own end.
+  const syncHasMoreBelow = () => {
+    const el = descriptionRef.current;
+    if (!el) return;
+    setHasMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
   };
 
   const handleMouseLeave = () => {
@@ -133,6 +151,10 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     // that keeps the centre pinned to the pointer at any size.
     badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
   };
+
+  const textMask = hasMoreBelow
+    ? DESCRIPTION_TEXT_MASK_WITH_MORE
+    : DESCRIPTION_TEXT_MASK;
 
   // Mirrors the frame's box and clips the panel, so it is out of sight below
   // the frame until it slides up. Rendered inside the full-card link where
@@ -180,16 +202,21 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
             bottom instead of stranding it at the top of the box. */}
         <div
           ref={descriptionRef}
+          onScroll={syncHasMoreBelow}
           className={cn(
             "scrollbar-hide absolute inset-x-0 bottom-0 flex h-[65%] flex-col",
             "overflow-y-auto overscroll-contain",
           )}
           style={{
-            maskImage: DESCRIPTION_TEXT_MASK,
-            WebkitMaskImage: DESCRIPTION_TEXT_MASK,
+            maskImage: textMask,
+            WebkitMaskImage: textMask,
           }}
         >
-          <p className="mt-auto px-5 pb-12 pt-8 text-sm leading-snug text-neutral-700">
+          {/* mt-auto only has free space to absorb when the description fits,
+              so a short one sits at the bottom of the box and a long one falls
+              back to starting at the top, which is where a reader expects to
+              begin scrolling from. */}
+          <p className="mt-auto px-5 pb-5 pt-8 text-sm leading-snug text-neutral-700">
             {collectable.aiDescription}
           </p>
         </div>
