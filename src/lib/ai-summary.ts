@@ -5,6 +5,11 @@ import * as cheerio from "cheerio";
 const MAX_TOKENS = 300;
 const MAX_SOURCE_CHARS = 12_000;
 
+// A sync describes a batch of unrelated sites at once under a 60s ceiling, so
+// one server that accepts the connection and then never answers would cost the
+// whole run. Better to give up on it and take the row next time.
+const FETCH_TIMEOUT_MS = 10_000;
+
 const SHARED_STYLE =
   "Write plainly and concretely. Do not use marketing language, do not " +
   "start with the name, and reply with the summary only.";
@@ -47,7 +52,9 @@ interface DesignerInput {
  */
 async function fetchPageText(url: string): Promise<string | null> {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
     if (!response.ok) return null;
 
     const $ = cheerio.load(await response.text());

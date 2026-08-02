@@ -212,6 +212,10 @@ export async function GET() {
   if (backfillBudget > 0) {
     const missingDescription = await db.query.collectables.findMany({
       where: isNull(collectables.aiDescription),
+      // Never-attempted rows first, then the longest-untried. Without an
+      // ordering Postgres is free to hand back the same failing rows every
+      // run, and the backfill stalls short of the rows behind them.
+      orderBy: [sql`${collectables.aiDescriptionGeneratedAt} ASC NULLS FIRST`],
       limit: backfillBudget + describedIds.size,
     });
 
@@ -257,15 +261,18 @@ async function generateDescriptionAndUpdateDb(item: DescribableItem) {
     tags: item.tags ?? [],
   });
 
-  if (description) {
-    await db
-      .update(collectables)
-      .set({
-        aiDescription: description,
-        aiDescriptionGeneratedAt: new Date(),
-      })
-      .where(eq(collectables.id, item.id));
-  }
+  // The timestamp records the attempt, not the result, so it is stamped even
+  // when nothing came back. A row with no description but a timestamp is one
+  // that has been tried and failed — the backfill sorts on this so a handful
+  // of sites that can never be scraped move to the back of the queue instead
+  // of being retried forever while the rest go undescribed.
+  await db
+    .update(collectables)
+    .set({
+      ...(description ? { aiDescription: description } : {}),
+      aiDescriptionGeneratedAt: new Date(),
+    })
+    .where(eq(collectables.id, item.id));
 }
 
 async function fetchOpenGraph(url: string): Promise<string | null> {
