@@ -43,6 +43,31 @@ const DESCRIPTION_BLUR_LAYERS = [
 const DESCRIPTION_TEXT_MASK =
   "linear-gradient(to bottom, transparent 0px, #000 32px, #000 calc(100% - 40px), transparent 100%)";
 
+// A straight ramp into a flat 70% leaves a corner where the two meet: the
+// brightness is continuous across it but its rate of change is not, and the
+// eye turns that into a line of its own — right on top of the first line of
+// text, since the tint reaches full strength exactly where the text starts.
+// Easing it brings the ramp's slope to zero before it meets the flat part, so
+// there is no corner left to catch. Same endpoints, so nothing below the fade
+// changes: the text still sits on a full 70%.
+const DESCRIPTION_TINT = buildDescriptionTint();
+
+function buildDescriptionTint() {
+  const FADE_START = 65; // % up the panel, where the text begins
+  const STEPS = 12;
+  const stops = ["rgb(255 255 255 / 0.7) 0%"];
+
+  for (let i = 0; i <= STEPS; i++) {
+    const t = i / STEPS;
+    const eased = t * t * (3 - 2 * t); // smoothstep: flat at both ends
+    const alpha = (0.7 * (1 - eased)).toFixed(4);
+    const position = (FADE_START + (100 - FADE_START) * t).toFixed(2);
+    stops.push(`rgb(255 255 255 / ${alpha}) ${position}%`);
+  }
+
+  return `linear-gradient(to top, ${stops.join(", ")})`;
+}
+
 export function CollectableCard({ collectable }: CollectableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
@@ -146,10 +171,8 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
             holding at 70% from the point the text starts. */}
         <div
           aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute inset-0",
-            "bg-gradient-to-t from-white/70 from-65% to-white/0",
-          )}
+          className="pointer-events-none absolute inset-0"
+          style={{ backgroundImage: DESCRIPTION_TINT }}
         />
 
         {/* Sized to the frosted part of the panel, so no line is ever read
