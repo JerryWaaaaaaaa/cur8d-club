@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, MapPin } from "lucide-react";
 import { type api as serverApi } from "@/trpc/server";
 import { api } from "@/trpc/react";
 import { ImagePlaceholder } from "./image-placeholder";
@@ -33,6 +33,18 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   const [imageError, setImageError] = useState(false);
   const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+
+  // Joined with a middot rather than "at", which reads badly against the
+  // freelancers whose company is their own arrangement. Either half can be
+  // missing, and a site that gives neither leaves the line off entirely. A
+  // studio is its own employer, so a company echoing the name is dropped
+  // rather than printed twice.
+  const company =
+    collectable.company?.toLowerCase() === collectable.name.toLowerCase()
+      ? null
+      : collectable.company;
+
+  const roleLine = [collectable.title, company].filter(Boolean).join(" · ");
 
   const reportMutation = api.collectable.reportLink.useMutation({
     onSuccess: () => {
@@ -154,17 +166,11 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
           </span>
         )}
 
-        {collectable.tags && collectable.tags.length > 0 && (
-          <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
-            {collectable.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700"
-              >
-                {tag.charAt(0).toUpperCase() + tag.slice(1)}
-              </span>
-            ))}
-          </div>
+        {collectable.location && (
+          <span className="pointer-events-none absolute bottom-3 left-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700">
+            <MapPin className="h-3 w-3 shrink-0 text-neutral-400" />
+            <span className="truncate">{collectable.location}</span>
+          </span>
         )}
       </div>
 
@@ -172,6 +178,25 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         <h2 className="text-center font-medium text-neutral-700">
           {collectable.name}
         </h2>
+
+        {roleLine && (
+          <p className="text-center text-sm leading-snug text-neutral-500">
+            {roleLine}
+          </p>
+        )}
+
+        {collectable.tags && collectable.tags.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {collectable.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600"
+              >
+                {tag.charAt(0).toUpperCase() + tag.slice(1)}
+              </span>
+            ))}
+          </div>
+        )}
 
         {collectable.aiDescription && (
           <p className="text-balance text-center text-sm leading-snug text-neutral-600">

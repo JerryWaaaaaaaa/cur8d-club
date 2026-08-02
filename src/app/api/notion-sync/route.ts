@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchNotionData } from "@/lib/notion-sync";
-import { generateDesignerDescription } from "@/lib/ai-summary";
+import { generateDesignerProfile } from "@/lib/ai-summary";
 import { db } from "@/server/db";
 import { collectables } from "@/server/db/schema";
 import { eq, inArray, isNull, or, sql } from "drizzle-orm";
@@ -8,10 +8,10 @@ import * as cheerio from "cheerio";
 
 export const maxDuration = 60;
 
-// Rows without a description are worked through a slice at a time. Every one
-// costs a page fetch plus a model call, and the daily cron will pick up
-// whatever is left over on its next run.
-const DESCRIPTION_BACKFILL_PER_RUN = 20;
+// Rows without a profile are worked through a slice at a time. Every one costs
+// a page fetch plus a model call, and the daily cron will pick up whatever is
+// left over on its next run.
+const PROFILE_BACKFILL_PER_RUN = 20;
 
 async function cleanupOrphanedTags() {
   try {
@@ -103,15 +103,19 @@ export async function GET() {
         updatedAt: new Date(item.updatedAt),
         type: item.type,
         tags: item.tags,
-        // A moved URL invalidates the description with it — dropping it here
-        // means a failed regeneration leaves the card blank rather than
-        // describing a page this entry no longer points at.
+        // A moved URL invalidates the profile with it — dropping it here means
+        // a failed regeneration leaves the card blank rather than describing a
+        // page this entry no longer points at.
         ...(urlAltered
           ? {
               isReported: false,
               isBroken: false,
               aiDescription: null,
               aiDescriptionGeneratedAt: null,
+              location: null,
+              company: null,
+              title: null,
+              profileGeneratedAt: null,
             }
           : {}),
       })
@@ -192,10 +196,10 @@ export async function GET() {
   );
   console.log("Finished fetching OG images at", new Date().toISOString());
 
-  // Describe rows whose URL is new or has moved — the old description belongs
-  // to a page this entry no longer points at — then spend what is left of the
-  // per-run budget backfilling rows that have never had one.
-  const itemsToDescribe: DescribableItem[] = [
+  // Read rows whose URL is new or has moved — the old profile belongs to a page
+  // this entry no longer points at — then spend what is left of the per-run
+  // budget backfilling rows that have never been read.
+  const itemsToProfile: DescribableItem[] = [
     ...urlAlteredItems,
     ...newItems,
   ].map((item) => ({
@@ -206,29 +210,34 @@ export async function GET() {
     tags: item.tags,
   }));
 
-  const describedIds = new Set(itemsToDescribe.map((item) => item.id));
-  const backfillBudget = DESCRIPTION_BACKFILL_PER_RUN - itemsToDescribe.length;
+  const profiledIds = new Set(itemsToProfile.map((item) => item.id));
+  const backfillBudget = PROFILE_BACKFILL_PER_RUN - itemsToProfile.length;
 
   if (backfillBudget > 0) {
-    const missingDescription = await db.query.collectables.findMany({
-      where: isNull(collectables.aiDescription),
+    const missingProfile = await db.query.collectables.findMany({
+      // Rows described before the profile fields existed have a description and
+      // no `profileGeneratedAt`, so the second clause sweeps them up once.
+      where: or(
+        isNull(collectables.aiDescription),
+        isNull(collectables.profileGeneratedAt),
+      ),
       // Never-attempted rows first, then the longest-untried. Without an
       // ordering Postgres is free to hand back the same failing rows every
       // run, and the backfill stalls short of the rows behind them.
-      orderBy: [sql`${collectables.aiDescriptionGeneratedAt} ASC NULLS FIRST`],
-      limit: backfillBudget + describedIds.size,
+      orderBy: [sql`${collectables.profileGeneratedAt} ASC NULLS FIRST`],
+      limit: backfillBudget + profiledIds.size,
     });
 
-    itemsToDescribe.push(
-      ...missingDescription
-        .filter((item) => !describedIds.has(item.id))
+    itemsToProfile.push(
+      ...missingProfile
+        .filter((item) => !profiledIds.has(item.id))
         .slice(0, backfillBudget),
     );
   }
 
-  console.log("Generating descriptions for", itemsToDescribe.length, "items");
-  await Promise.all(itemsToDescribe.map(generateDescriptionAndUpdateDb));
-  console.log("Finished generating descriptions at", new Date().toISOString());
+  console.log("Generating profiles for", itemsToProfile.length, "items");
+  await Promise.all(itemsToProfile.map(generateProfileAndUpdateDb));
+  console.log("Finished generating profiles at", new Date().toISOString());
 
   return NextResponse.json({
     newItems: newItems.length,
@@ -236,14 +245,14 @@ export async function GET() {
     deletedItems: deletedItems.length,
     itemsWithNullishOgImageUrl: itemsWithNullishOgImageUrl.length,
     itemsToFetchOpenGraph: itemsToFetchOpenGraph.length,
-    describedItems: itemsToDescribe.length,
+    profiledItems: itemsToProfile.length,
   });
 }
 
 /**
- * The fields a description needs, common to a freshly fetched Notion row and a
- * row already in the database. Notion always gives an array of tags; the column
- * is nullable, so the shared type takes the wider of the two.
+ * The fields a profile needs, common to a freshly fetched Notion row and a row
+ * already in the database. Notion always gives an array of tags; the column is
+ * nullable, so the shared type takes the wider of the two.
  */
 interface DescribableItem {
   id: string;
@@ -253,24 +262,32 @@ interface DescribableItem {
   tags: string[] | null;
 }
 
-async function generateDescriptionAndUpdateDb(item: DescribableItem) {
-  const description = await generateDesignerDescription({
+async function generateProfileAndUpdateDb(item: DescribableItem) {
+  const profile = await generateDesignerProfile({
     name: item.name,
     url: item.websiteUrl,
     type: item.type,
     tags: item.tags ?? [],
   });
 
-  // The timestamp records the attempt, not the result, so it is stamped even
+  // The timestamps record the attempt, not the result, so they are stamped even
   // when nothing came back. A row with no description but a timestamp is one
   // that has been tried and failed — the backfill sorts on this so a handful
   // of sites that can never be scraped move to the back of the queue instead
-  // of being retried forever while the rest go undescribed.
+  // of being retried forever while the rest go unread.
+  //
+  // Fields that came back empty are left alone rather than written as null: a
+  // site that has since dropped its "currently at" line shouldn't blank out the
+  // details a previous run read off it.
   await db
     .update(collectables)
     .set({
-      ...(description ? { aiDescription: description } : {}),
+      ...(profile.description ? { aiDescription: profile.description } : {}),
+      ...(profile.location ? { location: profile.location } : {}),
+      ...(profile.company ? { company: profile.company } : {}),
+      ...(profile.title ? { title: profile.title } : {}),
       aiDescriptionGeneratedAt: new Date(),
+      profileGeneratedAt: new Date(),
     })
     .where(eq(collectables.id, item.id));
 }

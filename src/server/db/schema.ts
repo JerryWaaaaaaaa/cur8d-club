@@ -39,6 +39,18 @@ export const collectables = createTable(
       withTimezone: true,
     }),
 
+    // Read off the same page in the same pass as the description. Any of them
+    // can stay null — plenty of portfolios never say where their owner lives or
+    // who they work for. `company` holds "Freelance" for the independents.
+    location: text("location"),
+    company: text("company"),
+    title: text("title"),
+    // Stamped on every profile pass, whether or not anything was found, so rows
+    // whose site gives nothing aren't re-read on every sync.
+    profileGeneratedAt: timestamp("profile_generated_at", {
+      withTimezone: true,
+    }),
+
     isReported: boolean("is_reported").notNull().default(false),
     isBroken: boolean("is_broken").notNull().default(false),
   },
