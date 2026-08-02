@@ -32,6 +32,13 @@ export const collectables = createTable(
     ogImageLastFetchedAt: timestamp("og_image_last_fetched_at", {
       withTimezone: true,
     }),
+
+    // Written by the sync from the designer's own site — see `ai-summary.ts`.
+    aiDescription: text("ai_description"),
+    aiDescriptionGeneratedAt: timestamp("ai_description_generated_at", {
+      withTimezone: true,
+    }),
+
     isReported: boolean("is_reported").notNull().default(false),
     isBroken: boolean("is_broken").notNull().default(false),
   },

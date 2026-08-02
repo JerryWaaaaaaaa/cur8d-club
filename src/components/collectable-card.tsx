@@ -168,9 +168,17 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         )}
       </div>
 
-      <h2 className="mt-3 text-center font-medium text-neutral-700">
-        {collectable.name}
-      </h2>
+      <div className="mt-3 flex flex-col items-center gap-1.5">
+        <h2 className="text-center font-medium text-neutral-700">
+          {collectable.name}
+        </h2>
+
+        {collectable.aiDescription && (
+          <p className="text-balance text-center text-sm leading-snug text-neutral-600">
+            {collectable.aiDescription}
+          </p>
+        )}
+      </div>
 
       {/* Covers the whole card — artwork and name are one click target. Sits
           above the media so it actually receives the click. */}
