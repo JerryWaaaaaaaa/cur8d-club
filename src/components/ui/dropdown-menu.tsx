@@ -1,6 +1,5 @@
 import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils";
-import { CheckCircle } from "@phosphor-icons/react";
 import * as React from "react";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -60,11 +59,6 @@ const DropdownMenuItem = React.forwardRef<
     )}
     {...props}
   >
-    {selected && (
-      <span className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center">
-        <CheckCircle weight="fill" className="h-5 w-5" />
-      </span>
-    )}
     {children}
   </RadixDropdownMenu.Item>
 ));
