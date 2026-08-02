@@ -121,17 +121,24 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
       <div
         ref={descriptionRef}
         className={cn(
-          // Capped at half the frame so the artwork stays the subject and the
-          // description reads as a drawer over it, not a replacement for it.
-          "scrollbar-hide absolute inset-x-0 bottom-0 max-h-[50%]",
-          "overflow-y-auto overscroll-contain bg-white p-3",
-          "text-sm leading-snug text-neutral-700",
+          // Stops short of the top so the type badge and the report button
+          // stay clear of it; everything below reads through the frosting.
+          "scrollbar-hide absolute inset-x-0 bottom-0 top-12 flex flex-col",
+          "overflow-y-auto overscroll-contain",
+          // The tint holds at 70% under the text and thins out over the last
+          // third, so the panel dissolves into the artwork instead of ending
+          // on an edge. The blur is even across the whole panel.
+          "bg-gradient-to-t from-white/70 from-70% to-white/0 backdrop-blur",
           "transition-transform duration-300 ease-out",
           "motion-reduce:transition-none",
           isHovered ? "translate-y-0" : "translate-y-full",
         )}
       >
-        {collectable.aiDescription}
+        {/* Pushed to the bottom, so a one-line description sits in the opaque
+            part of the tint rather than floating in the faded top. */}
+        <p className="mt-auto p-3 text-sm leading-snug text-neutral-700">
+          {collectable.aiDescription}
+        </p>
       </div>
     </div>
   ) : null;
