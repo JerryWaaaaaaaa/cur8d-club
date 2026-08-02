@@ -16,7 +16,6 @@ interface CaseStudyCardProps {
   caseStudy: CaseStudy;
 }
 
-// Same seeds as the designer card, so both grids share one hover personality.
 const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
 
 function prefersReducedMotion() {
@@ -37,7 +36,9 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const hasVideo =
-    caseStudy.mediaType === "video" && caseStudy.videoUrl !== null && !mediaError;
+    caseStudy.mediaType === "video" &&
+    caseStudy.videoUrl !== null &&
+    !mediaError;
 
   // On touch devices there is no hover, so play whichever card is on screen.
   useEffect(() => {

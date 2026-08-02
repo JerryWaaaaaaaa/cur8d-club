@@ -24,7 +24,16 @@ interface CollectableCardProps {
   collectable: Collectable;
 }
 
-const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
+// A single blurred layer would start abruptly at whatever line it was masked
+// to. These stack instead: each one blurs the result of the one beneath it,
+// and their bands are offset so the blur accumulates gradually — untouched at
+// the panel's top edge, fully frosted by the time the text begins.
+const DESCRIPTION_BLUR_LAYERS = [
+  { blur: 1, stops: "transparent 0%, #000 14%, #000 28%, transparent 42%" },
+  { blur: 2, stops: "transparent 14%, #000 28%, #000 42%, transparent 56%" },
+  { blur: 4, stops: "transparent 28%, #000 42%, #000 56%, transparent 70%" },
+  { blur: 8, stops: "transparent 42%, #000 56%, #000 100%" },
+] as const;
 
 export function CollectableCard({ collectable }: CollectableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -32,7 +41,6 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   const badgeRef = useRef<HTMLSpanElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const [imageError, setImageError] = useState(false);
-  const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
   const reportMutation = api.collectable.reportLink.useMutation({
@@ -55,17 +63,10 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     // next reader starts at its first line without seeing the text jump.
     if (descriptionRef.current) descriptionRef.current.scrollTop = 0;
     setIsHovered(true);
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const seed =
-      HOVER_ROTATION_SEEDS[
-        Math.floor(Math.random() * HOVER_ROTATION_SEEDS.length)
-      ]!;
-    setHoverRotation(seed);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    setHoverRotation(0);
   };
 
   // Positioned by hand rather than through state: this fires on every mouse
@@ -81,9 +82,8 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Layout offsets rather than getBoundingClientRect: the cover is rotated
-    // while hovered, and its bounding box is the enlarged one that encloses
-    // the tilt, not the square the pointer actually sees.
+    // Layout offsets rather than getBoundingClientRect, to stay in the same
+    // coordinate space as the pointer position measured above.
     const cover = coverRef.current;
     const coverBox: CoverBox | null = cover
       ? {
@@ -101,44 +101,62 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
   };
 
-  // Mirrors the frame's box and rotation so the description rides along with
-  // the tilt, and clips it so the panel is hidden below the frame until it
-  // slides up. Rendered inside the full-card link where there is one, so the
-  // panel can take the pointer — it needs to receive the wheel to scroll —
-  // without swallowing the click that opens the site.
+  // Mirrors the frame's box and clips the panel, so it is out of sight below
+  // the frame until it slides up. Rendered inside the full-card link where
+  // there is one, so the panel can take the pointer — it needs to receive the
+  // wheel to scroll — without swallowing the click that opens the site.
   const description = collectable.aiDescription ? (
-    <div
-      className={cn(
-        "absolute left-0 top-0 z-30 aspect-square w-full overflow-hidden",
-        "origin-center transition-transform duration-300 ease-out",
-        "motion-reduce:transition-none",
-      )}
-      style={{
-        transform:
-          hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
-      }}
-    >
+    <div className="absolute left-0 top-0 z-30 aspect-square w-full overflow-hidden">
       <div
-        ref={descriptionRef}
         className={cn(
           // Stops short of the top so the type badge and the report button
-          // stay clear of it; everything below reads through the frosting.
-          "scrollbar-hide absolute inset-x-0 bottom-0 top-12 flex flex-col",
-          "overflow-y-auto overscroll-contain",
-          // The tint holds at 70% under the text and thins out over the last
-          // third, so the panel dissolves into the artwork instead of ending
-          // on an edge. The blur is even across the whole panel.
-          "bg-gradient-to-t from-white/70 from-70% to-white/0 backdrop-blur",
+          // stay clear of it.
+          "absolute inset-x-0 bottom-0 top-12",
           "transition-transform duration-300 ease-out",
           "motion-reduce:transition-none",
           isHovered ? "translate-y-0" : "translate-y-full",
         )}
       >
-        {/* Pushed to the bottom, so a one-line description sits in the opaque
-            part of the tint rather than floating in the faded top. */}
-        <p className="mt-auto p-3 text-sm leading-snug text-neutral-700">
-          {collectable.aiDescription}
-        </p>
+        {DESCRIPTION_BLUR_LAYERS.map(({ blur, stops }) => {
+          const mask = `linear-gradient(to bottom, ${stops})`;
+          return (
+            <div
+              key={blur}
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backdropFilter: `blur(${blur}px)`,
+                WebkitBackdropFilter: `blur(${blur}px)`,
+                maskImage: mask,
+                WebkitMaskImage: mask,
+              }}
+            />
+          );
+        })}
+
+        {/* Rises with the blur rather than against it: nothing at the top,
+            holding at 70% from halfway down, where the text sits. */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-0",
+            "bg-gradient-to-t from-white/70 from-50% to-white/0",
+          )}
+        />
+
+        {/* Kept to the frosted half so no line is ever read against the sharp
+            artwork. mt-auto holds a one-line description at the bottom. */}
+        <div
+          ref={descriptionRef}
+          className={cn(
+            "scrollbar-hide absolute inset-x-0 bottom-0 flex h-1/2 flex-col",
+            "overflow-y-auto overscroll-contain",
+          )}
+        >
+          <p className="mt-auto p-5 text-sm leading-snug text-neutral-700">
+            {collectable.aiDescription}
+          </p>
+        </div>
       </div>
     </div>
   ) : null;
@@ -146,9 +164,8 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   return (
     <div
       ref={containerRef}
-      // Lifted while hovered so the tilted frame and the cursor badge, which
-      // both spill past the card's bounds, aren't painted over by the
-      // neighbouring card.
+      // Lifted while hovered so the cursor badge, which spills past the card's
+      // bounds, isn't painted over by the neighbouring card.
       className={cn("group relative block cursor-none", isHovered && "z-30")}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -156,42 +173,20 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     >
       <div
         ref={coverRef}
-        className={cn(
-          "relative z-0 mb-3 aspect-square overflow-hidden bg-muted",
-          "origin-center transition-transform duration-300 ease-out",
-          "motion-reduce:transition-none",
-        )}
-        style={{
-          transform:
-            hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
-        }}
+        className="relative z-0 mb-3 aspect-square overflow-hidden bg-muted"
       >
-        <div
-          className={cn(
-            "absolute inset-0 origin-center",
-            "transition-transform duration-300 ease-out",
-            "motion-reduce:transition-none",
-          )}
-          style={{
-            transform:
-              hoverRotation !== 0
-                ? `rotate(${-hoverRotation * 2}deg) scale(1.05)`
-                : undefined,
-          }}
-        >
-          {collectable.ogImageUrl && !imageError ? (
-            <Image
-              src={collectable.ogImageUrl}
-              alt={collectable.name}
-              fill
-              unoptimized
-              className="object-contain p-16"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <ImagePlaceholder name={collectable.name} />
-          )}
-        </div>
+        {collectable.ogImageUrl && !imageError ? (
+          <Image
+            src={collectable.ogImageUrl}
+            alt={collectable.name}
+            fill
+            unoptimized
+            className="object-contain p-16"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <ImagePlaceholder name={collectable.name} />
+        )}
 
         {collectable.type && (
           <span className="pointer-events-none absolute left-3 top-3 z-10 flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background">
@@ -242,21 +237,11 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         description
       )}
 
-      {/* Mirrors the frame's box and rotation so the button rides along with
-          the tilt, while living outside the frame's z-0 stacking context —
-          otherwise it would sit under the full-card link and be unclickable. */}
+      {/* Mirrors the frame's box while living outside the frame's z-0 stacking
+          context — otherwise the button would sit under the full-card link and
+          the description panel, and be unclickable. */}
       {collectable.websiteUrl && (
-        <div
-          className={cn(
-            "pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full",
-            "origin-center transition-transform duration-300 ease-out",
-            "motion-reduce:transition-none",
-          )}
-          style={{
-            transform:
-              hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
-          }}
-        >
+        <div className="pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
