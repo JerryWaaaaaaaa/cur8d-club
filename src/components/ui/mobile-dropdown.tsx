@@ -3,7 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
-import { CheckCircle, X } from "@phosphor-icons/react";
+import { X } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
 
 interface MobileDropdownProps {
@@ -85,15 +85,6 @@ export function MobileDropdown({
                     whileTap={{ scale: 0.98 }}
                   >
                     <span className="text-center">{option}</span>
-                    {isSelected(option) && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="absolute left-6 flex items-center"
-                      >
-                        <CheckCircle weight="fill" className="h-5 w-5" />
-                      </motion.div>
-                    )}
                   </motion.button>
                 ))}
               </div>
