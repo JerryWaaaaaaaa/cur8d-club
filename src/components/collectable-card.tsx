@@ -30,6 +30,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
+  const descriptionRef = useRef<HTMLDivElement>(null);
   const [imageError, setImageError] = useState(false);
   const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -50,6 +51,9 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     // Place the badge before it becomes visible, otherwise it flashes at
     // wherever the pointer left it last.
     positionBadge(event);
+    // Rewound while the description is still parked below the frame, so the
+    // next reader starts at its first line without seeing the text jump.
+    if (descriptionRef.current) descriptionRef.current.scrollTop = 0;
     setIsHovered(true);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const seed =
@@ -96,6 +100,41 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
     // that keeps the centre pinned to the pointer at any size.
     badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
   };
+
+  // Mirrors the frame's box and rotation so the description rides along with
+  // the tilt, and clips it so the panel is hidden below the frame until it
+  // slides up. Rendered inside the full-card link where there is one, so the
+  // panel can take the pointer — it needs to receive the wheel to scroll —
+  // without swallowing the click that opens the site.
+  const description = collectable.aiDescription ? (
+    <div
+      className={cn(
+        "absolute left-0 top-0 z-30 aspect-square w-full overflow-hidden",
+        "origin-center transition-transform duration-300 ease-out",
+        "motion-reduce:transition-none",
+      )}
+      style={{
+        transform:
+          hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
+      }}
+    >
+      <div
+        ref={descriptionRef}
+        className={cn(
+          // Capped at half the frame so the artwork stays the subject and the
+          // description reads as a drawer over it, not a replacement for it.
+          "scrollbar-hide absolute inset-x-0 bottom-0 max-h-[50%]",
+          "overflow-y-auto overscroll-contain bg-white p-3",
+          "text-sm leading-snug text-neutral-700",
+          "transition-transform duration-300 ease-out",
+          "motion-reduce:transition-none",
+          isHovered ? "translate-y-0" : "translate-y-full",
+        )}
+      >
+        {collectable.aiDescription}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div
@@ -155,7 +194,15 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         )}
 
         {collectable.tags && collectable.tags.length > 0 && (
-          <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
+          // Cleared on hover so the description slides into an empty frame
+          // rather than cutting across the tag row.
+          <div
+            className={cn(
+              "pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5",
+              "transition-opacity duration-200 motion-reduce:transition-none",
+              collectable.aiDescription && "group-hover:opacity-0",
+            )}
+          >
             {collectable.tags.map((tag) => (
               <span
                 key={tag}
@@ -168,28 +215,24 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         )}
       </div>
 
-      <div className="mt-3 flex flex-col items-center gap-1.5">
-        <h2 className="text-center font-medium text-neutral-700">
-          {collectable.name}
-        </h2>
-
-        {collectable.aiDescription && (
-          <p className="text-balance text-center text-sm leading-snug text-neutral-600">
-            {collectable.aiDescription}
-          </p>
-        )}
-      </div>
+      <h2 className="mt-3 text-center font-medium text-neutral-700">
+        {collectable.name}
+      </h2>
 
       {/* Covers the whole card — artwork and name are one click target. Sits
           above the media so it actually receives the click. */}
-      {collectable.websiteUrl && (
+      {collectable.websiteUrl ? (
         <a
           href={collectable.websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="absolute inset-0 z-20 cursor-none"
           aria-label={`Visit ${collectable.name}`}
-        />
+        >
+          {description}
+        </a>
+      ) : (
+        description
       )}
 
       {/* Mirrors the frame's box and rotation so the button rides along with
