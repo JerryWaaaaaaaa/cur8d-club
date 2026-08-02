@@ -1,9 +1,27 @@
 import Anthropic from "@anthropic-ai/sdk";
 import * as cheerio from "cheerio";
 
-// Short summaries only — this is a card caption, not an article.
+// Short summaries only — these are card captions, not articles.
 const MAX_TOKENS = 300;
 const MAX_SOURCE_CHARS = 12_000;
+
+const SHARED_STYLE =
+  "Write plainly and concretely. Do not use marketing language, do not " +
+  "start with the name, and reply with the summary only.";
+
+const CASE_STUDY_SYSTEM =
+  "You write short blurbs for a curated gallery of design work. " +
+  "Given source material about a project, reply with one or two " +
+  "sentences describing what it is and what makes the design notable. " +
+  SHARED_STYLE;
+
+const DESIGNER_SYSTEM =
+  "You write short blurbs for a curated directory of designers and design " +
+  "studios. Given source material from someone's own site, reply with one " +
+  "or two sentences describing who they are and the kind of work they do. " +
+  "Only state what the source material supports — if it is too thin to say " +
+  "anything specific, reply with the word NONE. " +
+  SHARED_STYLE;
 
 interface SummaryInput {
   name: string;
@@ -11,6 +29,13 @@ interface SummaryInput {
   sourceText: string | null;
   types: string[];
   industries: string[];
+}
+
+interface DesignerInput {
+  name: string;
+  url: string;
+  type: string | null;
+  tags: string[];
 }
 
 /**
@@ -32,6 +57,51 @@ async function fetchPageText(url: string): Promise<string | null> {
     return text === "" ? null : text.slice(0, MAX_SOURCE_CHARS);
   } catch (error) {
     console.error("Error fetching page text for", url, error);
+    return null;
+  }
+}
+
+/**
+ * One model call, shared by both kinds of blurb.
+ *
+ * `label` only ever reaches the logs; it identifies the row being summarised
+ * when a fetch or a call fails partway through a sync.
+ */
+async function writeBlurb({
+  system,
+  context,
+  source,
+  label,
+}: {
+  system: string;
+  context: string;
+  source: string;
+  label: string;
+}): Promise<string | null> {
+  try {
+    const anthropic = new Anthropic();
+
+    const message = await anthropic.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: MAX_TOKENS,
+      system,
+      messages: [
+        {
+          role: "user",
+          content: `${context}\n\nSource material:\n${source}`,
+        },
+      ],
+    });
+
+    const blurb = message.content
+      .filter((block) => block.type === "text")
+      .map((block) => block.text)
+      .join("")
+      .trim();
+
+    return blurb === "" ? null : blurb;
+  } catch (error) {
+    console.error("Error generating summary for", label, error);
     return null;
   }
 }
@@ -71,35 +141,58 @@ export async function generateSummary({
     .filter(Boolean)
     .join("\n");
 
-  try {
-    const anthropic = new Anthropic();
+  return writeBlurb({
+    system: CASE_STUDY_SYSTEM,
+    context,
+    source,
+    label: name,
+  });
+}
 
-    const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5",
-      max_tokens: MAX_TOKENS,
-      system:
-        "You write short blurbs for a curated gallery of design work. " +
-        "Given source material about a project, reply with one or two " +
-        "sentences describing what it is and what makes the design notable. " +
-        "Write plainly and concretely. Do not use marketing language, do not " +
-        "start with the project name, and reply with the summary only.",
-      messages: [
-        {
-          role: "user",
-          content: `${context}\n\nSource material:\n${source}`,
-        },
-      ],
-    });
-
-    const summary = message.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("")
-      .trim();
-
-    return summary === "" ? null : summary;
-  } catch (error) {
-    console.error("Error generating summary for", name, error);
+/**
+ * Writes a one or two sentence description of a designer.
+ *
+ * The only source is the linked site itself — the designer database has no
+ * equivalent of the case studies' captured source text. Portfolios that render
+ * client-side scrape to nothing, and those rows simply keep no description
+ * rather than getting an invented one.
+ */
+export async function generateDesignerDescription({
+  name,
+  url,
+  type,
+  tags,
+}: DesignerInput): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn("ANTHROPIC_API_KEY not set — skipping description for", name);
     return null;
   }
+
+  const source = await fetchPageText(url);
+
+  if (!source) {
+    console.warn("No source material to describe", name);
+    return null;
+  }
+
+  const context = [
+    `Designer name: ${name}`,
+    `URL: ${url}`,
+    type ? `Type: ${type}` : null,
+    tags.length > 0 ? `Works in: ${tags.join(", ")}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const description = await writeBlurb({
+    system: DESIGNER_SYSTEM,
+    context,
+    source,
+    label: name,
+  });
+
+  // A page can load fine and still say nothing about its owner — a splash
+  // screen, a cookie wall, a holding page. The model flags those instead of
+  // padding out a description from the tags alone.
+  return description === "NONE" ? null : description;
 }

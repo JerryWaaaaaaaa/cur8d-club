@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { fetchNotionData } from "@/lib/notion-sync";
+import { generateDesignerDescription } from "@/lib/ai-summary";
 import { db } from "@/server/db";
 import { collectables } from "@/server/db/schema";
 import { eq, inArray, isNull, or, sql } from "drizzle-orm";
 import * as cheerio from "cheerio";
+
+export const maxDuration = 60;
+
+// Rows without a description are worked through a slice at a time. Every one
+// costs a page fetch plus a model call, and the daily cron will pick up
+// whatever is left over on its next run.
+const DESCRIPTION_BACKFILL_PER_RUN = 20;
 
 async function cleanupOrphanedTags() {
   try {
@@ -95,7 +103,17 @@ export async function GET() {
         updatedAt: new Date(item.updatedAt),
         type: item.type,
         tags: item.tags,
-        ...(urlAltered ? { isReported: false, isBroken: false } : {}),
+        // A moved URL invalidates the description with it — dropping it here
+        // means a failed regeneration leaves the card blank rather than
+        // describing a page this entry no longer points at.
+        ...(urlAltered
+          ? {
+              isReported: false,
+              isBroken: false,
+              aiDescription: null,
+              aiDescriptionGeneratedAt: null,
+            }
+          : {}),
       })
       .where(eq(collectables.id, item.id));
   });
@@ -174,13 +192,70 @@ export async function GET() {
   );
   console.log("Finished fetching OG images at", new Date().toISOString());
 
+  // Describe rows whose URL is new or has moved — the old description belongs
+  // to a page this entry no longer points at — then spend what is left of the
+  // per-run budget backfilling rows that have never had one.
+  const itemsToDescribe = [...urlAlteredItems, ...newItems].map((item) => ({
+    id: item.id,
+    name: item.name,
+    websiteUrl: item.websiteUrl,
+    type: item.type,
+    tags: item.tags,
+  }));
+
+  const describedIds = new Set(itemsToDescribe.map((item) => item.id));
+  const backfillBudget = DESCRIPTION_BACKFILL_PER_RUN - itemsToDescribe.length;
+
+  if (backfillBudget > 0) {
+    const missingDescription = await db.query.collectables.findMany({
+      where: isNull(collectables.aiDescription),
+      limit: backfillBudget + describedIds.size,
+    });
+
+    itemsToDescribe.push(
+      ...missingDescription
+        .filter((item) => !describedIds.has(item.id))
+        .slice(0, backfillBudget),
+    );
+  }
+
+  console.log("Generating descriptions for", itemsToDescribe.length, "items");
+  await Promise.all(itemsToDescribe.map(generateDescriptionAndUpdateDb));
+  console.log("Finished generating descriptions at", new Date().toISOString());
+
   return NextResponse.json({
     newItems: newItems.length,
     updatedItems: updatedItems.length,
     deletedItems: deletedItems.length,
     itemsWithNullishOgImageUrl: itemsWithNullishOgImageUrl.length,
     itemsToFetchOpenGraph: itemsToFetchOpenGraph.length,
+    describedItems: itemsToDescribe.length,
   });
+}
+
+async function generateDescriptionAndUpdateDb(item: {
+  id: string;
+  name: string;
+  websiteUrl: string;
+  type: string | null;
+  tags: string[] | null;
+}) {
+  const description = await generateDesignerDescription({
+    name: item.name,
+    url: item.websiteUrl,
+    type: item.type,
+    tags: item.tags ?? [],
+  });
+
+  if (description) {
+    await db
+      .update(collectables)
+      .set({
+        aiDescription: description,
+        aiDescriptionGeneratedAt: new Date(),
+      })
+      .where(eq(collectables.id, item.id));
+  }
 }
 
 async function fetchOpenGraph(url: string): Promise<string | null> {
