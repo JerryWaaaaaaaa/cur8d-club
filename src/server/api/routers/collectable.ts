@@ -74,6 +74,9 @@ export const collectableRouter = createTRPCRouter({
           websiteUrl: collectables.websiteUrl,
           ogImageUrl: collectables.ogImageUrl,
           aiDescription: collectables.aiDescription,
+          location: collectables.location,
+          company: collectables.company,
+          title: collectables.title,
         })
         .from(collectables)
         .limit(limit + 1)

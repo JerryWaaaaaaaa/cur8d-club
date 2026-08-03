@@ -39,6 +39,25 @@ export const collectables = createTable(
       withTimezone: true,
     }),
 
+    // Read off the same page in the same pass as the description. Any of them
+    // can stay null — plenty of portfolios never say where their owner lives or
+    // who they work for. `company` holds "Freelance" for the independents.
+    location: text("location"),
+    company: text("company"),
+    title: text("title"),
+    // Stamped on every profile pass, whether or not anything was found, so rows
+    // whose site gives nothing aren't re-read on every sync.
+    profileGeneratedAt: timestamp("profile_generated_at", {
+      withTimezone: true,
+    }),
+    // Whether the last pass got any text off the page at all, which is what
+    // separates the two reasons a field above is null. False is a site that
+    // cannot be read — rendered client-side, or behind a block — and says
+    // nothing about the designer. True means the page was read and simply does
+    // not mention where they are or who they work for, which no amount of
+    // re-reading will change. Null is a row no pass has reached yet.
+    profilePageRead: boolean("profile_page_read"),
+
     isReported: boolean("is_reported").notNull().default(false),
     isBroken: boolean("is_broken").notNull().default(false),
   },

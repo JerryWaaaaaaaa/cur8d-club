@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
-
 import { HorizontalFilter } from "./horizontal-filter";
+import { Logo } from "./logo";
 import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 import { ViewToggle } from "./view-toggle";
 import { CaseStudyFilter } from "./case-study-filter";
@@ -57,15 +56,7 @@ export function DesktopNav({
             {filters}
           </div>
 
-          <div className="relative h-12 w-[145px] flex-shrink-0">
-            <Image
-              src="/site-assets/logo.svg"
-              alt="cur8d.club"
-              fill
-              priority
-              className="object-contain object-right"
-            />
-          </div>
+          <Logo align="right" className="h-12 w-[145px] flex-shrink-0" />
         </div>
       </div>
     </header>

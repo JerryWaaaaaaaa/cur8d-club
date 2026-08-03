@@ -217,7 +217,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
         <h2 className="font-medium text-neutral-900">{caseStudy.name}</h2>
 
         {caseStudy.aiSummary && (
-          <p className="text-sm leading-snug text-neutral-600">
+          <p className="line-clamp-2 text-sm leading-snug text-neutral-600">
             {caseStudy.aiSummary}
           </p>
         )}
