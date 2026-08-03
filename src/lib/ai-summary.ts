@@ -101,13 +101,34 @@ interface DesignerInput {
 }
 
 export interface DesignerProfile {
+  /**
+   * Whether the site yielded any text to read. False separates a portfolio
+   * that cannot be scraped from one that was read and simply says nothing
+   * about its owner — the fields below are null either way, and only the
+   * second kind is worth reading again the same way.
+   */
+  pageRead: boolean;
   description: string | null;
   location: string | null;
   company: string | null;
   title: string | null;
 }
 
-const EMPTY_PROFILE: DesignerProfile = {
+// A page that scrapes to nothing is an answer: the site will read the same way
+// tomorrow, so the row counts as looked at and waits out the retry window with
+// the rest. Only an attempt that never got to look — no key, a call that
+// errored, a rate limit — returns null, and those rows are left unstamped so
+// the next run picks them straight back up.
+const UNREADABLE_PAGE: DesignerProfile = {
+  pageRead: false,
+  description: null,
+  location: null,
+  company: null,
+  title: null,
+};
+
+const READ_BUT_EMPTY: DesignerProfile = {
+  pageRead: true,
   description: null,
   location: null,
   company: null,
@@ -251,23 +272,26 @@ function readDetail(value: unknown, max = MAX_DETAIL_CHARS): string | null {
  * same page, and a second call would double the cost of every row the sync
  * touches. Any individual field can be null — a page can load fine and still
  * be a splash screen, a cookie wall, or a holding page.
+ *
+ * Returns null when the attempt failed rather than came back empty, which is
+ * the caller's signal to leave the row unstamped and try it again next run.
  */
 export async function generateDesignerProfile({
   name,
   url,
   type,
   tags,
-}: DesignerInput): Promise<DesignerProfile> {
+}: DesignerInput): Promise<DesignerProfile | null> {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.warn("ANTHROPIC_API_KEY not set — skipping profile for", name);
-    return EMPTY_PROFILE;
+    return null;
   }
 
   const source = await fetchPageText(url);
 
   if (!source) {
     console.warn("No source material to describe", name);
-    return EMPTY_PROFILE;
+    return UNREADABLE_PAGE;
   }
 
   const context = [
@@ -298,21 +322,24 @@ export async function generateDesignerProfile({
 
     // A call cut off at the token ceiling leaves the tool's JSON half-written,
     // and a description that stops mid-sentence is worse on a card than none.
+    // The same page will run the model just as long next time, so this counts
+    // as looked at rather than as something to retry.
     if (message.stop_reason === "max_tokens") {
       console.error("Profile cut off by the token limit for", name);
-      return EMPTY_PROFILE;
+      return READ_BUT_EMPTY;
     }
 
     const toolUse = message.content.find((block) => block.type === "tool_use");
 
     if (!toolUse) {
       console.error("No profile returned for", name);
-      return EMPTY_PROFILE;
+      return null;
     }
 
     const profile = toolUse.input as Record<string, unknown>;
 
     return {
+      pageRead: true,
       description: readDetail(profile.description, MAX_DESCRIPTION_CHARS),
       location: readDetail(profile.location),
       company: readDetail(profile.company),
@@ -320,6 +347,6 @@ export async function generateDesignerProfile({
     };
   } catch (error) {
     console.error("Error generating profile for", name, error);
-    return EMPTY_PROFILE;
+    return null;
   }
 }
