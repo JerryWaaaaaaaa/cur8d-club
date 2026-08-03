@@ -159,21 +159,14 @@ export async function GET(request: Request) {
         updatedAt: new Date(item.updatedAt),
         type: item.type,
         tags: item.tags,
-        // A moved URL invalidates the profile with it — dropping it here means
-        // a failed regeneration leaves the card blank rather than describing a
-        // page this entry no longer points at.
-        ...(urlAltered
-          ? {
-              isReported: false,
-              isBroken: false,
-              aiDescription: null,
-              aiDescriptionGeneratedAt: null,
-              location: null,
-              company: null,
-              title: null,
-              profileGeneratedAt: null,
-            }
-          : {}),
+        // A moved URL clears the link flags, since the complaint was about an
+        // address this entry no longer uses. The profile is left standing: the
+        // row is read again below whatever else happens this run, and anything
+        // the new page gives overwrites it field by field. Blanking it here
+        // instead would trade a description that is usually still true — most
+        // moved URLs are the same designer on a new host — for an empty card
+        // whenever the new page cannot be read.
+        ...(urlAltered ? { isReported: false, isBroken: false } : {}),
       })
       .where(eq(collectables.id, item.id));
   });
