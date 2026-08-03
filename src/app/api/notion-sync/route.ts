@@ -29,18 +29,29 @@ const PROFILE_BACKFILL_MAX = 100;
 // all four fields is never read again.
 const PROFILE_RETRY_DAYS = 30;
 
-/**
- * Rows worth spending a fetch and a call on: something is still missing, and
- * either they have never been read or their last reading has gone stale.
- */
+/** Rows with something still missing, whatever their last reading said. */
 function incompleteProfiles() {
+  return or(
+    isNull(collectables.aiDescription),
+    isNull(collectables.location),
+    isNull(collectables.company),
+    isNull(collectables.title),
+  );
+}
+
+/**
+ * Rows worth spending a fetch and a call on now: something is still missing,
+ * and either they have never been read or their last reading has gone stale.
+ *
+ * `ignoreCooldown` is what `?refresh=1` sets. Every row is inside the window
+ * for a month after a sweep, so without it an improvement to what the model is
+ * asked for could not reach a single row until the window ran out.
+ */
+function profilesToRead(ignoreCooldown: boolean) {
+  if (ignoreCooldown) return incompleteProfiles();
+
   return and(
-    or(
-      isNull(collectables.aiDescription),
-      isNull(collectables.location),
-      isNull(collectables.company),
-      isNull(collectables.title),
-    ),
+    incompleteProfiles(),
     or(
       isNull(collectables.profileGeneratedAt),
       sql`${collectables.profileGeneratedAt} < NOW() - INTERVAL '${sql.raw(
@@ -96,13 +107,13 @@ async function cleanupOrphanedTags() {
 }
 
 export async function GET(request: Request) {
-  const requested = Number(
-    new URL(request.url).searchParams.get("profiles") ?? "",
-  );
+  const params = new URL(request.url).searchParams;
+  const requested = Number(params.get("profiles") ?? "");
   const profileBudget =
     Number.isFinite(requested) && requested > 0
       ? Math.min(Math.trunc(requested), PROFILE_BACKFILL_MAX)
       : PROFILE_BACKFILL_PER_RUN;
+  const ignoreCooldown = params.get("refresh") === "1";
 
   const trueItems = await fetchNotionData();
 
@@ -260,7 +271,7 @@ export async function GET(request: Request) {
 
   if (backfillBudget > 0) {
     const missingProfile = await db.query.collectables.findMany({
-      where: incompleteProfiles(),
+      where: profilesToRead(ignoreCooldown),
       // Never-read rows first, then the longest-unread. Without an ordering
       // Postgres is free to hand back the same rows every run, and the backfill
       // stalls short of the rows behind them.
@@ -281,12 +292,18 @@ export async function GET(request: Request) {
   );
   console.log("Finished generating profiles at", new Date().toISOString());
 
-  // What is still outstanding once this run has written its rows, so a sweep
-  // by hand can be repeated until it reaches zero rather than guessed at.
-  const [remaining] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(collectables)
-    .where(incompleteProfiles());
+  // Where the directory stands once this run has written its rows. `eligible`
+  // is what another run would pick up right now and `incomplete` is what is
+  // actually missing — they differ by the cooldown, and reporting only the
+  // first would read as finished when it means everything was read recently.
+  // `unreadable` is the part no further reading can fix.
+  const [standing] = await db
+    .select({
+      eligible: sql<number>`count(*) FILTER (WHERE ${profilesToRead(false)})::int`,
+      incomplete: sql<number>`count(*) FILTER (WHERE ${incompleteProfiles()})::int`,
+      unreadable: sql<number>`count(*) FILTER (WHERE ${collectables.profilePageRead} = false)::int`,
+    })
+    .from(collectables);
 
   return NextResponse.json({
     newItems: newItems.length,
@@ -296,7 +313,9 @@ export async function GET(request: Request) {
     itemsToFetchOpenGraph: itemsToFetchOpenGraph.length,
     profilesRead: profileResults.filter(Boolean).length,
     profilesFailed: profileResults.filter((read) => !read).length,
-    profilesRemaining: remaining?.count ?? 0,
+    profilesEligible: standing?.eligible ?? 0,
+    profilesIncomplete: standing?.incomplete ?? 0,
+    profilesUnreadable: standing?.unreadable ?? 0,
   });
 }
 
@@ -350,6 +369,7 @@ async function generateProfileAndUpdateDb(
       ...(profile.title ? { title: profile.title } : {}),
       aiDescriptionGeneratedAt: new Date(),
       profileGeneratedAt: new Date(),
+      profilePageRead: profile.pageRead,
     })
     .where(eq(collectables.id, item.id));
 

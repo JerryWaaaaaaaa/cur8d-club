@@ -101,6 +101,13 @@ interface DesignerInput {
 }
 
 export interface DesignerProfile {
+  /**
+   * Whether the site yielded any text to read. False separates a portfolio
+   * that cannot be scraped from one that was read and simply says nothing
+   * about its owner — the fields below are null either way, and only the
+   * second kind is worth reading again the same way.
+   */
+  pageRead: boolean;
   description: string | null;
   location: string | null;
   company: string | null;
@@ -112,7 +119,16 @@ export interface DesignerProfile {
 // the rest. Only an attempt that never got to look — no key, a call that
 // errored, a rate limit — returns null, and those rows are left unstamped so
 // the next run picks them straight back up.
-const NOTHING_ON_THE_PAGE: DesignerProfile = {
+const UNREADABLE_PAGE: DesignerProfile = {
+  pageRead: false,
+  description: null,
+  location: null,
+  company: null,
+  title: null,
+};
+
+const READ_BUT_EMPTY: DesignerProfile = {
+  pageRead: true,
   description: null,
   location: null,
   company: null,
@@ -275,7 +291,7 @@ export async function generateDesignerProfile({
 
   if (!source) {
     console.warn("No source material to describe", name);
-    return NOTHING_ON_THE_PAGE;
+    return UNREADABLE_PAGE;
   }
 
   const context = [
@@ -310,7 +326,7 @@ export async function generateDesignerProfile({
     // as looked at rather than as something to retry.
     if (message.stop_reason === "max_tokens") {
       console.error("Profile cut off by the token limit for", name);
-      return NOTHING_ON_THE_PAGE;
+      return READ_BUT_EMPTY;
     }
 
     const toolUse = message.content.find((block) => block.type === "tool_use");
@@ -323,6 +339,7 @@ export async function generateDesignerProfile({
     const profile = toolUse.input as Record<string, unknown>;
 
     return {
+      pageRead: true,
       description: readDetail(profile.description, MAX_DESCRIPTION_CHARS),
       location: readDetail(profile.location),
       company: readDetail(profile.company),
