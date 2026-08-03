@@ -290,11 +290,15 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
 
       {/* The description is missing from this column on purpose: it now lives
           in the panel that slides up over the frame on hover. */}
-      <div className="mt-3 flex flex-col gap-1.5">
-        <h2 className="font-medium text-neutral-700">{collectable.name}</h2>
+      <div className="mt-3 flex flex-col items-center gap-1.5">
+        <h2 className="text-center font-medium text-neutral-700">
+          {collectable.name}
+        </h2>
 
         {roleLine && (
-          <p className="text-sm leading-snug text-neutral-500">{roleLine}</p>
+          <p className="text-center text-sm leading-snug text-neutral-500">
+            {roleLine}
+          </p>
         )}
 
         {collectable.tags && collectable.tags.length > 0 && (
@@ -302,7 +306,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
           // text, the gap above the tags already matches the one above the
           // role line, but the pill's fill starts before its text does, so the
           // eye reads the row as sitting closer than it is.
-          <div className="mt-1 flex flex-wrap gap-1.5">
+          <div className="mt-1 flex flex-wrap justify-center gap-1.5">
             {collectable.tags.map((tag) => (
               <span
                 key={tag}
