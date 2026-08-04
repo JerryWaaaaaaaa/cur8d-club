@@ -30,6 +30,7 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
       limit: pageSize,
       types: filterParams.types,
       industries: filterParams.industries,
+      q: filterParams.q,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -90,7 +91,11 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
       {!infiniteCaseStudies.isLoading && allItems?.length === 0 && (
         <div className="flex h-[calc(100vh-32rem)] flex-col items-center justify-center gap-4">
           <BilliardBall className="" ballType="8-ball" />
-          <p className="text-2xl">No projects yet</p>
+          {/* An empty table and a search that matched nothing are different
+              things to be told. */}
+          <p className="text-2xl">
+            {hasFilter ? "No results found" : "No projects yet"}
+          </p>
         </div>
       )}
     </>

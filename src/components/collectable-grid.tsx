@@ -30,6 +30,7 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
         limit: pageSize,
         type: filterParams.type,
         tags: filterParams.tags,
+        q: filterParams.q,
         sort: filterParams.sort,
       },
       {
