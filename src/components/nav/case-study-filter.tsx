@@ -6,8 +6,6 @@ import { useCaseStudyFilterParams } from "@/hooks/params-parsers/use-case-study-
 import { useMemo, useState } from "react";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { motion } from "motion/react";
-import { SearchInput } from "./search-input";
-import { useDebouncedSearch } from "@/hooks/use-debounced-search";
 
 interface CaseStudyFilterProps {
   typeOptions: string[];
@@ -45,13 +43,8 @@ export function CaseStudyFilter({
   const [typeOpen, setTypeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
 
-  // Shallow, so the query re-runs the grid's client query without a server
-  // round trip for every keystroke.
-  const [searchDraft, setSearchDraft] = useDebouncedSearch(
-    search,
-    (q) => void setParams({ q }, { shallow: true }),
-  );
-
+  // The search box itself floats over the grid rather than sitting in this row,
+  // but reset is the one control that clears everything, search included.
   const hasAnySelection = useMemo(
     () =>
       selectedTypes.length > 0 ||
@@ -78,18 +71,12 @@ export function CaseStudyFilter({
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
     );
 
-  // An empty database means empty dropdowns — each one drops out on its own
-  // rather than render a control that can't do anything. Search stays either
-  // way; it has the same table to search whether or not the tags are filled in.
+  // An empty database means empty dropdowns — show nothing rather than
+  // controls that can't do anything.
+  if (typeOptions.length === 0 && industryOptions.length === 0) return null;
+
   return (
     <div className="flex items-center gap-2.5 pb-0 pt-0">
-      <SearchInput
-        value={searchDraft}
-        onValueChange={setSearchDraft}
-        placeholder="Search name, industry, keywords"
-        className="w-64"
-      />
-
       {typeOptions.length > 0 && (
         <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
           <DropdownMenu.Trigger asChild>

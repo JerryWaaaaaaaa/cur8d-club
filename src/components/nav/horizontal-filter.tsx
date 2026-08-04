@@ -8,8 +8,6 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { CaretDown } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { DEFAULT_SORT, SORT_OPTIONS, getSortLabel } from "@/lib/sort-options";
-import { SearchInput } from "./search-input";
-import { useDebouncedSearch } from "@/hooks/use-debounced-search";
 
 interface HorizontalFilterProps {
   tagOptions: string[];
@@ -28,13 +26,8 @@ export function HorizontalFilter({
     q: search,
   } = params;
 
-  // Shallow, so the query re-runs the grid's client query without a server
-  // round trip for every keystroke.
-  const [searchDraft, setSearchDraft] = useDebouncedSearch(
-    search,
-    (q) => void setParams({ q }, { shallow: true }),
-  );
-
+  // The search box itself floats over the grid rather than sitting in this row,
+  // but reset is the one control that clears everything, search included.
   const hasAnySelection = useMemo(() => {
     return (
       selectedType ||
@@ -72,147 +65,132 @@ export function HorizontalFilter({
   const [tagOpen, setTagOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
 
-  // Nothing to filter by — the dropdowns drop out rather than render controls
-  // that can't do anything, but search still has a table to search.
-  const hasFilterOptions = typeOptions.length > 0 || tagOptions.length > 0;
+  // Nothing to filter by — don't render controls that can't do anything.
+  if (typeOptions.length === 0 && tagOptions.length === 0) return null;
 
   return (
     <div className="flex items-center gap-2.5 pb-0 pt-0">
-      <SearchInput
-        value={searchDraft}
-        onValueChange={setSearchDraft}
-        className="w-64"
-      />
+      {/* Type Dropdown */}
+      <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
+        <DropdownMenu.Trigger asChild>
+          <button
+            className={cn(
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
+              typeOpen
+                ? "bg-black text-white"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
+            )}
+          >
+            {selectedTypeLabel}
+            <motion.div
+              animate={{ rotate: typeOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <CaretDown weight="fill" className="h-5 w-5" />
+            </motion.div>
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content open={typeOpen}>
+          {typeOptions.map((type) => (
+            <DropdownMenu.Item
+              key={type}
+              onSelect={() =>
+                void setParams({
+                  ...params,
+                  type: selectedType === type ? null : type,
+                })
+              }
+              selected={selectedType === type}
+            >
+              {toTitleCase(type)}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
 
-      {hasFilterOptions && (
-        <>
-          {/* Type Dropdown */}
-          <DropdownMenu.Root open={typeOpen} onOpenChange={setTypeOpen}>
-            <DropdownMenu.Trigger asChild>
-              <button
-                className={cn(
-                  "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
-                  typeOpen
-                    ? "bg-black text-white"
-                    : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
-                )}
-              >
-                {selectedTypeLabel}
-                <motion.div
-                  animate={{ rotate: typeOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                >
-                  <CaretDown weight="fill" className="h-5 w-5" />
-                </motion.div>
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content open={typeOpen}>
-              {typeOptions.map((type) => (
-                <DropdownMenu.Item
-                  key={type}
-                  onSelect={() =>
+      {/* Tag Dropdown (multi-select) */}
+      <DropdownMenu.Root open={tagOpen} onOpenChange={setTagOpen}>
+        <DropdownMenu.Trigger asChild>
+          <button
+            className={cn(
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
+              tagOpen
+                ? "bg-black text-white"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
+            )}
+            style={{ maxWidth: 240 }}
+          >
+            <span className="max-w-[240px] truncate">{selectedTagsLabel}</span>
+            <motion.div
+              animate={{ rotate: tagOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="flex-shrink-0"
+            >
+              <CaretDown weight="fill" className="h-5 w-5" />
+            </motion.div>
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content open={tagOpen}>
+          {tagOptions.map((tag) => {
+            const isSelected = selectedTags?.includes(tag);
+            return (
+              <DropdownMenu.Item
+                key={tag}
+                onSelect={(e) => {
+                  e.preventDefault(); // Prevent menu from closing
+                  if (isSelected) {
                     void setParams({
                       ...params,
-                      type: selectedType === type ? null : type,
-                    })
+                      tags: selectedTags.filter((t) => t !== tag),
+                    });
+                  } else {
+                    void setParams({
+                      ...params,
+                      tags: [...(selectedTags || []), tag],
+                    });
                   }
-                  selected={selectedType === type}
-                >
-                  {toTitleCase(type)}
-                </DropdownMenu.Item>
-              ))}
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
-
-          {/* Tag Dropdown (multi-select) */}
-          <DropdownMenu.Root open={tagOpen} onOpenChange={setTagOpen}>
-            <DropdownMenu.Trigger asChild>
-              <button
-                className={cn(
-                  "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
-                  tagOpen
-                    ? "bg-black text-white"
-                    : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
-                )}
-                style={{ maxWidth: 240 }}
+                }}
+                selected={isSelected}
               >
-                <span className="max-w-[240px] truncate">
-                  {selectedTagsLabel}
-                </span>
-                <motion.div
-                  animate={{ rotate: tagOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                  className="flex-shrink-0"
-                >
-                  <CaretDown weight="fill" className="h-5 w-5" />
-                </motion.div>
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content open={tagOpen}>
-              {tagOptions.map((tag) => {
-                const isSelected = selectedTags?.includes(tag);
-                return (
-                  <DropdownMenu.Item
-                    key={tag}
-                    onSelect={(e) => {
-                      e.preventDefault(); // Prevent menu from closing
-                      if (isSelected) {
-                        void setParams({
-                          ...params,
-                          tags: selectedTags.filter((t) => t !== tag),
-                        });
-                      } else {
-                        void setParams({
-                          ...params,
-                          tags: [...(selectedTags || []), tag],
-                        });
-                      }
-                    }}
-                    selected={isSelected}
-                  >
-                    {toTitleCase(tag)}
-                  </DropdownMenu.Item>
-                );
-              })}
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
+                {toTitleCase(tag)}
+              </DropdownMenu.Item>
+            );
+          })}
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
 
-          {/* Sort Dropdown */}
-          <DropdownMenu.Root open={sortOpen} onOpenChange={setSortOpen}>
-            <DropdownMenu.Trigger asChild>
-              <button
-                className={cn(
-                  "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
-                  sortOpen
-                    ? "bg-black text-white"
-                    : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
-                )}
-              >
-                {getSortLabel(selectedSort)}
-                <motion.div
-                  animate={{ rotate: sortOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                >
-                  <CaretDown weight="fill" className="h-5 w-5" />
-                </motion.div>
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content open={sortOpen}>
-              {SORT_OPTIONS.map((option) => (
-                <DropdownMenu.Item
-                  key={option.value}
-                  onSelect={() =>
-                    void setParams({ ...params, sort: option.value })
-                  }
-                  selected={selectedSort === option.value}
-                >
-                  {option.label}
-                </DropdownMenu.Item>
-              ))}
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
-        </>
-      )}
+      {/* Sort Dropdown */}
+      <DropdownMenu.Root open={sortOpen} onOpenChange={setSortOpen}>
+        <DropdownMenu.Trigger asChild>
+          <button
+            className={cn(
+              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
+              sortOpen
+                ? "bg-black text-white"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
+            )}
+          >
+            {getSortLabel(selectedSort)}
+            <motion.div
+              animate={{ rotate: sortOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <CaretDown weight="fill" className="h-5 w-5" />
+            </motion.div>
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content open={sortOpen}>
+          {SORT_OPTIONS.map((option) => (
+            <DropdownMenu.Item
+              key={option.value}
+              onSelect={() => void setParams({ ...params, sort: option.value })}
+              selected={selectedSort === option.value}
+            >
+              {option.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
 
       {/* Reset button — only occupies space once a filter is applied. */}
       {hasAnySelection && (
