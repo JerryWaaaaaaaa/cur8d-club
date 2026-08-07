@@ -18,8 +18,18 @@ import { useViewParams } from "@/hooks/params-parsers/use-view-params";
  * Desktop only — the mobile sheet already holds every control at the bottom of
  * the screen, and a second floating bar would land on top of it.
  */
+
+/**
+ * The wash rises off the top of the bar and is gone by its bottom edge, so
+ * nothing is tinted below it.
+ *
+ * The stops have to reach zero just inside the box rather than at it: the box
+ * now ends level with the bar, and any alpha left at that line would show as a
+ * hard horizontal edge running out either side of the bar, which is worse than
+ * the tint being removed.
+ */
 const HALO =
-  "radial-gradient(60% 78% at 50% 78%, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.88) 45%, rgba(255,255,255,0) 72%)";
+  "radial-gradient(58% 45% at 50% 55%, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.9) 38%, rgba(255,255,255,0) 100%)";
 
 /**
  * Wide enough that the placeholder reads in full rather than clipping.
@@ -33,14 +43,16 @@ const BAR =
 
 function FloatingSearchShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden justify-center md:flex">
-      {/* Bottom padding matches the footer links' own offset, so the bar and
-          the links share a line and end on the same edge. Centred on the
-          window, the bar still reaches the links below about 1024px even with
-          them trimmed to the two calls to action, so under `lg` it steps up
-          out of their way instead — narrowing it to fit would clip the
-          placeholder, which is the thing the width is there to prevent. */}
-      <div className="relative flex justify-center px-24 pb-16 pt-24 lg:pb-5">
+    // The bottom offset lives out here rather than on the box below, so that
+    // box — and the wash filling it — stops level with the bar instead of
+    // carrying on beneath it. It matches the footer links' own offset, so the
+    // bar and the links share a line and end on the same edge. Centred on the
+    // window, the bar still reaches the links below about 1024px even with
+    // them trimmed to the two calls to action, so under `lg` it steps up out
+    // of their way instead — narrowing it to fit would clip the placeholder,
+    // which is the thing the width is there to prevent.
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden justify-center pb-16 md:flex lg:pb-5">
+      <div className="relative flex justify-center px-24 pt-24">
         <div
           aria-hidden
           className="absolute inset-0"
