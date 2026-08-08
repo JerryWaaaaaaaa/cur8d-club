@@ -22,12 +22,11 @@ import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 /**
  * Wide enough that the placeholder reads in full rather than clipping.
  *
- * A step lighter than the filter chips it echoes: those sit on the header's
- * flat white, while this one sits over the grid with a shadow under it, and
- * the chips' own neutral-200 reads heavy there.
+ * Width and lift are all this adds. The grey is the one `SearchInput` already
+ * carries, which is the filter chips' grey too — so the bar reads as the same
+ * family of control, and the shadow alone is what sets it above the page.
  */
-const BAR =
-  "w-[26rem] bg-neutral-100 hover:bg-neutral-200 focus-within:bg-neutral-200 shadow-[0_4px_16px_-6px_rgba(0,0,0,0.18)]";
+const BAR = "w-[26rem] shadow-float";
 
 function FloatingSearchShell({ children }: { children: React.ReactNode }) {
   return (
