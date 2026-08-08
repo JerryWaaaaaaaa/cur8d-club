@@ -6,6 +6,12 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { MobileDropdown } from "@/components/ui/mobile-dropdown";
 import { useCaseStudyFilterParams } from "@/hooks/params-parsers/use-case-study-filter-params";
+import {
+  CASE_STUDY_DEFAULT_SORT,
+  SORT_OPTIONS,
+  getSortLabel,
+  getSortValueFromLabel,
+} from "@/lib/sort-options";
 
 interface MobileCaseStudyFilterProps {
   typeOptions: string[];
@@ -31,14 +37,22 @@ export function MobileCaseStudyFilter({
   industryOptions,
 }: MobileCaseStudyFilterProps) {
   const [params, setParams] = useCaseStudyFilterParams();
-  const { types: selectedTypes, industries: selectedIndustries } = params;
+  const {
+    types: selectedTypes,
+    industries: selectedIndustries,
+    sort: selectedSort,
+  } = params;
 
   const [typeOpen, setTypeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
 
   const hasAnySelection = useMemo(
-    () => selectedTypes.length > 0 || selectedIndustries.length > 0,
-    [selectedTypes, selectedIndustries],
+    () =>
+      selectedTypes.length > 0 ||
+      selectedIndustries.length > 0 ||
+      selectedSort !== CASE_STUDY_DEFAULT_SORT,
+    [selectedTypes, selectedIndustries, selectedSort],
   );
 
   const toggle = (key: "types" | "industries", value: string) => {
@@ -59,10 +73,8 @@ export function MobileCaseStudyFilter({
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
     );
 
-  // No options means no filters to show — the sheet still carries the view
-  // toggle and Info, so only these controls drop out.
-  if (typeOptions.length === 0 && industryOptions.length === 0) return null;
-
+  // No options means the type and industry buttons drop out of the sheet, but
+  // sort needs no options table, so it's always offered.
   return (
     <>
       {typeOptions.length > 0 && (
@@ -101,9 +113,30 @@ export function MobileCaseStudyFilter({
         </button>
       )}
 
+      <button
+        onClick={() => setSortOpen(true)}
+        className={triggerClasses(sortOpen)}
+      >
+        <span className="truncate">{getSortLabel(selectedSort)}</span>
+        <motion.div
+          animate={{ rotate: sortOpen ? 180 : 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="flex-shrink-0"
+        >
+          <CaretDown weight="fill" className="h-5 w-5" />
+        </motion.div>
+      </button>
+
       {hasAnySelection && (
         <button
-          onClick={() => setParams({ ...params, types: [], industries: [] })}
+          onClick={() =>
+            setParams({
+              ...params,
+              types: [],
+              industries: [],
+              sort: CASE_STUDY_DEFAULT_SORT,
+            })
+          }
           className="flex w-full items-center justify-between gap-2 rounded-full bg-neutral-200 px-5 py-3 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
           aria-label="Reset filters"
         >
@@ -135,6 +168,20 @@ export function MobileCaseStudyFilter({
         selectedOptions={selectedIndustries}
         onOptionSelect={(industry) => toggle("industries", industry)}
         multiSelect={true}
+      />
+
+      <MobileDropdown
+        open={sortOpen}
+        onOpenChange={setSortOpen}
+        options={SORT_OPTIONS.map((option) => option.label)}
+        selectedOptions={[getSortLabel(selectedSort)]}
+        onOptionSelect={(label) => {
+          const sort = getSortValueFromLabel(label);
+          if (sort) {
+            void setParams({ ...params, sort });
+          }
+        }}
+        multiSelect={false}
       />
     </>
   );

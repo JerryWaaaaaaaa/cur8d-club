@@ -2,42 +2,11 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { collectables } from "@/server/db/schema";
-import {
-  eq,
-  and,
-  sql,
-  arrayOverlaps,
-  asc,
-  desc,
-} from "drizzle-orm";
-import { DEFAULT_SORT, SORT_VALUES, type SortValue } from "@/lib/sort-options";
+import { eq, and, sql, arrayOverlaps } from "drizzle-orm";
+import { DEFAULT_SORT, SORT_VALUES } from "@/lib/sort-options";
+import { getOrderBy } from "@/server/api/sort-order";
 
 const COLLECTABLE_PER_PAGE = 12;
-
-/**
- * `createdAt` is nullable, so both time-based orderings push nulls to the end
- * rather than letting Postgres default them to the top of a DESC sort. Name is
- * the tiebreaker so offset pagination stays deterministic.
- */
-function getOrderBy(sort: SortValue) {
-  switch (sort) {
-    case "recent":
-      return [
-        sql`${collectables.createdAt} DESC NULLS LAST`,
-        asc(collectables.name),
-      ];
-    case "earliest":
-      return [
-        sql`${collectables.createdAt} ASC NULLS LAST`,
-        asc(collectables.name),
-      ];
-    case "name-desc":
-      return [desc(collectables.name)];
-    case "name-asc":
-    default:
-      return [asc(collectables.name)];
-  }
-}
 
 const FILTER_QUERY_OBJECT = z.object({
   type: z.string().optional(),
@@ -90,7 +59,7 @@ export const collectableRouter = createTRPCRouter({
           ),
         )
         .offset(cursor)
-        .orderBy(...getOrderBy(sort));
+        .orderBy(...getOrderBy(collectables, sort));
 
       const items = await query;
       let nextCursor: number | undefined = undefined;

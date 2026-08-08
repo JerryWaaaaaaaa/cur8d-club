@@ -4,7 +4,7 @@ import { MobileNav } from "@/components/nav/mobile-nav";
 import CollectableGrid from "@/components/collectable-grid";
 import CaseStudyGrid from "@/components/case-study-grid";
 import { SiteFooter } from "@/components/site-footer";
-import { DEFAULT_SORT } from "@/lib/sort-options";
+import { CASE_STUDY_DEFAULT_SORT, DEFAULT_SORT } from "@/lib/sort-options";
 
 const COLLECTABLE_PER_PAGE = 12;
 
@@ -60,6 +60,7 @@ export default async function Home({ searchParams }: HomeProps) {
     const initialCaseStudies = await api.caseStudy.getInfiniteScroll({
       types: [],
       industries: [],
+      sort: CASE_STUDY_DEFAULT_SORT,
       limit: COLLECTABLE_PER_PAGE,
     });
 

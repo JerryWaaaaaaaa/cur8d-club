@@ -6,6 +6,11 @@ import { useCaseStudyFilterParams } from "@/hooks/params-parsers/use-case-study-
 import { useMemo, useState } from "react";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { motion } from "motion/react";
+import {
+  CASE_STUDY_DEFAULT_SORT,
+  SORT_OPTIONS,
+  getSortLabel,
+} from "@/lib/sort-options";
 
 interface CaseStudyFilterProps {
   typeOptions: string[];
@@ -34,14 +39,22 @@ export function CaseStudyFilter({
   industryOptions,
 }: CaseStudyFilterProps) {
   const [params, setParams] = useCaseStudyFilterParams();
-  const { types: selectedTypes, industries: selectedIndustries } = params;
+  const {
+    types: selectedTypes,
+    industries: selectedIndustries,
+    sort: selectedSort,
+  } = params;
 
   const [typeOpen, setTypeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
 
   const hasAnySelection = useMemo(
-    () => selectedTypes.length > 0 || selectedIndustries.length > 0,
-    [selectedTypes, selectedIndustries],
+    () =>
+      selectedTypes.length > 0 ||
+      selectedIndustries.length > 0 ||
+      selectedSort !== CASE_STUDY_DEFAULT_SORT,
+    [selectedTypes, selectedIndustries, selectedSort],
   );
 
   const toggle = (key: "types" | "industries", value: string) => {
@@ -62,10 +75,9 @@ export function CaseStudyFilter({
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
     );
 
-  // An empty database means empty dropdowns — show nothing rather than
-  // controls that can't do anything.
-  if (typeOptions.length === 0 && industryOptions.length === 0) return null;
-
+  // The type and industry dropdowns each drop out when the database has
+  // nothing to put in them. There's no early return for the whole row the way
+  // there used to be: sort needs no options table, so it's always offered.
   return (
     <div className="flex items-center gap-2.5 pb-0 pt-0">
       {typeOptions.length > 0 && (
@@ -140,11 +152,43 @@ export function CaseStudyFilter({
         </DropdownMenu.Root>
       )}
 
+      <DropdownMenu.Root open={sortOpen} onOpenChange={setSortOpen}>
+        <DropdownMenu.Trigger asChild>
+          <button className={triggerClasses(sortOpen)}>
+            {getSortLabel(selectedSort)}
+            <motion.div
+              animate={{ rotate: sortOpen ? 180 : 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <CaretDown weight="fill" className="h-5 w-5" />
+            </motion.div>
+          </button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content open={sortOpen}>
+          {SORT_OPTIONS.map((option) => (
+            <DropdownMenu.Item
+              key={option.value}
+              onSelect={() => void setParams({ ...params, sort: option.value })}
+              selected={selectedSort === option.value}
+            >
+              {option.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+
       {/* Only takes up space once there's something to reset — the header
           column is narrow enough that the idle 36px matters. */}
       {hasAnySelection && (
         <button
-          onClick={() => setParams({ ...params, types: [], industries: [] })}
+          onClick={() =>
+            setParams({
+              ...params,
+              types: [],
+              industries: [],
+              sort: CASE_STUDY_DEFAULT_SORT,
+            })
+          }
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300"
           aria-label="Reset filters"
         >
