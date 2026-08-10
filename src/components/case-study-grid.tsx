@@ -12,6 +12,7 @@ import {
 } from "@/hooks/params-parsers/use-case-study-filter-params";
 import { CaseStudyCard } from "./case-study-card";
 import BilliardBall from "./billiard-ball";
+import { parseSearchTerms } from "@/lib/search";
 
 interface CaseStudyGridProps {
   initialData: Awaited<
@@ -30,6 +31,7 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
       limit: pageSize,
       types: filterParams.types,
       industries: filterParams.industries,
+      q: filterParams.q,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -47,6 +49,15 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
   const allItems = useMemo(() => {
     return infiniteCaseStudies.data?.pages.flatMap((page) => page.items);
   }, [infiniteCaseStudies.data]);
+
+  // Split the same way the router splits it, and taken from the committed URL
+  // rather than the search box's draft — the draft leads the URL by the
+  // debounce, so highlighting from it would mark a result set that hadn't been
+  // queried yet.
+  const searchTerms = useMemo(
+    () => parseSearchTerms(filterParams.q),
+    [filterParams.q],
+  );
 
   return (
     <>
@@ -80,7 +91,7 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: (i % pageSize) * 0.1 }}
               >
-                <CaseStudyCard caseStudy={item} />
+                <CaseStudyCard caseStudy={item} terms={searchTerms} />
               </motion.div>
             ))}
           </div>
@@ -90,7 +101,11 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
       {!infiniteCaseStudies.isLoading && allItems?.length === 0 && (
         <div className="flex h-[calc(100vh-32rem)] flex-col items-center justify-center gap-4">
           <BilliardBall className="" ballType="8-ball" />
-          <p className="text-2xl">No projects yet</p>
+          {/* An empty table and a search that matched nothing are different
+              things to be told. */}
+          <p className="text-2xl">
+            {hasFilter ? "No results found" : "No projects yet"}
+          </p>
         </div>
       )}
     </>

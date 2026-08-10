@@ -6,6 +6,7 @@ import { HelpCircle, MapPin } from "lucide-react";
 import { type api as serverApi } from "@/trpc/server";
 import { api } from "@/trpc/react";
 import { ImagePlaceholder } from "./image-placeholder";
+import { Highlight } from "./highlight";
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { badgeScaleForPointer, type CoverBox } from "@/lib/cursor-badge";
@@ -22,6 +23,13 @@ type Collectable = Awaited<
 
 interface CollectableCardProps {
   collectable: Collectable;
+  /**
+   * The active search terms, marked wherever they appear. Only the columns the
+   * router actually searches are marked — the location pill and the type badge
+   * are left alone, since a query never matches on either and highlighting
+   * them would claim a match that didn't happen.
+   */
+  terms: string[];
 }
 
 // A single blurred layer would start abruptly at whatever line it was masked
@@ -74,7 +82,7 @@ function buildDescriptionTint() {
   return `linear-gradient(to top, ${stops.join(", ")})`;
 }
 
-export function CollectableCard({ collectable }: CollectableCardProps) {
+export function CollectableCard({ collectable, terms }: CollectableCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
@@ -229,7 +237,7 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
               back to starting at the top, which is where a reader expects to
               begin scrolling from. */}
           <p className="mt-auto px-5 pb-5 pt-8 text-sm leading-snug text-neutral-700">
-            {collectable.aiDescription}
+            <Highlight text={collectable.aiDescription} terms={terms} />
           </p>
         </div>
       </div>
@@ -292,12 +300,12 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
           in the panel that slides up over the frame on hover. */}
       <div className="mt-3 flex flex-col items-center gap-1.5">
         <h2 className="text-center font-medium text-neutral-700">
-          {collectable.name}
+          <Highlight text={collectable.name} terms={terms} />
         </h2>
 
         {roleLine && (
           <p className="text-center text-sm leading-snug text-neutral-500">
-            {roleLine}
+            <Highlight text={roleLine} terms={terms} />
           </p>
         )}
 
@@ -312,7 +320,10 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
                 key={tag}
                 className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600"
               >
-                {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                <Highlight
+                  text={tag.charAt(0).toUpperCase() + tag.slice(1)}
+                  terms={terms}
+                />
               </span>
             ))}
           </div>

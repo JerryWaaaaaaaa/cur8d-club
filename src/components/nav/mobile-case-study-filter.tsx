@@ -6,6 +6,8 @@ import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { MobileDropdown } from "@/components/ui/mobile-dropdown";
 import { useCaseStudyFilterParams } from "@/hooks/params-parsers/use-case-study-filter-params";
+import { SearchInput } from "./search-input";
+import { useDebouncedSearch } from "@/hooks/use-debounced-search";
 
 interface MobileCaseStudyFilterProps {
   typeOptions: string[];
@@ -31,14 +33,28 @@ export function MobileCaseStudyFilter({
   industryOptions,
 }: MobileCaseStudyFilterProps) {
   const [params, setParams] = useCaseStudyFilterParams();
-  const { types: selectedTypes, industries: selectedIndustries } = params;
+  const {
+    types: selectedTypes,
+    industries: selectedIndustries,
+    q: search,
+  } = params;
 
   const [typeOpen, setTypeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
 
+  // Shallow, so the query re-runs the grid's client query without a server
+  // round trip for every keystroke.
+  const [searchDraft, setSearchDraft] = useDebouncedSearch(
+    search,
+    (q) => void setParams({ q }, { shallow: true }),
+  );
+
   const hasAnySelection = useMemo(
-    () => selectedTypes.length > 0 || selectedIndustries.length > 0,
-    [selectedTypes, selectedIndustries],
+    () =>
+      selectedTypes.length > 0 ||
+      selectedIndustries.length > 0 ||
+      search !== "",
+    [selectedTypes, selectedIndustries, search],
   );
 
   const toggle = (key: "types" | "industries", value: string) => {
@@ -60,11 +76,17 @@ export function MobileCaseStudyFilter({
     );
 
   // No options means no filters to show — the sheet still carries the view
-  // toggle and Info, so only these controls drop out.
-  if (typeOptions.length === 0 && industryOptions.length === 0) return null;
-
+  // toggle and Info, so only those controls drop out. Search stays either way;
+  // it has the same table to search whether or not the tags are filled in.
   return (
     <>
+      <SearchInput
+        value={searchDraft}
+        onValueChange={setSearchDraft}
+        placeholder="Search name, industry, keywords"
+        className="h-auto w-full px-5 py-3"
+      />
+
       {typeOptions.length > 0 && (
         <button
           onClick={() => setTypeOpen(true)}
@@ -103,7 +125,9 @@ export function MobileCaseStudyFilter({
 
       {hasAnySelection && (
         <button
-          onClick={() => setParams({ ...params, types: [], industries: [] })}
+          onClick={() =>
+            setParams({ ...params, types: [], industries: [], q: null })
+          }
           className="flex w-full items-center justify-between gap-2 rounded-full bg-neutral-200 px-5 py-3 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"
           aria-label="Reset filters"
         >
