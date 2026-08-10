@@ -12,6 +12,7 @@ import {
 } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { CollectableCard } from "./collectable-card";
 import BilliardBall from "./billiard-ball";
+import { parseSearchTerms } from "@/lib/search";
 interface CollectableGridProps {
   initialData: Awaited<
     ReturnType<(typeof serverApi)["collectable"]["getInfiniteScroll"]>
@@ -50,6 +51,15 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
     return infiniteCollectables.data?.pages.flatMap((page) => page.items);
   }, [infiniteCollectables.data]);
 
+  // Split the same way the router splits it, and taken from the committed URL
+  // rather than the search box's draft — the draft leads the URL by the
+  // debounce, so highlighting from it would mark a result set that hadn't been
+  // queried yet.
+  const searchTerms = useMemo(
+    () => parseSearchTerms(filterParams.q),
+    [filterParams.q],
+  );
+
   return (
     <>
       {infiniteCollectables.isLoading && (
@@ -80,7 +90,11 @@ function CollectableGrid({ initialData, pageSize }: CollectableGridProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: (i % pageSize) * 0.1 }}
               >
-                <CollectableCard key={item.id} collectable={item} />
+                <CollectableCard
+                  key={item.id}
+                  collectable={item}
+                  terms={searchTerms}
+                />
               </motion.div>
             ))}
           </div>

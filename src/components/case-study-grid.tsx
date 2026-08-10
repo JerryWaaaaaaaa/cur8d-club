@@ -12,6 +12,7 @@ import {
 } from "@/hooks/params-parsers/use-case-study-filter-params";
 import { CaseStudyCard } from "./case-study-card";
 import BilliardBall from "./billiard-ball";
+import { parseSearchTerms } from "@/lib/search";
 
 interface CaseStudyGridProps {
   initialData: Awaited<
@@ -49,6 +50,15 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
     return infiniteCaseStudies.data?.pages.flatMap((page) => page.items);
   }, [infiniteCaseStudies.data]);
 
+  // Split the same way the router splits it, and taken from the committed URL
+  // rather than the search box's draft — the draft leads the URL by the
+  // debounce, so highlighting from it would mark a result set that hadn't been
+  // queried yet.
+  const searchTerms = useMemo(
+    () => parseSearchTerms(filterParams.q),
+    [filterParams.q],
+  );
+
   return (
     <>
       {infiniteCaseStudies.isLoading && (
@@ -81,7 +91,7 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: (i % pageSize) * 0.1 }}
               >
-                <CaseStudyCard caseStudy={item} />
+                <CaseStudyCard caseStudy={item} terms={searchTerms} />
               </motion.div>
             ))}
           </div>

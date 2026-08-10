@@ -7,6 +7,7 @@ import { type api as serverApi } from "@/trpc/server";
 import { cn } from "@/lib/utils";
 import { badgeScaleForPointer, type CoverBox } from "@/lib/cursor-badge";
 import { ImagePlaceholder } from "./image-placeholder";
+import { Highlight } from "./highlight";
 
 type CaseStudy = Awaited<
   ReturnType<(typeof serverApi)["caseStudy"]["getInfiniteScroll"]>
@@ -14,6 +15,8 @@ type CaseStudy = Awaited<
 
 interface CaseStudyCardProps {
   caseStudy: CaseStudy;
+  /** The active search terms, marked wherever they appear. */
+  terms: string[];
 }
 
 const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
@@ -26,7 +29,7 @@ function toTitleCase(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
+export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const coverRef = useRef<HTMLDivElement>(null);
@@ -193,7 +196,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
                 key={type}
                 className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background"
               >
-                {toTitleCase(type)}
+                <Highlight text={toTitleCase(type)} terms={terms} />
               </span>
             ))}
           </div>
@@ -206,7 +209,7 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
                 key={industry}
                 className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700"
               >
-                {toTitleCase(industry)}
+                <Highlight text={toTitleCase(industry)} terms={terms} />
               </span>
             ))}
           </div>
@@ -214,16 +217,20 @@ export function CaseStudyCard({ caseStudy }: CaseStudyCardProps) {
       </div>
 
       <div className="mt-4 flex flex-col gap-1.5">
-        <h2 className="font-medium text-neutral-900">{caseStudy.name}</h2>
+        <h2 className="font-medium text-neutral-900">
+          <Highlight text={caseStudy.name} terms={terms} />
+        </h2>
 
         {caseStudy.aiSummary && (
           <p className="line-clamp-2 text-sm leading-snug text-neutral-600">
-            {caseStudy.aiSummary}
+            <Highlight text={caseStudy.aiSummary} terms={terms} />
           </p>
         )}
 
         {metadata.length > 0 && (
-          <p className="text-xs text-neutral-500">{metadata.join(" · ")}</p>
+          <p className="text-xs text-neutral-500">
+            <Highlight text={metadata.join(" · ")} terms={terms} />
+          </p>
         )}
       </div>
 
