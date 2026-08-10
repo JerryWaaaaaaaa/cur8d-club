@@ -600,13 +600,7 @@ async function captureScreenshotAndUpdateDb(item: {
   id: string;
   websiteUrl: string;
 }): Promise<boolean> {
-  const { url, retryable } = await fetchScreenshotUrl(item.websiteUrl, {
-    // Square, to match the frame it is rendered in. A wide capture cropped to
-    // a square card loses the sides of the page; asking the browser for the
-    // shape we want composes the site's own layout for it instead.
-    width: 1200,
-    height: 1200,
-  });
+  const { url, retryable } = await fetchScreenshotUrl(item.websiteUrl);
 
   if (!url && retryable) return false;
 

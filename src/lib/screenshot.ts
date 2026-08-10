@@ -20,35 +20,26 @@ export interface ScreenshotResult {
   retryable: boolean;
 }
 
-interface ScreenshotOptions {
-  /** Capture viewport, in CSS pixels. Microlink's own default when omitted. */
-  width?: number;
-  height?: number;
-}
-
 /**
  * Captures a screenshot of a page and returns a hosted image URL.
  *
  * Kept behind one helper so the provider stays swappable. Only meaningful for
  * ordinary websites — x.com and friends block automated capture, so video
  * entries use their poster frame instead of calling this.
+ *
+ * No viewport is requested: both grids draw the capture inset inside a square
+ * frame, so the page is better off rendering at the desktop width it was
+ * designed for and being letterboxed than being composed to a shape no visitor
+ * would ever see it in.
  */
 export async function fetchScreenshotUrl(
   url: string,
-  options: ScreenshotOptions = {},
 ): Promise<ScreenshotResult> {
   const endpoint = new URL("https://api.microlink.io");
   endpoint.searchParams.set("url", url);
   endpoint.searchParams.set("screenshot", "true");
   endpoint.searchParams.set("meta", "false");
   endpoint.searchParams.set("waitUntil", "networkidle2");
-
-  if (options.width !== undefined) {
-    endpoint.searchParams.set("viewport.width", String(options.width));
-  }
-  if (options.height !== undefined) {
-    endpoint.searchParams.set("viewport.height", String(options.height));
-  }
 
   const apiKey = process.env.SCREENSHOT_API_KEY;
 

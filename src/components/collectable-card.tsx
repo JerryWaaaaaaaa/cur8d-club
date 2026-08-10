@@ -256,16 +256,18 @@ export function CollectableCard({ collectable }: CollectableCardProps) {
         className="relative z-0 mb-3 aspect-square overflow-hidden bg-muted"
       >
         {/* The designer's own site, then whatever artwork they published for
-            sharing, then their initials. The first fills the frame because it
-            is a picture of a page; the second is padded because it is usually a
-            logo, and blowing one up to the bleed only makes it blurry. */}
+            sharing, then their initials. The first two are drawn the same way —
+            inset, with the frame showing around them — which is the treatment
+            both grids already use. They stay separate branches only so a
+            screenshot that fails to load falls through to the OG image rather
+            than past it to the initials tile. */}
         {collectable.screenshotUrl && !screenshotError ? (
           <Image
             src={collectable.screenshotUrl}
             alt={collectable.name}
             fill
             unoptimized
-            className="object-cover object-top"
+            className="object-contain p-16"
             onError={() => setScreenshotError(true)}
           />
         ) : collectable.ogImageUrl && !ogImageError ? (
