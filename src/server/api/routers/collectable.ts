@@ -2,14 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { collectables } from "@/server/db/schema";
-import {
-  eq,
-  and,
-  sql,
-  arrayOverlaps,
-  asc,
-  desc,
-} from "drizzle-orm";
+import { eq, and, sql, arrayOverlaps, asc, desc } from "drizzle-orm";
 import { DEFAULT_SORT, SORT_VALUES, type SortValue } from "@/lib/sort-options";
 
 const COLLECTABLE_PER_PAGE = 12;
@@ -72,7 +65,10 @@ export const collectableRouter = createTRPCRouter({
           tags: collectables.tags,
           createdAt: collectables.createdAt,
           websiteUrl: collectables.websiteUrl,
+          screenshotUrl: collectables.screenshotUrl,
           ogImageUrl: collectables.ogImageUrl,
+          avatarUrl: collectables.avatarUrl,
+          twitterHandle: collectables.twitterHandle,
           aiDescription: collectables.aiDescription,
           location: collectables.location,
           company: collectables.company,
