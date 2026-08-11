@@ -31,6 +31,7 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
       limit: pageSize,
       types: filterParams.types,
       industries: filterParams.industries,
+      sort: filterParams.sort,
       q: filterParams.q,
     },
     {

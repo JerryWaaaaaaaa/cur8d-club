@@ -2,7 +2,9 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { caseStudies } from "@/server/db/schema";
-import { and, arrayOverlaps, desc, eq, sql } from "drizzle-orm";
+import { and, arrayOverlaps, eq, sql } from "drizzle-orm";
+import { CASE_STUDY_DEFAULT_SORT, SORT_VALUES } from "@/lib/sort-options";
+import { getOrderBy } from "@/server/api/sort-order";
 import { parseSearchTerms, toLikePattern } from "@/lib/search";
 
 const CASE_STUDY_PER_PAGE = 12;
@@ -25,6 +27,7 @@ function matchesSearch(terms: string[]) {
 const FILTER_QUERY_OBJECT = z.object({
   types: z.array(z.string()).optional(),
   industries: z.array(z.string()).optional(),
+  sort: z.enum(SORT_VALUES).default(CASE_STUDY_DEFAULT_SORT),
   q: z.string().optional(),
 });
 
@@ -37,7 +40,7 @@ export const caseStudyRouter = createTRPCRouter({
   getInfiniteScroll: publicProcedure
     .input(FILTER_QUERY_OBJECT_WITH_PAGINATION)
     .query(async ({ ctx, input }) => {
-      const { types, industries, q, cursor, limit } = input;
+      const { types, industries, q, cursor, limit, sort } = input;
 
       const items = await ctx.db
         .selectDistinct({
@@ -70,7 +73,7 @@ export const caseStudyRouter = createTRPCRouter({
           ),
         )
         .offset(cursor)
-        .orderBy(desc(caseStudies.createdAt));
+        .orderBy(...getOrderBy(caseStudies, sort));
 
       return {
         items: items.slice(0, limit),
