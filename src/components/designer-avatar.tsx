@@ -16,14 +16,20 @@ interface DesignerAvatarProps {
   className?: string;
 }
 
+// Matches the type badge's `h-[22px]`, so the avatar and the badge beside it
+// read as one row of chips rather than as a portrait with a label stuck to it.
+const SIZE_PX = 22;
+
 /**
  * The designer, in the corner of their own work.
  *
  * Their X picture where the sync found one, otherwise the same initials-on-a-
  * colour treatment the empty cover uses, so a card without an avatar still
- * reads as a card rather than as a card with a hole in it. The ring is what
- * keeps either version legible over a screenshot, which can be any colour at
- * all right where the avatar sits.
+ * reads as a card rather than as a card with a hole in it.
+ *
+ * No ring around it: the cover is drawn inset, so the corner is the frame's
+ * own flat background rather than whatever colour the screenshot happens to be
+ * at that spot, and there is nothing left to separate the avatar from.
  */
 export function DesignerAvatar({
   name,
@@ -38,25 +44,30 @@ export function DesignerAvatar({
   const circle = (
     <span
       className={cn(
-        "flex h-11 w-11 items-center justify-center overflow-hidden rounded-full",
-        "ring-2 ring-white/90",
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-full",
         className,
       )}
-      style={avatarUrl && !imageError ? undefined : { backgroundColor }}
+      style={{
+        height: SIZE_PX,
+        width: SIZE_PX,
+        ...(avatarUrl && !imageError ? {} : { backgroundColor }),
+      }}
     >
       {avatarUrl && !imageError ? (
         <Image
           src={avatarUrl}
           alt={name}
-          width={44}
-          height={44}
+          width={SIZE_PX}
+          height={SIZE_PX}
           unoptimized
           className="h-full w-full object-cover"
           onError={() => setImageError(true)}
         />
       ) : (
+        // Two initials inside 22px, so the type ramps down with the circle and
+        // tightens up rather than touching the edges.
         <span
-          className="text-sm font-medium"
+          className="text-[9px] font-medium leading-none tracking-tight"
           style={{ color: inkForBackground(backgroundColor) }}
         >
           {initialsFor(name)}

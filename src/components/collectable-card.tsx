@@ -189,9 +189,9 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
       <div
         className={cn(
           // Stops short of the top so the avatar, the type badge and the
-          // report button stay clear of it. Measured to the bottom of the
-          // avatar, which is the tallest of the three.
-          "absolute inset-x-0 bottom-0 top-16",
+          // report button stay clear of it. All three are the same 22px tall,
+          // so one measurement covers the row.
+          "absolute inset-x-0 bottom-0 top-12",
           "transition-transform duration-300 ease-out",
           "motion-reduce:transition-none",
           isHovered ? "translate-y-0" : "translate-y-full",
@@ -368,7 +368,7 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
           now shares a line with the avatar, and coordinating their positions
           across two stacking contexts is how they end up overlapping. */}
       <div className="pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full">
-        <div className="absolute left-3 top-3 flex items-center gap-2">
+        <div className="absolute left-3 top-3 flex items-center gap-1.5">
           <DesignerAvatar
             name={collectable.name}
             avatarUrl={collectable.avatarUrl}
