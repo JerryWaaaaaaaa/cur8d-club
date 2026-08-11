@@ -265,8 +265,9 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
       >
         {/* The designer's own site, then whatever artwork they published for
             sharing, then their initials. The first two are drawn the same way —
-            inset, with the frame showing around them — which is the treatment
-            both grids already use. They stay separate branches only so a
+            inset, with the frame showing around them — on a 36px inset, tighter
+            than the case study grid's, so the artwork carries the tile and the
+            frame reads as a border. They stay separate branches only so a
             screenshot that fails to load falls through to the OG image rather
             than past it to the initials tile. */}
         {collectable.screenshotUrl && !screenshotError ? (
@@ -275,7 +276,7 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
             alt={collectable.name}
             fill
             unoptimized
-            className="object-contain p-16"
+            className="object-contain p-9"
             onError={() => setScreenshotError(true)}
           />
         ) : collectable.ogImageUrl && !ogImageError ? (
@@ -284,7 +285,7 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
             alt={collectable.name}
             fill
             unoptimized
-            className="object-contain p-16"
+            className="object-contain p-9"
             onError={() => setOgImageError(true)}
           />
         ) : (
