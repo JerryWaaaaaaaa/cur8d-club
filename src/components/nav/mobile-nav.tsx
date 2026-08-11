@@ -1,6 +1,10 @@
 "use client";
 
-import { ArrowCounterClockwise, CaretDown, CaretUp } from "@phosphor-icons/react";
+import {
+  ArrowCounterClockwise,
+  CaretDown,
+  CaretUp,
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -18,6 +22,8 @@ import {
   getSortLabel,
   getSortValueFromLabel,
 } from "@/lib/sort-options";
+import { SearchInput } from "./search-input";
+import { useDebouncedSearch } from "@/hooks/use-debounced-search";
 
 interface MobileNavProps {
   tagOptions: string[];
@@ -34,16 +40,29 @@ export function MobileNav({
 }: MobileNavProps) {
   const [{ view }] = useViewParams();
   const [params, setParams] = useCollectableFilterParams();
-  const { type: selectedType, tags: selectedTags, sort: selectedSort } = params;
+  const {
+    type: selectedType,
+    tags: selectedTags,
+    sort: selectedSort,
+    q: search,
+  } = params;
   const [submissionFormOpen, setSubmissionFormOpen] = useState(false);
+
+  // Shallow, so the query re-runs the grid's client query without a server
+  // round trip for every keystroke.
+  const [searchDraft, setSearchDraft] = useDebouncedSearch(
+    search,
+    (q) => void setParams({ q }, { shallow: true }),
+  );
 
   const hasAnySelection = useMemo(() => {
     return (
       selectedType ||
       (selectedTags && selectedTags.length > 0) ||
+      search !== "" ||
       selectedSort !== DEFAULT_SORT
     );
-  }, [selectedType, selectedTags, selectedSort]);
+  }, [selectedType, selectedTags, search, selectedSort]);
 
   // Helper for showing selected tags as comma-separated
   function toTitleCase(str: string) {
@@ -100,7 +119,6 @@ export function MobileNav({
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Logo align="left" className="h-12 w-36" />
-
         </div>
       </div>
 
@@ -126,7 +144,10 @@ export function MobileNav({
         </button>
 
         {/* Stacked, full-width controls */}
-        <div ref={sheetContentRef} className="flex w-full flex-col gap-2.5 pb-5">
+        <div
+          ref={sheetContentRef}
+          className="flex w-full flex-col gap-2.5 pb-5"
+        >
           {view === "case-study" ? (
             <MobileCaseStudyFilter
               typeOptions={caseStudyTypeOptions}
@@ -134,6 +155,12 @@ export function MobileNav({
             />
           ) : (
             <>
+              <SearchInput
+                value={searchDraft}
+                onValueChange={setSearchDraft}
+                className="h-auto w-full px-5 py-3"
+              />
+
               {/* Type Dropdown */}
               <button
                 onClick={() => setTypeOpen(true)}
@@ -202,6 +229,7 @@ export function MobileNav({
                       ...params,
                       type: null,
                       tags: [],
+                      q: null,
                       sort: DEFAULT_SORT,
                     })
                   }

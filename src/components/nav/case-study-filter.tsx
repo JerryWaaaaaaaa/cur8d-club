@@ -34,14 +34,23 @@ export function CaseStudyFilter({
   industryOptions,
 }: CaseStudyFilterProps) {
   const [params, setParams] = useCaseStudyFilterParams();
-  const { types: selectedTypes, industries: selectedIndustries } = params;
+  const {
+    types: selectedTypes,
+    industries: selectedIndustries,
+    q: search,
+  } = params;
 
   const [typeOpen, setTypeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
 
+  // The search box itself floats over the grid rather than sitting in this row,
+  // but reset is the one control that clears everything, search included.
   const hasAnySelection = useMemo(
-    () => selectedTypes.length > 0 || selectedIndustries.length > 0,
-    [selectedTypes, selectedIndustries],
+    () =>
+      selectedTypes.length > 0 ||
+      selectedIndustries.length > 0 ||
+      search !== "",
+    [selectedTypes, selectedIndustries, search],
   );
 
   const toggle = (key: "types" | "industries", value: string) => {
@@ -144,7 +153,9 @@ export function CaseStudyFilter({
           column is narrow enough that the idle 36px matters. */}
       {hasAnySelection && (
         <button
-          onClick={() => setParams({ ...params, types: [], industries: [] })}
+          onClick={() =>
+            setParams({ ...params, types: [], industries: [], q: null })
+          }
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300"
           aria-label="Reset filters"
         >

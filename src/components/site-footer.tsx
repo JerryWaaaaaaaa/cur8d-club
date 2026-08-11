@@ -6,18 +6,22 @@ import { useState } from "react";
 import { SubmissionForm } from "@/components/submission-form";
 
 /**
- * The site blurb, pinned to the bottom-right corner.
+ * The site's two links, pinned to the bottom-right corner.
  *
- * It used to live in the header's right-hand column, which cost the filter row
- * a third of the width it needed once the sort control arrived. Down here it
- * sits over the grid instead of competing with it, so the whole header width is
- * free for controls.
+ * They used to live in the header's right-hand column, which cost the filter
+ * row a third of the width it needed once the sort control arrived. Down here
+ * they sit over the grid instead of competing with it, so the whole header
+ * width is free for controls.
+ *
+ * Trimmed to the calls to action alone — the sentences that used to introduce
+ * them ("Discover inspiring designers…", "Have someone in mind?") ran wide
+ * enough to reach the search bar centred on the same line. What is left is
+ * short enough for the two to share that line.
  *
  * Cards scroll underneath, so the text needs something behind it to stay
  * readable. That something is painted on the inline text itself rather than on
- * a wrapper, so it hugs each line instead of reading as a panel floating over
- * the grid. `box-decoration-clone` is what gives the second line its own
- * padding instead of the two sharing one box.
+ * a wrapper, so it hugs the line instead of reading as a panel floating over
+ * the grid, with `box-decoration-clone` keeping that true if it ever wraps.
  *
  * Mobile has its own copy of this text inside the Info overlay, and a fixed
  * filter bar in this corner, so this is desktop-only.
@@ -33,7 +37,6 @@ export function SiteFooter() {
       <footer className="pointer-events-none fixed bottom-5 right-6 z-40 hidden text-right text-base leading-relaxed text-neutral-900 md:block">
         <p>
           <span className={LINE_BACKDROP}>
-            Discover inspiring designers. Curated by{" "}
             <Link
               href="https://x.com/notjerrywang"
               target="_blank"
@@ -42,11 +45,7 @@ export function SiteFooter() {
             >
               ↳ @Jerry
             </Link>
-          </span>
-        </p>
-        <p>
-          <span className={LINE_BACKDROP}>
-            Have someone in mind?{" "}
+            {" · "}
             <button
               onClick={() => setIsFormOpen(true)}
               className="underline hover:no-underline"

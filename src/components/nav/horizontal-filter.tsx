@@ -7,11 +7,7 @@ import { useMemo, useState } from "react";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { CaretDown } from "@phosphor-icons/react";
 import { motion } from "motion/react";
-import {
-  DEFAULT_SORT,
-  SORT_OPTIONS,
-  getSortLabel,
-} from "@/lib/sort-options";
+import { DEFAULT_SORT, SORT_OPTIONS, getSortLabel } from "@/lib/sort-options";
 
 interface HorizontalFilterProps {
   tagOptions: string[];
@@ -23,15 +19,23 @@ export function HorizontalFilter({
   typeOptions,
 }: HorizontalFilterProps) {
   const [params, setParams] = useCollectableFilterParams();
-  const { type: selectedType, tags: selectedTags, sort: selectedSort } = params;
+  const {
+    type: selectedType,
+    tags: selectedTags,
+    sort: selectedSort,
+    q: search,
+  } = params;
 
+  // The search box itself floats over the grid rather than sitting in this row,
+  // but reset is the one control that clears everything, search included.
   const hasAnySelection = useMemo(() => {
     return (
       selectedType ||
       (selectedTags && selectedTags.length > 0) ||
+      search !== "" ||
       selectedSort !== DEFAULT_SORT
     );
-  }, [selectedType, selectedTags, selectedSort]);
+  }, [selectedType, selectedTags, search, selectedSort]);
 
   // Helper for showing selected tags as comma-separated
   function toTitleCase(str: string) {
@@ -163,7 +167,7 @@ export function HorizontalFilter({
               "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               sortOpen
                 ? "bg-black text-white"
-                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
             )}
           >
             {getSortLabel(selectedSort)}
@@ -192,7 +196,13 @@ export function HorizontalFilter({
       {hasAnySelection && (
         <button
           onClick={() =>
-            setParams({ ...params, type: null, tags: [], sort: DEFAULT_SORT })
+            setParams({
+              ...params,
+              type: null,
+              tags: [],
+              q: null,
+              sort: DEFAULT_SORT,
+            })
           }
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300"
           aria-label="Reset filters"
