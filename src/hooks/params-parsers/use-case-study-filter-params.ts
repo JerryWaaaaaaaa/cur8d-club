@@ -21,6 +21,12 @@ const CASE_STUDY_FILTER_PARAMS = {
       clearOnDefault: true,
       shallow: false,
     }),
+  // Written by the search box, which passes `shallow: true` on the setter so
+  // typing doesn't re-run the server render for every keystroke.
+  q: parseAsString.withDefault("").withOptions({
+    clearOnDefault: true,
+    shallow: false,
+  }),
 };
 
 export function hasAnyCaseStudyFilterApplied(
@@ -29,7 +35,8 @@ export function hasAnyCaseStudyFilterApplied(
   return (
     filterParams.types.length > 0 ||
     filterParams.industries.length > 0 ||
-    filterParams.sort !== CASE_STUDY_DEFAULT_SORT
+    filterParams.sort !== CASE_STUDY_DEFAULT_SORT ||
+    filterParams.q !== ""
   );
 }
 
@@ -37,6 +44,7 @@ export const CASE_STUDY_URL_KEYS = {
   types: "types",
   industries: "industries",
   sort: "sort",
+  q: "q",
 };
 
 export function useCaseStudyFilterParams() {

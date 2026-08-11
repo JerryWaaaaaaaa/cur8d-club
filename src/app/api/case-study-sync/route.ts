@@ -62,7 +62,7 @@ async function enrichCaseStudy(item: NotionCaseStudy) {
 
   const coverImageUrl =
     !isVideo && item.websiteUrl
-      ? await fetchScreenshotUrl(item.websiteUrl)
+      ? (await fetchScreenshotUrl(item.websiteUrl)).url
       : null;
 
   const aiSummary = await generateSummary({

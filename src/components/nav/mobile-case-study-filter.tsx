@@ -12,6 +12,8 @@ import {
   getSortLabel,
   getSortValueFromLabel,
 } from "@/lib/sort-options";
+import { SearchInput } from "./search-input";
+import { useDebouncedSearch } from "@/hooks/use-debounced-search";
 
 interface MobileCaseStudyFilterProps {
   typeOptions: string[];
@@ -41,18 +43,27 @@ export function MobileCaseStudyFilter({
     types: selectedTypes,
     industries: selectedIndustries,
     sort: selectedSort,
+    q: search,
   } = params;
 
   const [typeOpen, setTypeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
 
+  // Shallow, so the query re-runs the grid's client query without a server
+  // round trip for every keystroke.
+  const [searchDraft, setSearchDraft] = useDebouncedSearch(
+    search,
+    (q) => void setParams({ q }, { shallow: true }),
+  );
+
   const hasAnySelection = useMemo(
     () =>
       selectedTypes.length > 0 ||
       selectedIndustries.length > 0 ||
-      selectedSort !== CASE_STUDY_DEFAULT_SORT,
-    [selectedTypes, selectedIndustries, selectedSort],
+      selectedSort !== CASE_STUDY_DEFAULT_SORT ||
+      search !== "",
+    [selectedTypes, selectedIndustries, selectedSort, search],
   );
 
   const toggle = (key: "types" | "industries", value: string) => {
@@ -73,10 +84,18 @@ export function MobileCaseStudyFilter({
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
     );
 
-  // No options means the type and industry buttons drop out of the sheet, but
-  // sort needs no options table, so it's always offered.
+  // No options means the type and industry buttons drop out of the sheet, and
+  // only those. Search and sort stay either way: they need no options table,
+  // just the same rows the grid is already showing.
   return (
     <>
+      <SearchInput
+        value={searchDraft}
+        onValueChange={setSearchDraft}
+        placeholder="Search name, industry, keywords"
+        className="h-auto w-full px-5 py-3"
+      />
+
       {typeOptions.length > 0 && (
         <button
           onClick={() => setTypeOpen(true)}
@@ -135,6 +154,7 @@ export function MobileCaseStudyFilter({
               types: [],
               industries: [],
               sort: CASE_STUDY_DEFAULT_SORT,
+              q: null,
             })
           }
           className="flex w-full items-center justify-between gap-2 rounded-full bg-neutral-200 px-5 py-3 text-base font-normal text-neutral-900 transition-colors hover:bg-neutral-300"

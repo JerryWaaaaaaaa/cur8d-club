@@ -43,18 +43,22 @@ export function CaseStudyFilter({
     types: selectedTypes,
     industries: selectedIndustries,
     sort: selectedSort,
+    q: search,
   } = params;
 
   const [typeOpen, setTypeOpen] = useState(false);
   const [industryOpen, setIndustryOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
 
+  // The search box itself floats over the grid rather than sitting in this row,
+  // but reset is the one control that clears everything, search included.
   const hasAnySelection = useMemo(
     () =>
       selectedTypes.length > 0 ||
       selectedIndustries.length > 0 ||
-      selectedSort !== CASE_STUDY_DEFAULT_SORT,
-    [selectedTypes, selectedIndustries, selectedSort],
+      selectedSort !== CASE_STUDY_DEFAULT_SORT ||
+      search !== "",
+    [selectedTypes, selectedIndustries, selectedSort, search],
   );
 
   const toggle = (key: "types" | "industries", value: string) => {
@@ -187,6 +191,7 @@ export function CaseStudyFilter({
               types: [],
               industries: [],
               sort: CASE_STUDY_DEFAULT_SORT,
+              q: null,
             })
           }
           className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-200 text-neutral-900 transition-all hover:bg-neutral-300"

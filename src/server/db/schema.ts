@@ -29,7 +29,30 @@ export const collectables = createTable(
     tags: text("tags").array(),
     websiteUrl: text("website_url").notNull(),
     ogImageUrl: text("og_image_url"),
+    // Stamped on every meta pass, found or not — the column name predates the
+    // pass reading anything besides the OG image. It now records when the site
+    // was last read for both that and the handle below, which is what keeps a
+    // site that yields neither from being re-fetched on every single run.
     ogImageLastFetchedAt: timestamp("og_image_last_fetched_at", {
+      withTimezone: true,
+    }),
+
+    // Screenshot of the designer's own site, and the card's cover. `ogImageUrl`
+    // stays behind it as the fallback: capture is rate-limited and plenty of
+    // sites refuse it outright, so a good many rows will never have one.
+    screenshotUrl: text("screenshot_url"),
+    screenshotLastFetchedAt: timestamp("screenshot_last_fetched_at", {
+      withTimezone: true,
+    }),
+
+    // The designer's X handle, without the @, read off their own site during
+    // the meta pass. Null is the common case and not a failure — most sites
+    // never link a profile.
+    twitterHandle: text("twitter_handle"),
+    // Their X avatar, mirrored into Blob rather than linked: twimg URLs rot the
+    // same way Notion's do, which is why `blob-storage.ts` exists.
+    avatarUrl: text("avatar_url"),
+    avatarLastFetchedAt: timestamp("avatar_last_fetched_at", {
       withTimezone: true,
     }),
 

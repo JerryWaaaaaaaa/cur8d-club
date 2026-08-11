@@ -5,12 +5,30 @@ import { collectables } from "@/server/db/schema";
 import { eq, and, sql, arrayOverlaps } from "drizzle-orm";
 import { DEFAULT_SORT, SORT_VALUES } from "@/lib/sort-options";
 import { getOrderBy } from "@/server/api/sort-order";
+import { parseSearchTerms, toLikePattern } from "@/lib/search";
 
 const COLLECTABLE_PER_PAGE = 12;
+
+/**
+ * Free-text search over name, expertise tags, role, and the AI blurb. The
+ * columns are folded into one string per row — `concat_ws` drops the nulls and
+ * `array_to_string` flattens the tag array — so a term matches wherever it
+ * lands. Location is deliberately not searched.
+ */
+function matchesSearch(terms: string[]) {
+  if (terms.length === 0) return sql`TRUE`;
+
+  const haystack = sql`concat_ws(' ', ${collectables.name}, ${collectables.title}, ${collectables.company}, ${collectables.aiDescription}, array_to_string(${collectables.tags}, ' '))`;
+
+  return and(
+    ...terms.map((term) => sql`${haystack} ILIKE ${toLikePattern(term)}`),
+  );
+}
 
 const FILTER_QUERY_OBJECT = z.object({
   type: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  q: z.string().optional(),
   sort: z.enum(SORT_VALUES).default(DEFAULT_SORT),
 });
 
@@ -31,7 +49,7 @@ export const collectableRouter = createTRPCRouter({
   getInfiniteScroll: publicProcedure
     .input(FILTER_QUERY_OBJECT_WITH_PAGINATION)
     .query(async ({ ctx, input }) => {
-      const { type, tags, cursor, limit, sort } = input;
+      const { type, tags, q, cursor, limit, sort } = input;
 
       const query = ctx.db
         .selectDistinct({
@@ -41,7 +59,10 @@ export const collectableRouter = createTRPCRouter({
           tags: collectables.tags,
           createdAt: collectables.createdAt,
           websiteUrl: collectables.websiteUrl,
+          screenshotUrl: collectables.screenshotUrl,
           ogImageUrl: collectables.ogImageUrl,
+          avatarUrl: collectables.avatarUrl,
+          twitterHandle: collectables.twitterHandle,
           aiDescription: collectables.aiDescription,
           location: collectables.location,
           company: collectables.company,
@@ -56,6 +77,7 @@ export const collectableRouter = createTRPCRouter({
             tags && tags.length > 0
               ? arrayOverlaps(collectables.tags, tags)
               : sql`TRUE`,
+            matchesSearch(parseSearchTerms(q)),
           ),
         )
         .offset(cursor)

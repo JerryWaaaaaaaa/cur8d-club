@@ -21,6 +21,7 @@ export const env = createEnv({
     NOTION_CASE_STUDY_DATABASE_ID: z.string().optional(),
     ANTHROPIC_API_KEY: z.string().optional(),
     BLOB_READ_WRITE_TOKEN: z.string().optional(),
+    SCREENSHOT_API_KEY: z.string().optional(),
   },
 
   /**
@@ -42,6 +43,7 @@ export const env = createEnv({
     NOTION_CASE_STUDY_DATABASE_ID: process.env.NOTION_CASE_STUDY_DATABASE_ID,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    SCREENSHOT_API_KEY: process.env.SCREENSHOT_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
