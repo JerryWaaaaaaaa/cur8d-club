@@ -6,6 +6,7 @@ import { HelpCircle, MapPin } from "lucide-react";
 import { type api as serverApi } from "@/trpc/server";
 import { api } from "@/trpc/react";
 import { ImagePlaceholder } from "./image-placeholder";
+import { DesignerAvatar } from "./designer-avatar";
 import { Highlight } from "./highlight";
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -87,7 +88,10 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
   const coverRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const descriptionRef = useRef<HTMLDivElement>(null);
-  const [imageError, setImageError] = useState(false);
+  // Two flags rather than one: a screenshot that fails to load should fall
+  // through to the OG image, not all the way past it to the initials tile.
+  const [screenshotError, setScreenshotError] = useState(false);
+  const [ogImageError, setOgImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [hasMoreBelow, setHasMoreBelow] = useState(false);
 
@@ -184,8 +188,9 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
     <div className="absolute left-0 top-0 z-30 aspect-square w-full overflow-hidden">
       <div
         className={cn(
-          // Stops short of the top so the type badge and the report button
-          // stay clear of it.
+          // Stops short of the top so the avatar, the type badge and the
+          // report button stay clear of it. All three are the same 22px tall,
+          // so one measurement covers the row.
           "absolute inset-x-0 bottom-0 top-12",
           "transition-transform duration-300 ease-out",
           "motion-reduce:transition-none",
@@ -258,24 +263,32 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
         ref={coverRef}
         className="relative z-0 mb-3 aspect-square overflow-hidden bg-muted"
       >
-        {collectable.ogImageUrl && !imageError ? (
+        {/* The designer's own site, then whatever artwork they published for
+            sharing, then their initials. The first two are drawn the same way —
+            inset, with the frame showing around them — which is the treatment
+            both grids already use. They stay separate branches only so a
+            screenshot that fails to load falls through to the OG image rather
+            than past it to the initials tile. */}
+        {collectable.screenshotUrl && !screenshotError ? (
+          <Image
+            src={collectable.screenshotUrl}
+            alt={collectable.name}
+            fill
+            unoptimized
+            className="object-contain p-16"
+            onError={() => setScreenshotError(true)}
+          />
+        ) : collectable.ogImageUrl && !ogImageError ? (
           <Image
             src={collectable.ogImageUrl}
             alt={collectable.name}
             fill
             unoptimized
             className="object-contain p-16"
-            onError={() => setImageError(true)}
+            onError={() => setOgImageError(true)}
           />
         ) : (
           <ImagePlaceholder name={collectable.name} />
-        )}
-
-        {collectable.type && (
-          <span className="pointer-events-none absolute left-3 top-3 z-10 flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background">
-            {collectable.type.charAt(0).toUpperCase() +
-              collectable.type.slice(1)}
-          </span>
         )}
 
         {collectable.location && (
@@ -347,10 +360,30 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
       )}
 
       {/* Mirrors the frame's box while living outside the frame's z-0 stacking
-          context — otherwise the button would sit under the full-card link and
-          the description panel, and be unclickable. */}
-      {collectable.websiteUrl && (
-        <div className="pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full">
+          context — otherwise everything in here would sit under the full-card
+          link and the description panel, and the avatar and the report button
+          would both be unclickable.
+
+          The type badge rides along rather than staying inside the frame: it
+          now shares a line with the avatar, and coordinating their positions
+          across two stacking contexts is how they end up overlapping. */}
+      <div className="pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full">
+        <div className="absolute left-3 top-3 flex items-center gap-1.5">
+          <DesignerAvatar
+            name={collectable.name}
+            avatarUrl={collectable.avatarUrl}
+            twitterHandle={collectable.twitterHandle}
+          />
+
+          {collectable.type && (
+            <span className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background">
+              {collectable.type.charAt(0).toUpperCase() +
+                collectable.type.slice(1)}
+            </span>
+          )}
+        </div>
+
+        {collectable.websiteUrl && (
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -372,8 +405,8 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
               Report broken link.
             </TooltipContent>
           </Tooltip>
-        </div>
-      )}
+        )}
+      </div>
 
       {collectable.websiteUrl && (
         <span
