@@ -60,9 +60,10 @@ export default async function Home({ searchParams }: HomeProps) {
   const shell = (grid: React.ReactNode) => (
     <>
       <div className="container mx-auto px-4 md:flex md:gap-6 md:px-6">
-        {/* Just wide enough for the wordmark and the longest footnote line —
-          a tablet has little enough width to hand over as it is. */}
-        <aside className="sticky top-0 hidden h-screen w-40 flex-shrink-0 flex-col justify-between py-6 md:flex lg:w-44">
+        {/* Wide enough to hold the wordmark and the footnote with air around
+          them rather than to their exact width. It's held back at md, where
+          every pixel it takes comes off a card. */}
+        <aside className="sticky top-0 hidden h-screen w-44 flex-shrink-0 flex-col justify-between py-6 md:flex lg:w-52">
           <Logo align="left" className="h-12 w-[145px]" />
           <SiteFooter />
         </aside>
