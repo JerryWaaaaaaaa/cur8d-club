@@ -59,23 +59,34 @@ interface DescriptionPanelProps {
   terms: string[];
   isHovered: boolean;
   /**
-   * How much of the frame the panel covers, as the classes that set its
-   * vertical extent — it is anchored to the bottom, so either a `top-*` to hold
-   * it clear of whatever sits at the frame's top, or an `h-*` to keep it a band
-   * of its own height on a frame too tall to give a share of.
+   * The most of the frame the panel may take, as a CSS length the browser
+   * resolves against the frame — a percentage, a `calc()` holding it clear of
+   * whatever sits at the frame's top, or a flat cap. The panel is usually
+   * shorter than this: it is sized to its own text.
    */
-  panelClassName?: string;
+  maxPanelHeight?: string;
   /** Sizes the frame to the artwork it slides over. */
   className?: string;
   style?: CSSProperties;
 }
 
+// The floor keeps a one-line description reading as a band of frost rather than
+// a sliver of it. The text occupies the bottom TEXT_SHARE of the panel and the
+// blur ramps through the rest, so a panel sized to hold its text is the text's
+// own height divided by that share.
+const MIN_PANEL_PX = 120;
+const TEXT_SHARE = 0.65;
+
 /**
  * The description, parked below the artwork and sliding up over it on hover.
  *
  * Frosted rather than solid so the artwork stays legible behind the text, and
- * scrollable rather than clamped: the card is the only place the description is
- * shown, so anything cut here is not readable anywhere.
+ * sized to the text it holds: a panel with nothing to scroll never takes the
+ * wheel, which is what leaves the page scrolling normally while the pointer
+ * crosses a grid of cards. A description too long for even the capped panel
+ * still scrolls — the card is the only place it is shown, so cutting it would
+ * put it out of reach — and hands the page back at the end rather than
+ * swallowing the rest of the gesture.
  *
  * The frame is the caller's business — it mirrors whatever box the artwork
  * occupies, which is a fixed square on one grid and the screenshot's own shape
@@ -85,12 +96,26 @@ export function DescriptionPanel({
   text,
   terms,
   isHovered,
-  panelClassName = "top-0",
+  maxPanelHeight = "100%",
   className,
   style,
 }: DescriptionPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
   const [hasMoreBelow, setHasMoreBelow] = useState(false);
+  const [textHeight, setTextHeight] = useState<number | null>(null);
+
+  // Observed rather than measured once: the paragraph reflows when the column
+  // changes width, and again when the font it was laid out in is replaced by
+  // the one it was asked for.
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver(() => setTextHeight(el.offsetHeight));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Rewound while the panel is still parked below the frame, so the next reader
   // starts at its first line without seeing the text jump.
@@ -113,6 +138,14 @@ export function DescriptionPanel({
 
   const textMask = hasMoreBelow ? TEXT_MASK_WITH_MORE : TEXT_MASK;
 
+  // clamp() rather than a measured pixel height so the cap stays the caller's
+  // expression, resolved against the frame by the browser — the frame is a
+  // percentage of an image whose height this component never learns.
+  const panelHeight =
+    textHeight === null
+      ? maxPanelHeight
+      : `clamp(${MIN_PANEL_PX}px, ${Math.ceil(textHeight / TEXT_SHARE)}px, ${maxPanelHeight})`;
+
   return (
     <div
       className={cn(
@@ -124,11 +157,11 @@ export function DescriptionPanel({
       <div
         className={cn(
           "absolute inset-x-0 bottom-0",
-          panelClassName,
           "transition-transform duration-300 ease-out",
           "motion-reduce:transition-none",
           isHovered ? "translate-y-0" : "translate-y-full",
         )}
+        style={{ height: panelHeight }}
       >
         {BLUR_LAYERS.map(({ blur, stops }) => {
           const mask = `linear-gradient(to bottom, ${stops})`;
@@ -162,7 +195,10 @@ export function DescriptionPanel({
           onScroll={syncHasMoreBelow}
           className={cn(
             "scrollbar-hide absolute inset-x-0 bottom-0 flex h-[65%] flex-col",
-            "overflow-y-auto overscroll-contain",
+            // overscroll-auto, not contain: the only description that scrolls
+            // here is one too long for the cap above, and holding on to the
+            // wheel after it has bottomed out is what stalls the page.
+            "overflow-y-auto overscroll-auto",
           )}
           style={{ maskImage: textMask, WebkitMaskImage: textMask }}
         >
@@ -170,7 +206,10 @@ export function DescriptionPanel({
               so a short one sits at the bottom of the box and a long one falls
               back to starting at the top, which is where a reader expects to
               begin scrolling from. */}
-          <p className="mt-auto px-5 pb-5 pt-8 text-sm leading-snug text-neutral-700">
+          <p
+            ref={textRef}
+            className="mt-auto px-5 pb-5 pt-8 text-sm leading-snug text-neutral-700"
+          >
             <Highlight text={text} terms={terms} />
           </p>
         </div>

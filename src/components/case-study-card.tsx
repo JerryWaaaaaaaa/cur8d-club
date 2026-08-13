@@ -177,16 +177,16 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
   // take the pointer — it needs the wheel to scroll — without swallowing the
   // click that opens the project.
   //
-  // A share of the frame on a short cover, but capped: a portrait screenshot
-  // makes a cover twice the height of a landscape one, and 65% of that is most
-  // of the artwork frosted over to hold a sentence. Past ~430px tall the panel
-  // stops growing and stays a band at the bottom.
+  // The panel sizes itself to its text; this is only the ceiling. A share of
+  // the frame on a short cover, but flat past ~430px tall — a portrait
+  // screenshot makes a cover twice the height of a landscape one, and 65% of
+  // that would be most of the artwork frosted over.
   const description = caseStudy.aiSummary ? (
     <DescriptionPanel
       text={caseStudy.aiSummary}
       terms={terms}
       isHovered={isHovered}
-      panelClassName="h-[min(65%,280px)]"
+      maxPanelHeight="min(65%, 280px)"
       style={{ height: coverHeight ?? 0 }}
     />
   ) : null;

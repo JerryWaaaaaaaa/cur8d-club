@@ -116,15 +116,15 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
   // there is one, so the panel can take the pointer — it needs to receive the
   // wheel to scroll — without swallowing the click that opens the site.
   //
-  // The panel stops short of the frame's top so the avatar, the type badge and
-  // the report button stay clear of it. All three are the same 22px tall, so
-  // one measurement covers the row.
+  // The panel sizes itself to its text, and at its tallest stops short of the
+  // frame's top so the avatar, the type badge and the report button stay clear
+  // of it. All three are the same 22px tall, so one measurement covers the row.
   const description = collectable.aiDescription ? (
     <DescriptionPanel
       text={collectable.aiDescription}
       terms={terms}
       isHovered={isHovered}
-      panelClassName="top-12"
+      maxPanelHeight="calc(100% - 3rem)"
       className="aspect-square"
     />
   ) : null;
