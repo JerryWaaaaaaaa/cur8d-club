@@ -19,8 +19,6 @@ interface CaseStudyCardProps {
   terms: string[];
 }
 
-const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
-
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -35,7 +33,6 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
   const coverRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const [mediaError, setMediaError] = useState(false);
-  const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
   const hasVideo =
@@ -72,12 +69,6 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
     positionBadge(event);
     setIsHovered(true);
     if (hasVideo) void videoRef.current?.play().catch(() => undefined);
-    if (prefersReducedMotion()) return;
-    const seed =
-      HOVER_ROTATION_SEEDS[
-        Math.floor(Math.random() * HOVER_ROTATION_SEEDS.length)
-      ]!;
-    setHoverRotation(seed);
   };
 
   const handleMouseLeave = () => {
@@ -87,7 +78,6 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
       video.currentTime = 0;
     }
     setIsHovered(false);
-    setHoverRotation(0);
   };
 
   // Positioned by hand rather than through state: this fires on every mouse
@@ -103,9 +93,8 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Layout offsets rather than getBoundingClientRect: the cover is rotated
-    // while hovered, and its bounding box is the enlarged one that encloses
-    // the tilt, not the square the pointer actually sees.
+    // Layout offsets rather than a second getBoundingClientRect: the cover sits
+    // at a fixed place inside the card, so its box follows from the card's.
     const cover = coverRef.current;
     const coverBox: CoverBox | null = cover
       ? {
@@ -162,52 +151,36 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
   return (
     <div
       ref={containerRef}
-      // Lifted while hovered so the tilted frame and the cursor badge, which
-      // both spill past the card's bounds, aren't painted over by the
-      // neighbouring card.
+      // Lifted while hovered so the cursor badge, which spills past the card's
+      // bounds, isn't painted over by the neighbouring card.
       className={cn("group relative block cursor-none", isHovered && "z-30")}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onMouseMove={positionBadge}
     >
+      {/* The border is the cover's own background colour, which is what draws
+          the edge on a screenshot that is itself white — without it those run
+          straight into the page. */}
       <div
         ref={coverRef}
-        className={cn(
-          "relative z-0 mb-3 overflow-hidden bg-muted",
-          "origin-center transition-transform duration-300 ease-out",
-          "motion-reduce:transition-none",
-        )}
-        style={{
-          transform:
-            hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
-        }}
+        className="relative z-0 mb-3 overflow-hidden border border-muted bg-muted"
       >
-        {/* In flow rather than absolutely filling the cover: the media is what
-            gives the cover its height now, so it has to occupy the box rather
-            than be laid over it. The rotation is a transform, which the height
-            ignores. */}
-        <div
-          className={cn(
-            "origin-center",
-            "transition-transform duration-300 ease-out",
-            "motion-reduce:transition-none",
-          )}
-          style={{
-            transform:
-              hoverRotation !== 0
-                ? `rotate(${-hoverRotation * 2}deg) scale(1.05)`
-                : undefined,
-          }}
-        >
-          {media}
-        </div>
+        {media}
 
         {caseStudy.types && caseStudy.types.length > 0 && (
           <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
             {caseStudy.types.map((type) => (
               <span
                 key={type}
-                className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background"
+                // Frosted grey rather than solid black: it has to sit on
+                // whatever the screenshot happens to put underneath it. The
+                // panel stays light enough over a dark cover for the dark ink
+                // to hold, and the ring keeps its edge on a white one.
+                className={cn(
+                  "flex h-[22px] items-center rounded-full px-2 text-xs",
+                  "bg-neutral-100/70 text-neutral-800 backdrop-blur-md",
+                  "ring-1 ring-inset ring-neutral-900/10",
+                )}
               >
                 <Highlight text={toTitleCase(type)} terms={terms} />
               </span>
