@@ -6,57 +6,47 @@ import { useState } from "react";
 import { SubmissionForm } from "@/components/submission-form";
 
 /**
- * The site's two links, pinned to the bottom-right corner.
+ * The site's footnote, at the foot of the desktop rail.
  *
- * They used to live in the header's right-hand column, which cost the filter
- * row a third of the width it needed once the sort control arrived. Down here
- * they sit over the grid instead of competing with it, so the whole header
- * width is free for controls.
+ * It has moved twice for the same reason: to stay out of the controls' way. It
+ * was the header's right-hand column until the sort control needed that width,
+ * then the bottom-right corner, floating over the grid — which is why it used
+ * to paint a backdrop on its own text. In the rail it has a column to itself
+ * with nothing scrolling behind it, so the backdrop is gone and the lines can
+ * read as plain text again.
  *
- * Trimmed to the calls to action alone — the sentences that used to introduce
- * them ("Discover inspiring designers…", "Have someone in mind?") ran wide
- * enough to reach the search bar centred on the same line. What is left is
- * short enough for the two to share that line.
- *
- * Cards scroll underneath, so the text needs something behind it to stay
- * readable. That something is painted on the inline text itself rather than on
- * a wrapper, so it hugs the line instead of reading as a panel floating over
- * the grid, with `box-decoration-clone` keeping that true if it ever wraps.
- *
- * Mobile has its own copy of this text inside the Info overlay, and a fixed
- * filter bar in this corner, so this is desktop-only.
+ * Mobile has its own copy of this text inside the filter sheet, and the rail
+ * is desktop-only, so this is too.
  */
-const LINE_BACKDROP =
-  "box-decoration-clone bg-neutral-200/85 px-1.5 py-0.5 pointer-events-auto";
-
 export function SiteFooter() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   return (
-    <>
-      <footer className="pointer-events-none fixed bottom-5 right-6 z-40 hidden text-right text-base leading-relaxed text-neutral-900 md:block">
-        <p>
-          <span className={LINE_BACKDROP}>
-            <Link
-              href="https://x.com/notjerrywang"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:no-underline"
-            >
-              ↳ @Jerry
-            </Link>
-            {" · "}
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className="underline hover:no-underline"
-            >
-              ↳ Submit a referral
-            </button>
-          </span>
-        </p>
-      </footer>
+    <footer className="text-base leading-relaxed text-neutral-900">
+      <p>
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="underline hover:no-underline"
+        >
+          Submit a referral
+        </button>
+      </p>
+      <p>
+        Curated by{" "}
+        <Link
+          href="https://x.com/notjerrywang"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:no-underline"
+        >
+          @Jerry
+        </Link>
+      </p>
+      {/* Read off the clock rather than written in, so the line is still true
+        next January without anyone having to remember it. */}
+      <p>@ copyright {new Date().getFullYear()}</p>
 
       <SubmissionForm open={isFormOpen} onOpenChange={setIsFormOpen} />
-    </>
+    </footer>
   );
 }

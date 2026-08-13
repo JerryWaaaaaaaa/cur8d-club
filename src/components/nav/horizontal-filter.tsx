@@ -75,7 +75,7 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               typeOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
@@ -113,7 +113,7 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               tagOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
@@ -164,7 +164,7 @@ export function HorizontalFilter({
         <DropdownMenu.Trigger asChild>
           <button
             className={cn(
-              "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
+              "flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
               sortOpen
                 ? "bg-black text-white"
                 : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
