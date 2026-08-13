@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { type api as serverApi } from "@/trpc/server";
 import { cn } from "@/lib/utils";
 import { badgeScaleForPointer, type CoverBox } from "@/lib/cursor-badge";
+import { DescriptionPanel } from "./description-panel";
 import { ImagePlaceholder } from "./image-placeholder";
 import { Highlight } from "./highlight";
 
@@ -34,6 +35,12 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
   const badgeRef = useRef<HTMLSpanElement>(null);
   const [mediaError, setMediaError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  // The description panel has to mirror the cover's box, and on this grid that
+  // box is whatever shape the screenshot came back as — there is no ratio to
+  // give the panel instead. It also changes once, when the image lands and the
+  // assumed ratio is replaced by the real one, which is what the observer is
+  // for rather than a single measurement on mount.
+  const [coverHeight, setCoverHeight] = useState<number | null>(null);
 
   const hasVideo =
     caseStudy.mediaType === "video" &&
@@ -62,6 +69,19 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
     observer.observe(container);
     return () => observer.disconnect();
   }, [hasVideo]);
+
+  useEffect(() => {
+    const cover = coverRef.current;
+    if (!cover) return;
+
+    // offsetHeight rather than the entry's contentRect: the panel is laid over
+    // the whole cover, border included, and contentRect measures inside it.
+    const observer = new ResizeObserver(() =>
+      setCoverHeight(cover.offsetHeight),
+    );
+    observer.observe(cover);
+    return () => observer.disconnect();
+  }, []);
 
   const handleMouseEnter = (event: React.MouseEvent) => {
     // Place the badge before it becomes visible, otherwise it flashes at
@@ -148,6 +168,29 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
 
   const metadata = [caseStudy.infoRole, caseStudy.infoTeam].filter(Boolean);
 
+  // Type and industry read as one row of chips now that they are off the
+  // artwork and under the title. They were told apart by their colour while
+  // they sat on the screenshot; here the order carries it, type first.
+  const chips = [...(caseStudy.types ?? []), ...(caseStudy.industries ?? [])];
+
+  // Sized to the cover and rendered inside the full-card link, so the panel can
+  // take the pointer — it needs the wheel to scroll — without swallowing the
+  // click that opens the project.
+  //
+  // A share of the frame on a short cover, but capped: a portrait screenshot
+  // makes a cover twice the height of a landscape one, and 65% of that is most
+  // of the artwork frosted over to hold a sentence. Past ~430px tall the panel
+  // stops growing and stays a band at the bottom.
+  const description = caseStudy.aiSummary ? (
+    <DescriptionPanel
+      text={caseStudy.aiSummary}
+      terms={terms}
+      isHovered={isHovered}
+      panelClassName="h-[min(65%,280px)]"
+      style={{ height: coverHeight ?? 0 }}
+    />
+  ) : null;
+
   return (
     <div
       ref={containerRef}
@@ -166,55 +209,26 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
         className="relative z-0 mb-3 overflow-hidden border border-muted bg-muted"
       >
         {media}
-
-        {caseStudy.types && caseStudy.types.length > 0 && (
-          <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
-            {caseStudy.types.map((type) => (
-              <span
-                key={type}
-                // Frosted grey rather than solid black: it has to sit on
-                // whatever the screenshot happens to put underneath it. The
-                // panel stays light enough over a dark cover for the dark ink
-                // to hold, and the ring keeps its edge on a white one.
-                className={cn(
-                  "flex h-[22px] items-center rounded-full px-2 text-xs",
-                  "bg-neutral-100/70 text-neutral-800 backdrop-blur-md",
-                  "ring-1 ring-inset ring-neutral-900/10",
-                )}
-              >
-                <Highlight text={toTitleCase(type)} terms={terms} />
-              </span>
-            ))}
-          </div>
-        )}
-
-        {caseStudy.industries && caseStudy.industries.length > 0 && (
-          <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
-            {caseStudy.industries.map((industry) => (
-              <span
-                key={industry}
-                className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700"
-              >
-                <Highlight text={toTitleCase(industry)} terms={terms} />
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
+      {/* The summary is missing from this column on purpose: it now lives in
+          the panel that slides up over the cover on hover. */}
       <div className="mt-4 flex flex-col gap-1.5">
         <h2 className="font-medium text-neutral-900">
           <Highlight text={caseStudy.name} terms={terms} />
         </h2>
 
-        {/* Unclamped: the card is the only place this summary is shown, and
-            there is nothing to open that would carry the rest of it — the link
-            leaves for the project's own site. A long one makes its card taller,
-            which the grid already allows for. */}
-        {caseStudy.aiSummary && (
-          <p className="text-sm leading-snug text-neutral-600">
-            <Highlight text={caseStudy.aiSummary} terms={terms} />
-          </p>
+        {chips.length > 0 && (
+          <div className="mt-0.5 flex flex-wrap gap-1.5">
+            {chips.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600"
+              >
+                <Highlight text={toTitleCase(chip)} terms={terms} />
+              </span>
+            ))}
+          </div>
         )}
 
         {metadata.length > 0 && (
@@ -224,16 +238,20 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
         )}
       </div>
 
-      {/* Covers the whole card — artwork, title and description are all one
-          click target. Sits above the media so it actually receives the click. */}
-      {caseStudy.websiteUrl && (
+      {/* Covers the whole card — artwork, title and chips are all one click
+          target. Sits above the media so it actually receives the click. */}
+      {caseStudy.websiteUrl ? (
         <a
           href={caseStudy.websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="absolute inset-0 z-20 cursor-none"
           aria-label={`Visit ${caseStudy.name}`}
-        />
+        >
+          {description}
+        </a>
+      ) : (
+        description
       )}
 
       {caseStudy.websiteUrl && (
