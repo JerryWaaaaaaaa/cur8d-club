@@ -23,8 +23,8 @@
     "plugins": [{ "name": "next" }],
     "incremental": true,
 
-    /* Path Aliases */
-    "baseUrl": ".",
+    /* Path Aliases — relative to this file, so no `baseUrl` is needed. Setting
+       one makes `tsc` abort with a deprecation error instead of type checking. */
     "paths": {
       "@/*": ["./src/*"]
     }

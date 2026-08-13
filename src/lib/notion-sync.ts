@@ -1,5 +1,6 @@
 import { Client as NotionClient } from "@notionhq/client";
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import { parseTwitterHandle } from "@/lib/site-meta";
 
 export const notion = new NotionClient({
   auth: process.env.NOTION_API_KEY,
@@ -13,6 +14,13 @@ interface NotionItem {
   type: string | null;
   tags: string[];
   websiteUrl: string;
+  /**
+   * Optional hand-entered override for the handle the sync otherwise reads off
+   * the designer's site. Null both when the property is empty and when the
+   * database has no such column at all, so adding it in Notion is opt-in and
+   * its absence changes nothing.
+   */
+  twitterHandle: string | null;
 }
 
 export async function fetchNotionData(): Promise<NotionItem[]> {
@@ -44,9 +52,28 @@ export async function fetchNotionData(): Promise<NotionItem[]> {
           page.properties.url?.type === "url"
             ? (page.properties.url.url ?? "")
             : "",
+        twitterHandle: readTwitterProperty(page),
       }));
   } catch (error) {
     console.error("Error fetching Notion data:", error);
     throw error;
   }
+}
+
+/**
+ * A `twitter` property, however the owner chose to type it — a URL column for
+ * anyone pasting profile links, a text one for anyone typing handles. Anything
+ * else, or nothing, reads as null and leaves the scraped handle standing.
+ */
+function readTwitterProperty(page: PageObjectResponse): string | null {
+  const property = page.properties.twitter;
+
+  const raw =
+    property?.type === "url"
+      ? property.url
+      : property?.type === "rich_text"
+        ? (property.rich_text[0]?.plain_text ?? null)
+        : null;
+
+  return raw ? parseTwitterHandle(raw) : null;
 }

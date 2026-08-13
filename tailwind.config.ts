@@ -15,6 +15,16 @@ export default {
         sm: "calc(var(--radius) - 4px)",
         full: "9999px",
       },
+      boxShadow: {
+        // For the search bar, the one control that floats over the grid rather
+        // than sitting in a row. Two layers, because one reads flat: the tight
+        // one anchors the pill to the page, the wide one carries the height.
+        // Offsets are vertical only, blur is about twice the offset, and the
+        // ambient layer's negative spread keeps it under the pill instead of
+        // bleeding out either side.
+        float:
+          "0 2px 4px -1px rgba(0,0,0,0.10), 0 12px 28px -6px rgba(0,0,0,0.22)",
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -84,10 +94,21 @@ export default {
             height: "0",
           },
         },
+        "logo-ball-spin": {
+          from: {
+            transform: "rotate(0deg)",
+          },
+          to: {
+            transform: "rotate(360deg)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // Kept in sync with SPIN_DURATION_MS in src/components/nav/logo.tsx.
+        "logo-ball-spin":
+          "logo-ball-spin 0.6s cubic-bezier(0.45, 0, 0.2, 1) both",
       },
     },
   },

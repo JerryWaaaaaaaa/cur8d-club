@@ -15,6 +15,12 @@ const COLLECTABLE_FILTER_PARAMS = {
     clearOnDefault: true,
     shallow: false,
   }),
+  // Written by the search box, which passes `shallow: true` on the setter so
+  // typing doesn't re-run the server render for every keystroke.
+  q: parseAsString.withDefault("").withOptions({
+    clearOnDefault: true,
+    shallow: false,
+  }),
   sort: parseAsStringLiteral(SORT_VALUES)
     .withDefault(DEFAULT_SORT)
     .withOptions({
@@ -29,6 +35,7 @@ export function hasAnyFilterApplied(
   return (
     filterParams.type !== "" ||
     filterParams.tags.length > 0 ||
+    filterParams.q !== "" ||
     filterParams.sort !== DEFAULT_SORT
   );
 }
@@ -36,6 +43,7 @@ export function hasAnyFilterApplied(
 export const URL_KEYS = {
   type: "type",
   tags: "tags",
+  q: "q",
   sort: "sort",
 };
 

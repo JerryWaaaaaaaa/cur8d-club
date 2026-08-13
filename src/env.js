@@ -13,6 +13,15 @@ export const env = createEnv({
       .default("development"),
     NOTION_DATABASE_ID: z.string(),
     NOTION_API_KEY: z.string(),
+
+    // All optional: the site builds and serves both views without any of them.
+    // Missing credentials switch off the feature that needs them — the case
+    // study sync, or the AI blurbs on either grid — rather than failing the
+    // build.
+    NOTION_CASE_STUDY_DATABASE_ID: z.string().optional(),
+    ANTHROPIC_API_KEY: z.string().optional(),
+    BLOB_READ_WRITE_TOKEN: z.string().optional(),
+    SCREENSHOT_API_KEY: z.string().optional(),
   },
 
   /**
@@ -21,7 +30,10 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    // Optional so that local dev and preview deploys, which have no reason to
+    // report into the production property, simply run without Google
+    // Analytics rather than failing the build.
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().startsWith("G-").optional(),
   },
 
   /**
@@ -31,9 +43,13 @@ export const env = createEnv({
   runtimeEnv: {
     NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
     NOTION_API_KEY: process.env.NOTION_API_KEY,
+    NOTION_CASE_STUDY_DATABASE_ID: process.env.NOTION_CASE_STUDY_DATABASE_ID,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+    SCREENSHOT_API_KEY: process.env.SCREENSHOT_API_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -7,8 +7,9 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { env } from "@/env";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -53,19 +54,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${manrope.className}`}>
       <head>
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-W8DDNEEV6L"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-W8DDNEEV6L');
-          `}
-        </Script>
         <meta
           httpEquiv="Content-Security-Policy"
           content="script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: http:; font-src 'self' https://fonts.gstatic.com data:;"
@@ -81,6 +69,11 @@ export default function RootLayout({
           </TRPCReactProvider>
         </NuqsAdapter>
         <Analytics />
+        {/* Only mounted where the measurement ID is set, so local dev and
+            preview deploys stay out of the production property. */}
+        {env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );
