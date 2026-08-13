@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { fetchNotionData } from "@/lib/notion-sync";
 import { generateDesignerProfile } from "@/lib/ai-summary";
 import { fetchSiteMeta } from "@/lib/site-meta";
 import { fetchScreenshotUrl } from "@/lib/screenshot";
 import { fetchAvatarUrl } from "@/lib/twitter-avatar";
 import { db } from "@/server/db";
+import { FILTER_OPTIONS_TAG } from "@/lib/cache-tags";
 import { collectables } from "@/server/db/schema";
 import {
   and,
@@ -441,6 +443,10 @@ export async function GET(request: Request) {
       withAvatar: sql<number>`count(*) FILTER (WHERE ${collectables.avatarUrl} IS NOT NULL)::int`,
     })
     .from(collectables);
+
+  // The expertise and type dropdowns are cached across requests, so a run that
+  // added or retired a value has to drop them or the new one stays invisible.
+  revalidateTag(FILTER_OPTIONS_TAG);
 
   return NextResponse.json({
     newItems: newItems.length,
