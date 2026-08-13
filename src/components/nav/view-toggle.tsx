@@ -101,6 +101,13 @@ export function ViewToggle({ className, fullWidth = false }: ViewToggleProps) {
       className={cn(
         // h-9 matches the filter pills (py-2 + text-sm) so the row lines up.
         "relative inline-flex h-9 flex-shrink-0 items-center gap-0.5 rounded-full bg-neutral-200/70 p-0.5",
+        // Hover fills the whole track, not the tab under the pointer. The tab
+        // is the wrong surface for it: the chip travels along that row, so a
+        // fill there ends up painted over the black as it passes. The track
+        // sits behind the chip and can darken without touching it. Same
+        // neutral-200 to neutral-300 step the filter pills make, kept at the
+        // track's own translucency.
+        "transition-colors hover:bg-neutral-300/70",
         // h-12 matches the stacked filter pills (py-3 + text-base).
         fullWidth && "flex h-12 w-full",
         className,
@@ -143,6 +150,7 @@ export function ViewToggle({ className, fullWidth = false }: ViewToggleProps) {
                   "text-background delay-100 duration-150"
                 : // The chip clears this label early in the slide, so catch up
                   // quickly rather than fading through washed-out mid-greys.
+                  // No fill here — that belongs to the track, above.
                   "text-neutral-600 duration-150 hover:text-neutral-900",
             )}
           >

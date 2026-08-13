@@ -73,7 +73,7 @@ export function CaseStudyFilter({
 
   const triggerClasses = (isOpen: boolean) =>
     cn(
-      "flex h-9 items-center gap-2 rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
+      "flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-4 text-base font-normal transition-colors focus:outline-none",
       isOpen
         ? "bg-black text-white"
         : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
