@@ -84,7 +84,9 @@ function CaseStudyGrid({ initialData, pageSize }: CaseStudyGridProps) {
         >
           {/* One column looser than the designer grid at every breakpoint, so
               project previews read larger than a collectable. */}
-          <div className="grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
+          {/* items-start so a tall screenshot doesn't stretch the shorter
+              cards beside it — each card ends where its own content does. */}
+          <div className="grid grid-cols-1 items-start gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
             {allItems?.map((item, i) => (
               <motion.div
                 key={item.id}

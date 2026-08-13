@@ -123,6 +123,11 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
     badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
   };
 
+  // Bleeds to the cover's edges and keeps its own proportions, so the card's
+  // height is whatever the screenshot's shape makes it. The width/height pair
+  // is only the ratio assumed while loading — nothing records the real
+  // dimensions, and the browser swaps in the natural ratio once the file
+  // arrives.
   const media = hasVideo ? (
     <video
       ref={videoRef}
@@ -132,20 +137,24 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
       loop
       playsInline
       preload="metadata"
-      className="h-full w-full object-contain p-16"
+      className="block h-auto w-full"
       onError={() => setMediaError(true)}
     />
   ) : caseStudy.coverImageUrl && !mediaError ? (
     <Image
       src={caseStudy.coverImageUrl}
       alt={caseStudy.name}
-      fill
+      width={1600}
+      height={1000}
       unoptimized
-      className="object-contain p-16"
+      className="block h-auto w-full"
       onError={() => setMediaError(true)}
     />
   ) : (
-    <ImagePlaceholder name={caseStudy.name} />
+    // The placeholder has no shape of its own to follow, so it is given one.
+    <div className="aspect-[16/10]">
+      <ImagePlaceholder name={caseStudy.name} />
+    </div>
   );
 
   const metadata = [caseStudy.infoRole, caseStudy.infoTeam].filter(Boolean);
@@ -164,7 +173,7 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
       <div
         ref={coverRef}
         className={cn(
-          "relative z-0 mb-3 aspect-square overflow-hidden bg-muted",
+          "relative z-0 mb-3 overflow-hidden bg-muted",
           "origin-center transition-transform duration-300 ease-out",
           "motion-reduce:transition-none",
         )}
@@ -173,9 +182,13 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
             hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
         }}
       >
+        {/* In flow rather than absolutely filling the cover: the media is what
+            gives the cover its height now, so it has to occupy the box rather
+            than be laid over it. The rotation is a transform, which the height
+            ignores. */}
         <div
           className={cn(
-            "absolute inset-0 origin-center",
+            "origin-center",
             "transition-transform duration-300 ease-out",
             "motion-reduce:transition-none",
           )}
