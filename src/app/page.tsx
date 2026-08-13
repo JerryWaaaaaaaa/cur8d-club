@@ -57,9 +57,17 @@ export default async function Home({ searchParams }: HomeProps) {
   // rather than under them, the way it did when they were pinned corners.
   //
   // Mobile keeps its fixed top bar and filter sheet, so the rail is md and up.
+  //
+  // Deliberately not Tailwind's `container`, which snaps its max-width to a
+  // fixed value per breakpoint — 640, 768, 1024, 1280, 1536 — and so leaves
+  // every width in between on the floor: at a 1000px window the page was
+  // locked to 768 and a quarter of the screen sat empty. A plain max-width
+  // lets the whole shell track the window, so the cards resize as it is
+  // dragged, and settles at 1600 (gutters included) rather than growing
+  // without end on a very wide screen.
   const shell = (grid: React.ReactNode) => (
     <>
-      <div className="container mx-auto px-4 md:flex md:gap-6 md:px-6">
+      <div className="mx-auto w-full max-w-[1600px] px-4 md:flex md:gap-6 md:px-6">
         {/* Wide enough to hold the wordmark and the footnote with air around
           them rather than to their exact width. It's held back at md, where
           every pixel it takes comes off a card. */}
