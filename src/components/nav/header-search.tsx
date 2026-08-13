@@ -42,10 +42,10 @@ function SearchTrigger({ onOpen }: { onOpen: () => void }) {
 }
 
 /**
- * Closing clears the query through the param rather than the draft: the draft's
- * write is debounced, and this field unmounts the moment the header swaps the
- * filters back in, which cancels anything still pending. Left behind, the query
- * would keep narrowing the grid from a box that is no longer on screen.
+ * The two views keep their query in different params, so each gets its own
+ * field. Both hand `onClose` straight through: clearing the query on the way
+ * out belongs to the header, which has three ways in — this button, Escape,
+ * and a click on the page behind the row.
  */
 function DesignerSearchField({ onClose }: { onClose: () => void }) {
   const [params, setParams] = useCollectableFilterParams();
@@ -62,10 +62,7 @@ function DesignerSearchField({ onClose }: { onClose: () => void }) {
       value={searchDraft}
       onValueChange={setSearchDraft}
       autoFocus
-      onClose={() => {
-        void setParams({ q: null }, { shallow: true });
-        onClose();
-      }}
+      onClose={onClose}
       className="w-full"
     />
   );
@@ -85,10 +82,7 @@ function ProjectSearchField({ onClose }: { onClose: () => void }) {
       onValueChange={setSearchDraft}
       placeholder="Search name, industry, keywords"
       autoFocus
-      onClose={() => {
-        void setParams({ q: null }, { shallow: true });
-        onClose();
-      }}
+      onClose={onClose}
       className="w-full"
     />
   );

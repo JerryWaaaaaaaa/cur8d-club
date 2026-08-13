@@ -141,9 +141,13 @@ export function ViewToggle({ className, fullWidth = false }: ViewToggleProps) {
                 ? // Hold the label dark until the chip is most of the way here,
                   // otherwise it washes out against the light track mid-slide.
                   "text-background delay-100 duration-150"
-                : // The chip clears this label early in the slide, so catch up
+                : // Hover fills the tab the same way it fills a filter pill —
+                  // the neutral-200 to neutral-300 step every other control in
+                  // the row makes — so the two read as one set of controls.
+                  //
+                  // The chip clears this label early in the slide, so catch up
                   // quickly rather than fading through washed-out mid-greys.
-                  "text-neutral-600 duration-150 hover:text-neutral-900",
+                  "text-neutral-600 duration-150 hover:bg-neutral-300 hover:text-neutral-900",
             )}
           >
             {/* Until the tabs have been measured — the server render, and the
