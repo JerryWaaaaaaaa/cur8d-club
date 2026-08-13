@@ -207,8 +207,12 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
           <Highlight text={caseStudy.name} terms={terms} />
         </h2>
 
+        {/* Unclamped: the card is the only place this summary is shown, and
+            there is nothing to open that would carry the rest of it — the link
+            leaves for the project's own site. A long one makes its card taller,
+            which the grid already allows for. */}
         {caseStudy.aiSummary && (
-          <p className="line-clamp-2 text-sm leading-snug text-neutral-600">
+          <p className="text-sm leading-snug text-neutral-600">
             <Highlight text={caseStudy.aiSummary} terms={terms} />
           </p>
         )}
