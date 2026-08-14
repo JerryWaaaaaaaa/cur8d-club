@@ -3,8 +3,13 @@ import { DesktopNav } from "@/components/nav/desktop-nav";
 import { MobileNav } from "@/components/nav/mobile-nav";
 import CollectableGrid from "@/components/collectable-grid";
 import CaseStudyGrid from "@/components/case-study-grid";
+import SkillSetGrid from "@/components/skill-set-grid";
 import { SiteFooter } from "@/components/site-footer";
-import { CASE_STUDY_DEFAULT_SORT, DEFAULT_SORT } from "@/lib/sort-options";
+import {
+  CASE_STUDY_DEFAULT_SORT,
+  DEFAULT_SORT,
+  SKILL_SET_DEFAULT_SORT,
+} from "@/lib/sort-options";
 
 const COLLECTABLE_PER_PAGE = 12;
 
@@ -15,6 +20,7 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const { view } = await searchParams;
   const isCaseStudyView = view === "case-study";
+  const isSkillView = view === "skill";
 
   const [allTags, allTypes] = await Promise.all([
     api.collectable.getUniqueTags(),
@@ -32,6 +38,12 @@ export default async function Home({ searchParams }: HomeProps) {
       ])
     : [[], []];
 
+  // Same reasoning for the skill set tables, which a deploy may not have had
+  // its schema applied to yet.
+  const skillSetUseCases = isSkillView
+    ? await api.skillSet.getUniqueUseCases()
+    : [];
+
   const nav = (
     <>
       {/* Desktop Navigation */}
@@ -40,6 +52,7 @@ export default async function Home({ searchParams }: HomeProps) {
         typeOptions={allTypes}
         caseStudyTypeOptions={caseStudyTypes}
         caseStudyIndustryOptions={caseStudyIndustries}
+        skillSetUseCaseOptions={skillSetUseCases}
       />
 
       {/* Mobile Navigation */}
@@ -49,12 +62,30 @@ export default async function Home({ searchParams }: HomeProps) {
           typeOptions={allTypes}
           caseStudyTypeOptions={caseStudyTypes}
           caseStudyIndustryOptions={caseStudyIndustries}
+          skillSetUseCaseOptions={skillSetUseCases}
         />
       </div>
 
       <SiteFooter />
     </>
   );
+
+  if (isSkillView) {
+    // Unfiltered and unpaginated: there are twenty sets, and the whole list
+    // with its members costs two queries.
+    const initialSkillSets = await api.skillSet.getAll({
+      sort: SKILL_SET_DEFAULT_SORT,
+    });
+
+    return (
+      <HydrateClient>
+        {nav}
+        <main className="container mx-auto px-4 pb-72 pt-20 md:px-6 md:pb-28 md:pt-8">
+          <SkillSetGrid initialData={initialSkillSets} />
+        </main>
+      </HydrateClient>
+    );
+  }
 
   if (isCaseStudyView) {
     const initialCaseStudies = await api.caseStudy.getInfiniteScroll({

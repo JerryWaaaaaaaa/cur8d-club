@@ -23,38 +23,33 @@ the submitter controls, and the site is the delivery mechanism.
 
 So the gate is drawn around the payload rather than the person:
 
-1. Parse each pasted URL into `{ sourceRepo, skillKey }`.
-2. Look each up in `cur8d_skill` by **exact `sourceRepo` + `skillKey`**, not by
-   repo alone. Repo-level matching would auto-approve anything later added to a
-   known repo, which is not what "pre-vetted" means.
-3. **All known** → insert straight into `cur8d_skill_set` with
-   `origin = 'community'`. Live immediately, no review, because every skill in
-   it was already vetted.
+1. Parse each pasted URL into `{ sourceRepo, skillKey }` with `parseSkillSource`
+   in `src/lib/skill-install-text.ts`, which already handles the shorthand, a
+   repository URL and a `/tree/<ref>/<path>` link.
+2. Look each up in `cur8d_skill` by **exact `source_repo` + `skill_key`**, not by
+   repository alone. Repo-level matching would auto-approve anything later added
+   to a known repo, which is not what "pre-vetted" means.
+3. **All known** → insert straight into `cur8d_skill_set`. Live immediately, no
+   review, because every skill in it was already vetted.
 4. **Any unknown** → insert into `cur8d_skill_set_submission` for review.
 
-The invariant this buys, and it is worth defending: **only the owner's approval
-ever creates a `cur8d_skill` row.** The auto-publish path can assemble existing
-skills but can never introduce a new install target.
+The invariant this buys, and it is worth defending: **only the owner ever creates
+a `cur8d_skill` row.** The auto-publish path can assemble existing skills but can
+never introduce a new install target.
 
-Review needs no auth, because Notion is already the authenticated admin panel.
-Promote queued submissions into the Notion Skill Sets database and the existing
-sync publishes them as `origin = 'curated'`.
+### Reviewing the queue
 
-### `origin` is not attribution
+There is no admin UI and no Notion behind this tab — the database is the source
+of truth, and `scripts/import-skill-sets.ts` is an import rather than a sync.
+So review happens in whatever database client is already to hand (`npm run
+db:studio`, or the hosting provider's console), and approving a submission means
+inserting the skills it introduced and then the set itself.
 
-The two are orthogonal and the naming invites confusion later:
-
-- `origin` records who owns the row for sync purposes. `'curated'` is mirrored
-  from Notion and the sync may delete it; `'community'` is DB-native and the
-  sync must not touch it.
-- `submitterHandle` records who gets credit.
-
-A queued submission that gets approved ends up `origin = 'curated'` *and*
-attributed to its submitter. Both are correct.
-
-**The sync's delete pass must be scoped `WHERE origin = 'curated'`.** An
-auto-published community set is a row Notion has never heard of, and an unscoped
-delete pass destroys it on the first run.
+That is honest at low volume and needs nothing built. It has one failure mode
+worth naming: the existing `cur8d_submission` table has been written to and read
+by nothing for as long as it has existed, and a review queue nobody opens will
+go the same way. Whatever ships alongside this needs *some* prompt to look —
+even a count surfaced somewhere the owner already looks.
 
 ### What auto-publish still owes
 
@@ -66,58 +61,53 @@ would otherwise have absorbed:
   survivable for a table nothing reads, and not survivable for one that renders
   straight onto the site.
 - **Generate slugs defensively.** Two people will submit "Website Kit". Slugify
-  the name, and on unique-index conflict append a short random suffix and retry.
-- **Fetch the submitter avatar in the cron, not on submit.** Matches how every
-  other avatar in the app resolves, and usefully means a freshly auto-published
-  set goes live with a handle but no face until the next pass.
+  the name — `scripts/import-skill-sets.ts` has the function — and on unique
+  index conflict append a short random suffix and retry. `skill_set_slug_idx` is
+  unique, so this is a real error rather than a tidiness concern.
+- **Fetch the submitter avatar on a schedule, not on submit.** Matches how every
+  other avatar in the app is resolved, and usefully means a freshly
+  auto-published set goes live with a handle but no face until the next pass.
 
 Impersonation is the residual risk: nothing verifies a handle, and on this path
 nobody reviews it. Pair it with a report affordance copied from the `reportLink`
-mutation in `src/server/api/routers/collectable.ts`, with `isBroken` as the
-takedown switch. Render attribution as "submitted by @handle" linking to the
-profile — never phrased as an endorsement the site cannot back.
+mutation in `src/server/api/routers/collectable.ts`, with `is_broken` as the
+takedown switch — the skill set reader already filters on it.
 
 ### Storing submissions
 
-`cur8d_skill_set_submission` is created alongside the curated-sets tables so the
-SQL is applied once; nothing writes to it until this work happens.
+`cur8d_skill_set_submission` already exists in `src/server/db/schema.ts` and in
+the applied SQL. Nothing writes to it yet.
 
-Store the **raw pasted URLs**, not resolved skill rows. Nothing unreviewed
-should reach the published tables, and normalising once at approval is when a
-human is already looking anyway.
+It stores the **raw pasted URLs**, not resolved skill rows, because nothing
+unreviewed should reach a published table and normalising once at approval is
+when someone is already looking at it.
 
-The existing `submissions` table is written and read by nothing, and this queue
-would rot the same way. So have the **cron push queued rows into a Notion inbox
-database** — `@notionhq/client` is already a dependency and
-`scripts/ingest-video.ts` already writes to Notion — stamping
-`pushedToNotionAt` so a row is never pushed twice. Driving it from the cron
-rather than the public endpoint keeps a spam flood off the Notion API and off
-the request path.
+`cur8d_skill_set` already carries the attribution columns —
+`submitter_provider`, `submitter_handle`, `submitter_avatar_url` — and
+`src/components/skill-set-detail.tsx` already renders a "submitted by" line when
+the handle is set. A submitted set needs no schema change to appear correctly.
 
 ### Attribution avatars
 
-`fetchAvatarUrl` in `src/lib/twitter-avatar.ts` already resolves a handle
-through `unavatar.io/x/<handle>?fallback=false` and mirrors the bytes to Blob.
-unavatar also serves `/github/` and `/instagram/`, so this generalises to
+`fetchAvatarUrl` in `src/lib/twitter-avatar.ts` resolves a handle through
+`unavatar.io/x/<handle>?fallback=false` and mirrors the bytes to Blob. unavatar
+also serves `/github/` and `/instagram/`, so this generalises to
 `fetchAvatarUrl(provider, handle, id)` — one extra parameter, and a rename of
 the file to something like `social-avatar.ts`.
 
 Keep `fallback=false`. As that file's comment says, a made-up avatar stored as a
 real one is worse than none, because nothing downstream can tell the difference.
 GitHub and X resolve reliably; Instagram blocks aggressively, so treat it as
-best-effort and let the card fall back to initials via
-`src/components/designer-avatar.tsx`.
+best-effort and let it fall through to initials the way
+`src/components/source-avatar.tsx` already does.
 
 ### Verifying it
 
-- A submission whose URLs all resolve to existing skills goes live immediately
-  with `origin = 'community'`; one containing an unknown URL does not appear on
-  the site and lands in the queue instead.
+- A submission whose URLs all resolve to existing skills goes live immediately;
+  one containing an unknown URL does not appear on the site and lands in the
+  queue instead.
 - No submission, of either kind, creates a `cur8d_skill` row.
 - Two submissions named "Website Kit" both publish, with distinct slugs.
-- `parseSkillSource` handles `owner/repo`, a full GitHub URL, a
-  `/tree/main/skills/<key>` path, and refuses a non-GitHub URL.
-- A queued row reaches the Notion inbox once and only once.
 - Avatars resolve for GitHub and X handles and fail closed for a nonexistent
   one, leaving initials rather than a fabricated face.
 
@@ -130,14 +120,33 @@ prompt. Cut because with no flat skill index there is nowhere to add skills
 *from*, so deselect-within-a-set alone is half a feature. It is also the natural
 entry point to community sets, so it most likely returns alongside them — not as
 a browse destination, but as the picker you assemble a set from.
+`buildInstallText` already takes an arbitrary list of skills, so the text half of
+this is done.
 
 **A "view prompt" disclosure** under the copy buttons. Declined by design: the
 two destination-labelled buttons plus destination-specific toasts carry it. Five
 lines to add if it ever proves too opaque.
 
-**`member_search_text` denormalisation.** Member search currently runs as a
-correlated `EXISTS` subquery over `cur8d_skill` so it can never go stale. If it
-ever drags, a denormalised haystack column rebuilt by the sync is the fallback.
+**Per-skill descriptions.** The CSV has none, so every `cur8d_skill.description`
+is null and the copied prompt lists names and repositories without a summary
+line. `buildInstallText` already omits the clause when it is missing, and an
+agent reads each SKILL.md as it installs it, so this is a nicety. Filling it in
+means fetching each skill's SKILL.md front-matter — the paths vary by repository,
+which is why it was not done at import time.
+
+**Deep links to a skill.** `cur8d_skill.source_url` exists for a link to a
+skill's own directory but is null for every imported row, so rows fall back to
+the repository root — three skills from `pbakaus/impeccable` all point at the
+same page. Filling it in has the same repository-layout problem as descriptions
+and would naturally be the same pass.
+
+**Pagination for the skills tab.** `skillSet.getAll` returns everything, which is
+right for twenty sets and wrong somewhere past fifty. At that point it should
+become `getInfiniteScroll` like the other two grids.
+
+**`member_search_text` denormalisation.** Member search runs as a correlated
+`EXISTS` subquery over `cur8d_skill` so it can never go stale. If it ever drags,
+a denormalised haystack column rebuilt by the import is the fallback.
 
 **Slug namespacing.** `cur8d_skill_set.slug` is globally unique, which is fine
 while the owner is the only curator. Once anyone can publish it becomes a

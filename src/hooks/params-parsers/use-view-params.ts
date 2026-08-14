@@ -1,6 +1,6 @@
 import { parseAsStringEnum, useQueryStates } from "nuqs";
 
-export const VIEWS = ["designer", "case-study"] as const;
+export const VIEWS = ["designer", "case-study", "skill"] as const;
 export type View = (typeof VIEWS)[number];
 
 const VIEW_PARAMS = {

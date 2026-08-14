@@ -4,6 +4,7 @@ import { SearchInput } from "./search-input";
 import { useDebouncedSearch } from "@/hooks/use-debounced-search";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useCaseStudyFilterParams } from "@/hooks/params-parsers/use-case-study-filter-params";
+import { useSkillSetFilterParams } from "@/hooks/params-parsers/use-skill-set-filter-params";
 import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 
 /**
@@ -79,8 +80,36 @@ function ProjectSearch() {
   );
 }
 
+function SkillSetSearch() {
+  const [params, setParams] = useSkillSetFilterParams();
+
+  const [searchDraft, setSearchDraft] = useDebouncedSearch(
+    params.q,
+    (q) => void setParams({ q }, { shallow: true }),
+  );
+
+  return (
+    <SearchInput
+      value={searchDraft}
+      onValueChange={setSearchDraft}
+      // Naming skills as well as sets, because the query reaches inside them:
+      // "expo" finds the four mobile sets, only one of which says so.
+      placeholder="Search sets, skills, repos"
+      className={`pointer-events-auto ${BAR}`}
+    />
+  );
+}
+
 export function FloatingSearch() {
   const [{ view }] = useViewParams();
+
+  if (view === "skill") {
+    return (
+      <FloatingSearchShell>
+        <SkillSetSearch />
+      </FloatingSearchShell>
+    );
+  }
 
   return (
     <FloatingSearchShell>

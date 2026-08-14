@@ -5,6 +5,7 @@ import { Logo } from "./logo";
 import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 import { ViewToggle } from "./view-toggle";
 import { CaseStudyFilter } from "./case-study-filter";
+import { SkillSetFilter } from "./skill-set-filter";
 import { FloatingSearch } from "./floating-search";
 
 interface DesktopNavProps {
@@ -12,6 +13,7 @@ interface DesktopNavProps {
   tagOptions: string[];
   caseStudyTypeOptions: string[];
   caseStudyIndustryOptions: string[];
+  skillSetUseCaseOptions: string[];
 }
 
 export function DesktopNav({
@@ -19,18 +21,25 @@ export function DesktopNav({
   tagOptions,
   caseStudyTypeOptions,
   caseStudyIndustryOptions,
+  skillSetUseCaseOptions,
 }: DesktopNavProps) {
   const [{ view }] = useViewParams();
 
-  const filters =
-    view === "case-study" ? (
+  let filters;
+  if (view === "skill") {
+    filters = <SkillSetFilter useCaseOptions={skillSetUseCaseOptions} />;
+  } else if (view === "case-study") {
+    filters = (
       <CaseStudyFilter
         typeOptions={caseStudyTypeOptions}
         industryOptions={caseStudyIndustryOptions}
       />
-    ) : (
+    );
+  } else {
+    filters = (
       <HorizontalFilter tagOptions={tagOptions} typeOptions={typeOptions} />
     );
+  }
 
   return (
     <>
