@@ -56,6 +56,12 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
 
   const roleLine = [collectable.title, company].filter(Boolean).join(" · ");
 
+  // Individuals are most of this grid, so a badge announcing one tells the
+  // reader nothing they were not already assuming. The badge is for the entries
+  // that are not one person. Trimmed and lowercased because the value is
+  // whatever someone picked in a Notion select.
+  const isIndividual = collectable.type?.trim().toLowerCase() === "individual";
+
   const reportMutation = api.collectable.reportLink.useMutation({
     onSuccess: () => {
       toast("Thanks - we'll review this link and update it if needed.");
@@ -256,8 +262,13 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
             twitterHandle={collectable.twitterHandle}
           />
 
-          {collectable.type && (
-            <span className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background">
+          {collectable.type && !isIndividual && (
+            // Grey rather than the near-black it used to be: at full contrast
+            // the pill outweighed everything else on the cover, artwork
+            // included. Solid mid-grey rather than the lighter greys the tags
+            // and the location pill use, which would disappear against a pale
+            // screenshot.
+            <span className="flex h-[22px] items-center rounded-full bg-neutral-500 px-2 text-xs text-white">
               {collectable.type.charAt(0).toUpperCase() +
                 collectable.type.slice(1)}
             </span>
