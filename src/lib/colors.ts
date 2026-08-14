@@ -28,6 +28,37 @@ export function randomAccentColor(): string {
   return accentColors[Math.floor(Math.random() * accentColors.length)]!;
 }
 
+/**
+ * An arbitrary but stable colour from `accentColors`.
+ *
+ * For colours that are painted during render rather than raised by an event.
+ * `Math.random()` cannot be used there: the server and the client would draw
+ * different answers and React would report the mismatch, and every re-render —
+ * a keystroke, a scroll, a filter — would reshuffle colours that are already on
+ * screen. Hashing whatever makes the mark distinct gives the same spread
+ * without either problem.
+ *
+ * FNV-1a with a finalizer, rather than the char-code sum `colorForName` uses.
+ * Five colours is a small enough bucket count that a hash has to actually mix:
+ * summing sends near-identical strings to neighbouring buckets, and so does any
+ * multiplier congruent to 1 mod 5 — 31 included, which is why the obvious
+ * `hash * 31 + c` painted two thirds of a searched grid in two colours. The
+ * xor-shifts are what break that pattern.
+ */
+export function accentForKey(key: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  hash ^= hash >>> 15;
+  hash = Math.imul(hash, 0x2545f491);
+  hash ^= hash >>> 13;
+
+  return accentColors[Math.abs(hash) % accentColors.length]!;
+}
+
 // Expanded Bauhaus and Swiss style inspired color palette
 export const bauhausColors = [
   "#E30022", // Bauhaus Red

@@ -1,3 +1,4 @@
+import { accentForKey, inkForBackground } from "@/lib/colors";
 import { splitOnMatches } from "@/lib/search";
 
 interface HighlightProps {
@@ -24,21 +25,31 @@ export function Highlight({ text, terms }: HighlightProps) {
 
   return (
     <>
-      {segments.map((segment, index) =>
-        segment.matched ? (
-          // `mark` is the element for this, but its user-agent yellow has to
-          // go: the highlight borrows the black-on-white pair the type and
-          // "Visit" badges already use, so it reads as part of the same set.
+      {segments.map((segment, index) => {
+        if (!segment.matched) return <span key={index}>{segment.text}</span>;
+
+        // `mark` is the element for this, but its user-agent yellow has to go:
+        // the highlight wears the wordmark's colours, the same set a hovered
+        // link lights up in.
+        //
+        // The key carries the terms so a new search repaints the grid, and the
+        // position so one card's matches are not all the same colour.
+        const accent = accentForKey(`${terms.join(",")}|${text}|${index}`);
+
+        return (
           <mark
             key={index}
-            className="bg-foreground px-[0.15em] text-background"
+            // Painted rather than classed: these are hex values, not palette
+            // steps Tailwind knows about.
+            style={{ backgroundColor: accent, color: inkForBackground(accent) }}
+            // Square, and painted on every line of a match that wraps — the
+            // description panel highlights run to paragraph length.
+            className="box-decoration-clone rounded-none px-[0.15em]"
           >
             {segment.text}
           </mark>
-        ) : (
-          <span key={index}>{segment.text}</span>
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
