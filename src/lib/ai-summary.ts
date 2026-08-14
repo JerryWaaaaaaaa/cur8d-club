@@ -14,10 +14,16 @@ const SHARED_STYLE =
   "Write plainly and concretely. Do not use marketing language, do not " +
   "start with the name, and reply with the summary only.";
 
+// One sentence with a word count on it, rather than "one or two sentences":
+// the second sentence was where the length came from, and an open-ended
+// instruction leaves it to the model to decide how long a sentence runs. The
+// blurb sits under a card title and is read at a glance, so it carries the one
+// thing worth knowing about the project and stops.
 const CASE_STUDY_SYSTEM =
   "You write short blurbs for a curated gallery of design work. " +
-  "Given source material about a project, reply with one or two " +
-  "sentences describing what it is and what makes the design notable. " +
+  "Given source material about a project, reply with a single sentence of " +
+  "no more than 20 words saying what it is and what makes the design " +
+  "notable. " +
   SHARED_STYLE;
 
 const DESIGNER_SYSTEM =
