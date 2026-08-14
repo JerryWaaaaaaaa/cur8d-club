@@ -18,15 +18,10 @@ const BLUR_LAYERS = [
 // Lines dissolve as they scroll off the top rather than meeting the sharper
 // artwork head on. The paragraph's top padding matches the band, so the first
 // line is never inside it.
+// Nothing at the bottom to match it: a line cut off by the frame's edge is the
+// plainest way to say the description carries on past it, and a fade over that
+// line softens the one thing that was doing the telling.
 const TEXT_MASK = "linear-gradient(to bottom, transparent 0px, #000 32px)";
-
-// The same treatment at the bottom, as the cue that the description carries on
-// past the frame. Only applied while it actually does: reserving room for this
-// band in the padding instead would be dead space to scroll through on every
-// card, and enough of it to push descriptions that would otherwise fit into
-// scrolling at all.
-const TEXT_MASK_WITH_MORE =
-  "linear-gradient(to bottom, transparent 0px, #000 32px, #000 calc(100% - 40px), transparent 100%)";
 
 // A straight ramp into a flat 70% leaves a corner where the two meet: the
 // brightness is continuous across it but its rate of change is not, and the
@@ -102,7 +97,6 @@ export function DescriptionPanel({
 }: DescriptionPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
-  const [hasMoreBelow, setHasMoreBelow] = useState(false);
   const [textHeight, setTextHeight] = useState<number | null>(null);
 
   // Observed rather than measured once: the paragraph reflows when the column
@@ -123,20 +117,7 @@ export function DescriptionPanel({
     const el = scrollRef.current;
     if (!el || !isHovered) return;
     el.scrollTop = 0;
-    setHasMoreBelow(el.clientHeight < el.scrollHeight - 1);
   }, [isHovered, text]);
-
-  // Drives the bottom fade. Cheap enough to run on every scroll event: React
-  // bails out when the answer has not changed, which is all but two frames of
-  // any given scroll. The pixel of slack absorbs fractional layout, which can
-  // otherwise leave a card permanently one hair short of its own end.
-  const syncHasMoreBelow = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setHasMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
-  };
-
-  const textMask = hasMoreBelow ? TEXT_MASK_WITH_MORE : TEXT_MASK;
 
   // clamp() rather than a measured pixel height so the cap stays the caller's
   // expression, resolved against the frame by the browser — the frame is a
@@ -192,7 +173,6 @@ export function DescriptionPanel({
             against the sharp artwork. */}
         <div
           ref={scrollRef}
-          onScroll={syncHasMoreBelow}
           className={cn(
             "scrollbar-hide absolute inset-x-0 bottom-0 flex h-[65%] flex-col",
             // overscroll-auto, not contain: the only description that scrolls
@@ -200,15 +180,22 @@ export function DescriptionPanel({
             // wheel after it has bottomed out is what stalls the page.
             "overflow-y-auto overscroll-auto",
           )}
-          style={{ maskImage: textMask, WebkitMaskImage: textMask }}
+          style={{ maskImage: TEXT_MASK, WebkitMaskImage: TEXT_MASK }}
         >
           {/* mt-auto only has free space to absorb when the description fits,
               so a short one sits at the bottom of the box and a long one falls
               back to starting at the top, which is where a reader expects to
-              begin scrolling from. */}
+              begin scrolling from.
+
+              shrink-0 because this paragraph is measured: a flex item in a
+              column will otherwise be compressed to its container rather than
+              overflowing it, and the height read back would be the box it was
+              squeezed into — which is the height the panel is being sized from,
+              so the panel would settle at whatever size made the squeeze
+              self-consistent and never grow to hold the text. */}
           <p
             ref={textRef}
-            className="mt-auto px-5 pb-5 pt-8 text-sm leading-snug text-neutral-700"
+            className="mt-auto shrink-0 px-5 pb-5 pt-8 text-sm leading-snug text-neutral-700"
           >
             <Highlight text={text} terms={terms} />
           </p>

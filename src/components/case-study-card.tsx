@@ -177,16 +177,16 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
   // take the pointer — it needs the wheel to scroll — without swallowing the
   // click that opens the project.
   //
-  // The panel sizes itself to its text; this is only the ceiling. A share of
-  // the frame on a short cover, but flat past ~430px tall — a portrait
-  // screenshot makes a cover twice the height of a landscape one, and 65% of
-  // that would be most of the artwork frosted over.
+  // The panel sizes itself to its text; the whole cover is only the ceiling,
+  // and a summary reaches it by being long rather than by the cover being
+  // short. Letting it get there is what keeps scrolling rare: a description
+  // held to a band scrolls inside it with artwork going spare above.
   const description = caseStudy.aiSummary ? (
     <DescriptionPanel
       text={caseStudy.aiSummary}
       terms={terms}
       isHovered={isHovered}
-      maxPanelHeight="min(65%, 280px)"
+      maxPanelHeight="100%"
       style={{ height: coverHeight ?? 0 }}
     />
   ) : null;
