@@ -24,7 +24,9 @@ export function useAccentHover(className?: string) {
 
   return {
     className: cn(
-      "underline transition-colors hover:no-underline",
+      // `rounded-none` so the highlight stays square even when this is spread
+      // onto something that carries a radius of its own.
+      "underline transition-colors rounded-none hover:no-underline",
       // Padding the highlight without moving the text, and painting it on both
       // halves of a link that wraps rather than only the first.
       "box-decoration-clone px-0.5 -mx-0.5",

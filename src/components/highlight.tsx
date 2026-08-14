@@ -31,7 +31,7 @@ export function Highlight({ text, terms }: HighlightProps) {
           // "Visit" badges already use, so it reads as part of the same set.
           <mark
             key={index}
-            className="rounded-[0.2em] bg-foreground px-[0.15em] text-background"
+            className="bg-foreground px-[0.15em] text-background"
           >
             {segment.text}
           </mark>
