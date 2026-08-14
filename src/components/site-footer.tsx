@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { SubmissionForm } from "@/components/submission-form";
+import { useAccentHover } from "@/hooks/use-accent-hover";
 
 /**
  * The site's footnote, at the foot of the desktop rail.
@@ -20,13 +21,17 @@ import { SubmissionForm } from "@/components/submission-form";
  */
 export function SiteFooter() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  // One per link, so hovering both in turn never shows the same colour twice by
+  // way of a shared pick.
+  const referralAccent = useAccentHover();
+  const creditAccent = useAccentHover();
 
   return (
     <footer className="text-base leading-relaxed text-neutral-900">
       <p>
         <button
           onClick={() => setIsFormOpen(true)}
-          className="underline hover:no-underline"
+          {...referralAccent}
         >
           Submit a referral
         </button>
@@ -37,7 +42,7 @@ export function SiteFooter() {
           href="https://x.com/notjerrywang"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:no-underline"
+          {...creditAccent}
         >
           @Jerry
         </Link>
