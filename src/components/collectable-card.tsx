@@ -27,9 +27,9 @@ interface CollectableCardProps {
   collectable: Collectable;
   /**
    * The active search terms, marked wherever they appear. Only the columns the
-   * router actually searches are marked — the location pill and the type badge
-   * are left alone, since a query never matches on either and highlighting
-   * them would claim a match that didn't happen.
+   * router actually searches are marked — the location pill is left alone,
+   * since a query never matches on it and highlighting it would claim a match
+   * that didn't happen.
    */
   terms: string[];
 }
@@ -55,12 +55,6 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
       : collectable.company;
 
   const roleLine = [collectable.title, company].filter(Boolean).join(" · ");
-
-  // Individuals are most of this grid, so a badge announcing one tells the
-  // reader nothing they were not already assuming. The badge is for the entries
-  // that are not one person. Trimmed and lowercased because the value is
-  // whatever someone picked in a Notion select.
-  const isIndividual = collectable.type?.trim().toLowerCase() === "individual";
 
   const reportMutation = api.collectable.reportLink.useMutation({
     onSuccess: () => {
@@ -123,8 +117,8 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
   // wheel to scroll — without swallowing the click that opens the site.
   //
   // The panel sizes itself to its text, and at its tallest stops short of the
-  // frame's top so the avatar, the type badge and the report button stay clear
-  // of it. All three are the same 22px tall, so one measurement covers the row.
+  // frame's top so the avatar and the report button stay clear of it. Both are
+  // the same 22px tall, so one measurement covers the row.
   const description = collectable.aiDescription ? (
     <DescriptionPanel
       text={collectable.aiDescription}
@@ -249,30 +243,14 @@ export function CollectableCard({ collectable, terms }: CollectableCardProps) {
       {/* Mirrors the frame's box while living outside the frame's z-0 stacking
           context — otherwise everything in here would sit under the full-card
           link and the description panel, and the avatar and the report button
-          would both be unclickable.
-
-          The type badge rides along rather than staying inside the frame: it
-          now shares a line with the avatar, and coordinating their positions
-          across two stacking contexts is how they end up overlapping. */}
+          would both be unclickable. */}
       <div className="pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full">
-        <div className="absolute left-3 top-3 flex items-center gap-1.5">
+        <div className="absolute left-3 top-3 flex items-center">
           <DesignerAvatar
             name={collectable.name}
             avatarUrl={collectable.avatarUrl}
             twitterHandle={collectable.twitterHandle}
           />
-
-          {collectable.type && !isIndividual && (
-            // Grey rather than the near-black it used to be: at full contrast
-            // the pill outweighed everything else on the cover, artwork
-            // included. Solid mid-grey rather than the lighter greys the tags
-            // and the location pill use, which would disappear against a pale
-            // screenshot.
-            <span className="flex h-[22px] items-center rounded-full bg-neutral-500 px-2 text-xs text-white">
-              {collectable.type.charAt(0).toUpperCase() +
-                collectable.type.slice(1)}
-            </span>
-          )}
         </div>
 
         {collectable.websiteUrl && (
