@@ -2,87 +2,96 @@
 export const MOSAIC_SIZE = 8;
 export const MOSAIC_TILES = MOSAIC_SIZE * MOSAIC_SIZE;
 
-/**
- * Each avatar is read as a 4×4 block of pixels — sixteen colours, in the
- * arrangement they had in the picture. Small enough that a face reduces to a
- * few flat fields rather than mush, and it divides the 8×8 grid evenly.
- */
-export const PALETTE_SIZE = 4;
-export const PALETTE_COLORS = PALETTE_SIZE * PALETTE_SIZE;
+export interface MosaicOwner {
+  author: string;
+  avatarUrl: string | null;
+}
 
-/** FNV-1a, so an owner's fallback is the same on every render and machine. */
-function hueFor(owner: string): number {
-  let hash = 0x811c9dc5;
+export interface MosaicTile {
+  author: string;
+  src: string;
+  /** Painted under the image, and all that shows if it cannot be fetched. */
+  color: string;
+}
 
-  for (let i = 0; i < owner.length; i++) {
-    hash ^= owner.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
+/** FNV-1a, so a set's arrangement is the same on every render and machine. */
+function hash(value: string): number {
+  let result = 0x811c9dc5;
+
+  for (let i = 0; i < value.length; i++) {
+    result ^= value.charCodeAt(i);
+    result = Math.imul(result, 0x01000193);
   }
 
-  return Math.abs(hash) % 360;
+  return Math.abs(result);
+}
+
+/** mulberry32 — small, seedable, and good enough to scatter 64 tiles. */
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function avatarSrc(owner: MosaicOwner): string {
+  return owner.avatarUrl ?? `https://github.com/${owner.author}.png`;
 }
 
 /**
- * A palette for an owner whose avatar could not be read — the host was
- * unreachable, or the canvas came back tainted.
+ * A flat colour per owner, shown only when their avatar cannot be fetched.
  *
- * Deliberately not built on `colorForName`, which the initials tiles use.
- * That palette carries black, charcoal, off-white and two greys on purpose,
- * which are the right answer behind two letters and the wrong one here: an
- * owner landing on black produced sixteen shades between #000 and #474747, a
- * block that reads as a rendering failure rather than as a colour.
- *
- * So: one hue from the name, held at a saturation that cannot go grey, walked
- * across a bounded lightness band. Sixteen shades of one colour read as a
- * pixelated something; sixteen unrelated hues would read as confetti.
+ * Deliberately not `colorForName`, which the initials tiles use: that palette
+ * carries black, charcoal, off-white and two greys on purpose, which is right
+ * behind two letters and wrong for a tile that is standing in for a picture.
+ * One hue from the name at a saturation that cannot go grey instead.
  */
-export function fallbackPalette(owner: string): string[] {
-  const hue = hueFor(owner);
+export function ownerColor(author: string): string {
+  return `hsl(${hash(author) % 360} 46% 56%)`;
+}
 
-  return Array.from({ length: PALETTE_COLORS }, (_, index) => {
-    const t = index / (PALETTE_COLORS - 1);
+/**
+ * Fill the grid with the set's avatars, repeating them until all 64 tiles are
+ * taken and then shuffling.
+ *
+ * The shuffle is the point. Walking the owners in order — tile `i` gets owner
+ * `i % count` — collapses whenever the count divides the row length: four
+ * owners across eight columns puts the same avatar in columns 0 and 4 of every
+ * row, and eight owners puts one avatar down each column, so the cover comes
+ * out as vertical stripes rather than a mosaic. Offsetting by row turns the
+ * stripes diagonal, which is tidier and still obviously a pattern.
+ *
+ * Seeded from the set's slug, so the arrangement is scattered but fixed: a
+ * given set looks the same on every visit and to every visitor, and does not
+ * reshuffle on re-render.
+ */
+export function buildMosaic(owners: MosaicOwner[], seed: string): MosaicTile[] {
+  if (owners.length === 0) return [];
 
-    // 32%–74% keeps every tile clear of both ends, where colours collapse
-    // into black and white and the block stops looking deliberate.
-    const lightness = 32 + t * 42;
-    // A slight hue drift across the ramp, so it reads as a rendered surface
-    // rather than a linear gradient swatch.
-    const drift = (hue + (t - 0.5) * 24 + 360) % 360;
+  // Repeating before shuffling is what keeps the owners evenly represented —
+  // 64 draws at random would leave some avatars barely present by chance.
+  const picks = Array.from(
+    { length: MOSAIC_TILES },
+    (_, index) => index % owners.length,
+  );
 
-    return `hsl(${drift.toFixed(1)} 52% ${lightness.toFixed(1)}%)`;
+  const random = seededRandom(hash(seed));
+  for (let i = picks.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [picks[i], picks[j]] = [picks[j]!, picks[i]!];
+  }
+
+  return picks.map((index) => {
+    const owner = owners[index]!;
+
+    return {
+      author: owner.author,
+      src: avatarSrc(owner),
+      color: ownerColor(owner.author),
+    };
   });
-}
-
-/**
- * Weave a set's avatars into one 64-tile mosaic.
- *
- * Owners are picked per cell by `(row + col) % count`, which runs them along
- * diagonals so no one clumps into a corner, and which lands on exactly 64 tiles
- * for any number of owners — the reason this is not a block per avatar. Four
- * owners divide 64 into equal squares; five, six and seven do not, and twelve
- * of the twenty sets have one of those counts.
- *
- * Within an owner the colour comes from their own 4×4 grid at the cell's
- * position modulo four, so their pixels keep the arrangement they had in the
- * avatar. That is what separates this from noise: each palette repeats as a
- * recognisable little block, and the weave interleaves the blocks.
- */
-export function buildMosaic(palettes: string[][]): string[] {
-  const usable = palettes.filter((palette) => palette.length > 0);
-  if (usable.length === 0) return [];
-
-  const tiles: string[] = [];
-
-  for (let row = 0; row < MOSAIC_SIZE; row++) {
-    for (let col = 0; col < MOSAIC_SIZE; col++) {
-      const palette = usable[(row + col) % usable.length]!;
-      const index =
-        ((row % PALETTE_SIZE) * PALETTE_SIZE + (col % PALETTE_SIZE)) %
-        palette.length;
-
-      tiles.push(palette[index]!);
-    }
-  }
-
-  return tiles;
 }
