@@ -24,6 +24,7 @@ import {
 } from "@/lib/sort-options";
 import { SearchInput } from "./search-input";
 import { useDebouncedSearch } from "@/hooks/use-debounced-search";
+import { useAccentHover } from "@/hooks/use-accent-hover";
 
 interface MobileNavProps {
   tagOptions: string[];
@@ -47,6 +48,9 @@ export function MobileNav({
     q: search,
   } = params;
   const [submissionFormOpen, setSubmissionFormOpen] = useState(false);
+  // One per link in the sheet's footnote, so the two never share a colour.
+  const creditAccent = useAccentHover();
+  const referralAccent = useAccentHover();
 
   // Shallow, so the query re-runs the grid's client query without a server
   // round trip for every keystroke.
@@ -261,7 +265,7 @@ export function MobileNav({
                 href="https://x.com/notjerrywang"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:no-underline"
+                {...creditAccent}
               >
                 ↳ @Jerry
               </Link>
@@ -270,7 +274,7 @@ export function MobileNav({
               Have someone in mind?{" "}
               <button
                 onClick={() => setSubmissionFormOpen(true)}
-                className="underline hover:no-underline"
+                {...referralAccent}
               >
                 ↳ Submit a referral
               </button>

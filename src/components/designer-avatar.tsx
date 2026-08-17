@@ -16,8 +16,8 @@ interface DesignerAvatarProps {
   className?: string;
 }
 
-// Matches the type badge's `h-[22px]`, so the avatar and the badge beside it
-// read as one row of chips rather than as a portrait with a label stuck to it.
+// Matches the report button's `h-[22px]` in the opposite corner, so the two
+// controls on the cover read as one row rather than as two unrelated marks.
 const SIZE_PX = 22;
 
 /**
