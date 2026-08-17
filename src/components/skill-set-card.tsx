@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Highlight } from "@/components/highlight";
-import { SourceAvatar } from "@/components/source-avatar";
 import { CopyInstallButtons } from "@/components/copy-install-buttons";
 import { accentForUseCase } from "@/lib/set-accents";
+import { MOSAIC_SIZE, buildMosaic } from "@/lib/avatar-mosaic";
+import { useAvatarPalettes } from "@/hooks/use-avatar-palettes";
 import { useSkillSetSelection } from "@/hooks/params-parsers/use-skill-set-filter-params";
 import type { SkillSet } from "@/components/skill-set-grid";
 
-/** Nine fills a 3×3 block; no set in the data comes close to needing the cap. */
+/** Nine owners is already more variety than 64 tiles can show apart. */
 const MAX_OWNERS = 9;
-const AVATAR_PX = 52;
-const AVATAR_GAP_PX = 14;
 
 /** Ramps the frost in over its first 28px, so the panel has no hard top edge. */
 const FROST_MASK = "linear-gradient(to bottom, transparent 0px, #000 28px)";
@@ -33,29 +32,32 @@ interface SkillSetCardProps {
  * The cover is the part that needed inventing. A set has no artwork of its own,
  * and a square of nothing would look like a card whose image failed rather than
  * a card that never had one. So it is built from the thing the set does have:
- * the faces of the people whose repositories the skills come from, which is
- * both different for every set and a fair answer to "whose code is this".
+ * the avatars of the people whose repositories the skills come from — not shown
+ * as faces, but read down to their colours and rewoven as a 64-tile mosaic.
+ * Different for every set, and still a fair answer to "whose code is this".
  */
 export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
   const [, setSelection] = useSkillSetSelection();
   const [isHovered, setIsHovered] = useState(false);
   const accent = accentForUseCase(skillSet.useCase);
 
-  // By owner, not by skill: three skills from anthropics are one face, not the
-  // same picture three times.
-  const owners: { author: string; avatarUrl: string | null }[] = [];
-  for (const skill of skillSet.skills) {
-    if (!skill.author) continue;
-    if (owners.some((owner) => owner.author === skill.author)) continue;
-    owners.push({ author: skill.author, avatarUrl: skill.authorAvatarUrl });
-    if (owners.length === MAX_OWNERS) break;
-  }
+  // By owner, not by skill: three skills from anthropics contribute one
+  // palette, not the same sixteen colours three times over.
+  const owners = useMemo(() => {
+    const seen: { author: string; avatarUrl: string | null }[] = [];
 
-  // Square-ish rather than one long row: four owners read as a 2×2 block and
-  // eight as 3/3/2. The width is what does the wrapping, because flex centres a
-  // partial last row where grid would strand it against the left edge.
-  const columns = Math.max(1, Math.ceil(Math.sqrt(owners.length)));
-  const mosaicWidth = columns * AVATAR_PX + (columns - 1) * AVATAR_GAP_PX;
+    for (const skill of skillSet.skills) {
+      if (!skill.author) continue;
+      if (seen.some((owner) => owner.author === skill.author)) continue;
+      seen.push({ author: skill.author, avatarUrl: skill.authorAvatarUrl });
+      if (seen.length === MAX_OWNERS) break;
+    }
+
+    return seen;
+  }, [skillSet.skills]);
+
+  const palettes = useAvatarPalettes(owners);
+  const tiles = useMemo(() => buildMosaic(palettes), [palettes]);
 
   return (
     <div
@@ -63,27 +65,34 @@ export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className="relative z-0 mb-3 aspect-square overflow-hidden"
-        // A wash rather than the designer card's flat `bg-muted`, so the four
-        // sets sharing a category still read as a family. Kept faint: the chip
-        // is what states the colour, this only tints the room it sits in.
-        style={{ backgroundColor: `${accent.fill}14` }}
-      >
-        <div className="flex h-full w-full items-center justify-center p-6">
-          <div
-            className="flex flex-wrap justify-center"
-            style={{ width: mosaicWidth, gap: AVATAR_GAP_PX }}
-          >
-            {owners.map((owner) => (
-              <SourceAvatar
-                key={owner.author}
-                author={owner.author}
-                avatarUrl={owner.avatarUrl}
-                size={AVATAR_PX}
-              />
-            ))}
-          </div>
+      {/* The designer card's own neutral, so the three grids share a frame. */}
+      <div className="relative z-0 mb-3 aspect-square overflow-hidden bg-muted">
+        {/* Inset the way the designer card insets artwork, so the neutral reads
+            as a border rather than as a gap the mosaic failed to fill. */}
+        <div className="flex h-full w-full items-center justify-center p-9">
+          {tiles.length > 0 && (
+            <svg
+              viewBox={`0 0 ${MOSAIC_SIZE} ${MOSAIC_SIZE}`}
+              className="h-full w-full"
+              // Rects on integer coordinates, so tiles meet exactly. Div
+              // backgrounds would leave hairline seams wherever a tile edge
+              // fell on a fractional pixel, which is the one thing "no gaps"
+              // rules out.
+              shapeRendering="crispEdges"
+              aria-hidden
+            >
+              {tiles.map((color, index) => (
+                <rect
+                  key={index}
+                  x={index % MOSAIC_SIZE}
+                  y={Math.floor(index / MOSAIC_SIZE)}
+                  width={1}
+                  height={1}
+                  fill={color}
+                />
+              ))}
+            </svg>
+          )}
         </div>
 
         {/* Cleared on hover so the panel slides into an empty frame rather than
