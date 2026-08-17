@@ -14,6 +14,13 @@ interface CopyInstallButtonsProps {
   promptIntro?: string | null;
   /** The card only offers the prompt; the set view offers both. */
   variant?: "both" | "prompt-only";
+  /**
+   * "row" is the set view: buttons side by side, each captioned with where its
+   * text is meant to go. "stacked" is the card's hover panel, which has room
+   * for neither the second column nor the captions — the labels already
+   * differ, and the toast still names the destination.
+   */
+  orientation?: "row" | "stacked";
   className?: string;
 }
 
@@ -31,6 +38,7 @@ export function CopyInstallButtons({
   skills,
   promptIntro,
   variant = "both",
+  orientation = "row",
   className,
 }: CopyInstallButtonsProps) {
   const prompt = useCopyToClipboard();
@@ -43,17 +51,30 @@ export function CopyInstallButtons({
   });
   const commandText = buildInstallText({ skills, format: "cli" });
 
-  const base =
-    "flex h-9 items-center gap-2 rounded-full px-4 text-sm transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-40";
+  const stacked = orientation === "stacked";
+
+  const base = cn(
+    "flex h-9 items-center gap-2 rounded-full text-sm transition-colors",
+    "focus:outline-none disabled:cursor-not-allowed disabled:opacity-40",
+    stacked ? "w-full justify-center px-3" : "px-4",
+  );
 
   return (
-    <div className={cn("flex flex-wrap items-start gap-2", className)}>
-      <div className="flex flex-col items-center gap-1">
+    <div
+      className={cn(
+        stacked
+          ? "flex w-full flex-col gap-2"
+          : "flex flex-wrap items-start gap-2",
+        className,
+      )}
+    >
+      <div className={cn("flex flex-col items-center gap-1", stacked && "w-full")}>
         <button
           type="button"
           disabled={promptText === ""}
           onClick={(event) => {
-            // Card-level copy sits inside the link that opens the set.
+            // The card lays a full-size button underneath this one to open the
+            // set, so the copy has to keep the click to itself.
             event.preventDefault();
             event.stopPropagation();
             void prompt.copy(
@@ -70,25 +91,31 @@ export function CopyInstallButtons({
           )}
           {prompt.copied ? "Copied" : "Copy prompt"}
         </button>
-        {variant === "both" && (
+        {variant === "both" && !stacked && (
           <span className="text-xs text-neutral-500">for your agent</span>
         )}
       </div>
 
       {variant === "both" && (
-        <div className="flex flex-col items-center gap-1">
+        <div
+          className={cn("flex flex-col items-center gap-1", stacked && "w-full")}
+        >
           <button
             type="button"
             disabled={commandText === ""}
-            onClick={() =>
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
               void command.copy(
                 commandText,
                 "Command copied — paste it into your terminal",
-              )
-            }
+              );
+            }}
             className={cn(
               base,
-              "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
+              stacked
+                ? "bg-white text-neutral-900 hover:bg-neutral-100"
+                : "bg-neutral-200 text-neutral-900 hover:bg-neutral-300",
             )}
           >
             {command.copied ? (
@@ -98,7 +125,9 @@ export function CopyInstallButtons({
             )}
             {command.copied ? "Copied" : "Copy command"}
           </button>
-          <span className="text-xs text-neutral-500">for your terminal</span>
+          {!stacked && (
+            <span className="text-xs text-neutral-500">for your terminal</span>
+          )}
         </div>
       )}
     </div>
