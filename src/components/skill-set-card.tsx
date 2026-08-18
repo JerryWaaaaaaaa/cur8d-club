@@ -1,25 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Highlight } from "@/components/highlight";
+import { SourceAvatar } from "@/components/source-avatar";
 import { CopyInstallButtons } from "@/components/copy-install-buttons";
 import { accentForUseCase } from "@/lib/set-accents";
-import { MOSAIC_SIZE, buildMosaic } from "@/lib/avatar-mosaic";
-import { useLoadableAvatars } from "@/hooks/use-loadable-avatars";
 import { useSkillSetSelection } from "@/hooks/params-parsers/use-skill-set-filter-params";
 import type { SkillSet } from "@/components/skill-set-grid";
 
-/** Nine owners is already more variety than 64 tiles can show apart. */
-const MAX_OWNERS = 9;
-
 /**
- * The mosaic's width as a share of the cover, down from the 75% an inset of
- * `p-9` gave it — three quarters of that, so the tiles read as small squares
- * on the neutral rather than as the whole picture.
+ * What the cover fits at its tightest — a 290px square at the four-column
+ * breakpoint, measured with 12px to spare. Every set today holds eight or nine
+ * skills, so this hides nothing; it is here so a longer set added later
+ * summarises its tail rather than having a row sliced in half by the clip.
  */
-const MOSAIC_WIDTH = "56%";
+const MAX_ROWS = 9;
+
+/** Clears the avatar and its gap, so the summary lines up with the names. */
+const ROW_TEXT_INSET = 26;
 
 /** Ramps the frost in over its first 28px, so the panel has no hard top edge. */
 const FROST_MASK = "linear-gradient(to bottom, transparent 0px, #000 28px)";
@@ -36,43 +36,30 @@ interface SkillSetCardProps {
  * pill at its bottom left, a panel that slides up over it on hover — so the
  * three grids read as one site.
  *
- * The cover is the part that needed inventing. A set has no artwork of its own,
- * and a square of nothing would look like a card whose image failed rather than
- * a card that never had one. So it is built from the thing the set does have:
- * the avatars of the people whose repositories the skills come from, repeated
- * across a 64-tile grid until it is full. Different for every set, and a fair
- * answer to "whose code is this".
+ * The cover is the contents. A designer card shows the work; a set's work is
+ * the skills it collects, so the cover lists them: each one's owner and its
+ * name, in the order the detail view will show them. Two earlier attempts made
+ * artwork out of the owners' avatars instead, first as sampled colour and then
+ * as the avatars themselves tiled across a grid, and both were decoration that
+ * told you nothing — the name of a set says what it is for, but only the list
+ * says what you are actually installing.
+ *
+ * Every set holds eight or nine skills, which is few enough to show whole. The
+ * list is clipped rather than scrolled: the card is one click target, and a
+ * scrollable region inside it would swallow the page's scroll on touch.
  */
 export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
   const [, setSelection] = useSkillSetSelection();
   const [isHovered, setIsHovered] = useState(false);
   const accent = accentForUseCase(skillSet.useCase);
 
-  // By owner, not by skill: three skills from anthropics put one avatar into
-  // the rotation, not the same face three times as often as everyone else's.
-  const owners = useMemo(() => {
-    const seen: { author: string; avatarUrl: string | null }[] = [];
-
-    for (const skill of skillSet.skills) {
-      if (!skill.author) continue;
-      if (seen.some((owner) => owner.author === skill.author)) continue;
-      seen.push({ author: skill.author, avatarUrl: skill.authorAvatarUrl });
-      if (seen.length === MAX_OWNERS) break;
-    }
-
-    return seen;
-  }, [skillSet.skills]);
-
-  const tiles = useMemo(
-    () => buildMosaic(owners, skillSet.slug),
-    [owners, skillSet.slug],
-  );
-
-  const sources = useMemo(
-    () => [...new Set(tiles.map((tile) => tile.src))],
-    [tiles],
-  );
-  const usable = useLoadableAvatars(sources);
+  const overflows = skillSet.skills.length > MAX_ROWS;
+  // One row short of the cap when it overflows, since the summary needs a row
+  // of its own to sit in.
+  const shown = overflows
+    ? skillSet.skills.slice(0, MAX_ROWS - 1)
+    : skillSet.skills;
+  const hidden = skillSet.skills.length - shown.length;
 
   return (
     <div
@@ -82,54 +69,38 @@ export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
     >
       {/* The designer card's own neutral, so the three grids share a frame. */}
       <div className="relative z-0 mb-3 aspect-square overflow-hidden bg-muted">
-        {/* Centred rather than inset by a fixed padding, so the mosaic keeps
-            its share of the cover at every card width. */}
-        <div className="flex h-full w-full items-center justify-center">
-          {tiles.length > 0 && (
-            <svg
-              viewBox={`0 0 ${MOSAIC_SIZE} ${MOSAIC_SIZE}`}
-              className="aspect-square"
-              style={{ width: MOSAIC_WIDTH }}
-              aria-hidden
-            >
-              {tiles.map((tile, index) => {
-                const x = index % MOSAIC_SIZE;
-                const y = Math.floor(index / MOSAIC_SIZE);
+        {/* Inset to clear the chip above and the count pill below, so the list
+            occupies the frame without either of them landing on a row, and
+            centred in what is left the way the designer card centres artwork —
+            a one-column cover is much taller than nine rows need. Centring is
+            only safe because MAX_ROWS keeps the list shorter than the frame:
+            content that overflowed would spill past both ends instead of one. */}
+        <ul className="absolute inset-x-0 bottom-0 top-0 flex flex-col justify-center gap-1 overflow-hidden px-3 pb-10 pt-11">
+          {shown.map((skill) => (
+            <li key={skill.id} className="flex items-center gap-2">
+              <SourceAvatar
+                author={skill.author}
+                avatarUrl={skill.authorAvatarUrl}
+                size={18}
+              />
+              {/* `min-w-0` is what lets a long name truncate: a flex child
+                  refuses to shrink below its content width without it, and the
+                  row would push its own avatar out of the frame instead. */}
+              <span className="min-w-0 flex-1 truncate text-xs text-neutral-700">
+                <Highlight text={skill.name} terms={terms} />
+              </span>
+            </li>
+          ))}
 
-                return (
-                  <g key={index}>
-                    {/* Under every tile, so an avatar that never arrives leaves
-                        a colour rather than a hole in the grid. */}
-                    <rect
-                      x={x}
-                      y={y}
-                      width={1}
-                      height={1}
-                      fill={tile.color}
-                      shapeRendering="crispEdges"
-                    />
-                    {/* Integer coordinates inside the viewBox, so tiles meet
-                        exactly. Div backgrounds would leave hairline seams
-                        wherever an edge fell on a fractional pixel, which is
-                        the one thing "no gaps" rules out. `slice` is the SVG
-                        spelling of `object-fit: cover`, so a non-square avatar
-                        fills its tile instead of letterboxing inside it. */}
-                    {usable.has(tile.src) && (
-                      <image
-                        x={x}
-                        y={y}
-                        width={1}
-                        height={1}
-                        href={tile.src}
-                        preserveAspectRatio="xMidYMid slice"
-                      />
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
+          {hidden > 0 && (
+            <li
+              className="text-xs text-neutral-500"
+              style={{ paddingLeft: ROW_TEXT_INSET }}
+            >
+              +{hidden} more
+            </li>
           )}
-        </div>
+        </ul>
 
         {/* Cleared on hover so the panel slides into an empty frame rather than
             up over the count, which is the designer card's move with its
@@ -183,7 +154,7 @@ export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
           )}
         >
           {/* Masked at the top so the frost fades in rather than starting on a
-              hard line across the mosaic. The designer card solves the same
+              hard line across the list. The designer card solves the same
               problem with four offset blur layers, which is worth it for text
               that scrolls under them and overkill for two buttons. */}
           <div
