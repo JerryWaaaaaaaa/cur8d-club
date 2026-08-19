@@ -7,14 +7,13 @@ export const SORT_VALUES = [
 
 export type SortValue = (typeof SORT_VALUES)[number];
 
-export const DEFAULT_SORT: SortValue = "name-asc";
-
 /**
- * Projects have always landed newest first, and the grid is read as a feed
- * rather than a directory, so they keep that default instead of the
- * alphabetical one the designer list uses.
+ * Both grids are read as feeds rather than directories, so designers and
+ * projects alike land newest first.
  */
-export const CASE_STUDY_DEFAULT_SORT: SortValue = "recent";
+export const DEFAULT_SORT: SortValue = "recent";
+
+export const CASE_STUDY_DEFAULT_SORT: SortValue = DEFAULT_SORT;
 
 export const SORT_OPTIONS: { value: SortValue; label: string }[] = [
   { value: "recent", label: "Recently Added" },

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { eq, inArray } from "drizzle-orm";
 import {
   fetchCaseStudyData,
@@ -8,6 +9,7 @@ import { generateSummary } from "@/lib/ai-summary";
 import { mirrorToBlob } from "@/lib/blob-storage";
 import { fetchScreenshotUrl } from "@/lib/screenshot";
 import { db } from "@/server/db";
+import { FILTER_OPTIONS_TAG } from "@/lib/cache-tags";
 import { caseStudies } from "@/server/db/schema";
 
 export const maxDuration = 60;
@@ -16,7 +18,9 @@ type DbCaseStudy = typeof caseStudies.$inferSelect;
 
 /** Drops tags that no longer exist as options in Notion. */
 async function cleanupOrphanedIndustries(notionItems: NotionCaseStudy[]) {
-  const validIndustries = new Set(notionItems.flatMap((item) => item.industries));
+  const validIndustries = new Set(
+    notionItems.flatMap((item) => item.industries),
+  );
   const dbItems = await db.query.caseStudies.findMany();
 
   const stale = dbItems.filter((item) =>
@@ -103,7 +107,10 @@ function needsEnrichment(item: NotionCaseStudy, dbItem: DbCaseStudy) {
 export async function GET() {
   // The daily cron runs whether or not case studies have been set up yet, so
   // treat missing credentials as "nothing to do" rather than an error.
-  if (!process.env.NOTION_CASE_STUDY_DATABASE_ID || !process.env.NOTION_API_KEY) {
+  if (
+    !process.env.NOTION_CASE_STUDY_DATABASE_ID ||
+    !process.env.NOTION_API_KEY
+  ) {
     return NextResponse.json({
       skipped: "case study sync is not configured",
       missing: [
@@ -190,6 +197,10 @@ export async function GET() {
 
   const itemsToEnrich = [...newItems, ...staleItems];
   await Promise.all(itemsToEnrich.map(enrichCaseStudy));
+
+  // Same as the designer sync: the type and industry dropdowns are cached, so a
+  // run that changed the set of values has to drop them.
+  revalidateTag(FILTER_OPTIONS_TAG);
 
   return NextResponse.json({
     newItems: newItems.length,

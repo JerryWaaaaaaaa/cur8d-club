@@ -1,11 +1,17 @@
 import { z } from "zod";
+import { unstable_cache } from "next/cache";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { db } from "@/server/db";
 import { collectables } from "@/server/db/schema";
 import { eq, and, sql, arrayOverlaps } from "drizzle-orm";
 import { DEFAULT_SORT, SORT_VALUES } from "@/lib/sort-options";
 import { getOrderBy } from "@/server/api/sort-order";
 import { parseSearchTerms, toLikePattern } from "@/lib/search";
+import {
+  FILTER_OPTIONS_REVALIDATE_SECONDS,
+  FILTER_OPTIONS_TAG,
+} from "@/lib/cache-tags";
 
 const COLLECTABLE_PER_PAGE = 12;
 
@@ -36,6 +42,59 @@ const FILTER_QUERY_OBJECT_WITH_PAGINATION = FILTER_QUERY_OBJECT.extend({
   cursor: z.number().default(0),
   limit: z.number().default(COLLECTABLE_PER_PAGE),
 });
+
+/**
+ * The two filter dropdowns on the designer view. Both scan the whole table to
+ * collect its distinct values, and both were being re-run on every request —
+ * including every view switch, which is a server round trip. The answer only
+ * changes when a sync writes rows, so it is cached under a tag the sync routes
+ * drop rather than recomputed per page view.
+ *
+ * These read the `db` singleton directly instead of `ctx.db`: it is the same
+ * instance the context is built from, and a cache entry outlives the request
+ * whose context it would otherwise have closed over.
+ */
+const getUniqueTags = unstable_cache(
+  async () => {
+    const allTags = await db.query.collectables.findMany({
+      columns: {
+        tags: true,
+      },
+    });
+
+    const uniqueTags = [
+      ...new Set(allTags.flatMap((collectable) => collectable.tags)),
+    ].filter((tag) => tag !== "" && tag !== null);
+
+    return uniqueTags as string[];
+  },
+  ["collectable-unique-tags"],
+  {
+    tags: [FILTER_OPTIONS_TAG],
+    revalidate: FILTER_OPTIONS_REVALIDATE_SECONDS,
+  },
+);
+
+const getUniqueTypes = unstable_cache(
+  async () => {
+    const allTypes = await db.query.collectables.findMany({
+      columns: {
+        type: true,
+      },
+    });
+
+    const uniqueTypes = [
+      ...new Set(allTypes.map((collectable) => collectable.type)),
+    ].filter((type) => type !== "" && type !== null);
+
+    return uniqueTypes as string[];
+  },
+  ["collectable-unique-types"],
+  {
+    tags: [FILTER_OPTIONS_TAG],
+    revalidate: FILTER_OPTIONS_REVALIDATE_SECONDS,
+  },
+);
 
 export const collectableRouter = createTRPCRouter({
   hello: publicProcedure
@@ -104,35 +163,9 @@ export const collectableRouter = createTRPCRouter({
     return allCollectables;
   }),
 
-  getUniqueTags: publicProcedure.query(async ({ ctx }) => {
-    const allTags = await ctx.db.query.collectables.findMany({
-      columns: {
-        tags: true,
-      },
-    });
+  getUniqueTags: publicProcedure.query(() => getUniqueTags()),
 
-    const uniqueTags = allTags
-      .flatMap((collectable) => collectable.tags)
-      .filter((tag, index, self) => self.indexOf(tag) === index)
-      .filter((tag) => tag !== "" && tag !== null);
-
-    return uniqueTags as string[];
-  }),
-
-  getUniqueTypes: publicProcedure.query(async ({ ctx }) => {
-    const allTypes = await ctx.db.query.collectables.findMany({
-      columns: {
-        type: true,
-      },
-    });
-
-    const uniqueTypes = allTypes
-      .map((collectable) => collectable.type)
-      .filter((type, index, self) => self.indexOf(type) === index)
-      .filter((type) => type !== "" && type !== null);
-
-    return uniqueTypes as string[];
-  }),
+  getUniqueTypes: publicProcedure.query(() => getUniqueTypes()),
 
   reportLink: publicProcedure
     .input(z.object({ id: z.string() }))

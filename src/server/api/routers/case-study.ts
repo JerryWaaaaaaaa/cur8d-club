@@ -1,11 +1,17 @@
 import { z } from "zod";
+import { unstable_cache } from "next/cache";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { db } from "@/server/db";
 import { caseStudies } from "@/server/db/schema";
 import { and, arrayOverlaps, eq, sql } from "drizzle-orm";
 import { CASE_STUDY_DEFAULT_SORT, SORT_VALUES } from "@/lib/sort-options";
 import { getOrderBy } from "@/server/api/sort-order";
 import { parseSearchTerms, toLikePattern } from "@/lib/search";
+import {
+  FILTER_OPTIONS_REVALIDATE_SECONDS,
+  FILTER_OPTIONS_TAG,
+} from "@/lib/cache-tags";
 
 const CASE_STUDY_PER_PAGE = 12;
 
@@ -35,6 +41,46 @@ const FILTER_QUERY_OBJECT_WITH_PAGINATION = FILTER_QUERY_OBJECT.extend({
   cursor: z.number().default(0),
   limit: z.number().default(CASE_STUDY_PER_PAGE),
 });
+
+/**
+ * The project view's two dropdowns. Cached for the same reason as the designer
+ * ones, and against the same tag: a whole-table scan whose answer only moves
+ * when a sync runs has no business re-running on every view switch. See
+ * `collectable.ts` for why these read the `db` singleton rather than `ctx.db`.
+ */
+const getUniqueTypes = unstable_cache(
+  async () => {
+    const rows = await db.query.caseStudies.findMany({
+      columns: { types: true },
+    });
+
+    return [...new Set(rows.flatMap((row) => row.types ?? []))].filter(
+      (type) => type !== "",
+    );
+  },
+  ["case-study-unique-types"],
+  {
+    tags: [FILTER_OPTIONS_TAG],
+    revalidate: FILTER_OPTIONS_REVALIDATE_SECONDS,
+  },
+);
+
+const getUniqueIndustries = unstable_cache(
+  async () => {
+    const rows = await db.query.caseStudies.findMany({
+      columns: { industries: true },
+    });
+
+    return [...new Set(rows.flatMap((row) => row.industries ?? []))].filter(
+      (industry) => industry !== "",
+    );
+  },
+  ["case-study-unique-industries"],
+  {
+    tags: [FILTER_OPTIONS_TAG],
+    revalidate: FILTER_OPTIONS_REVALIDATE_SECONDS,
+  },
+);
 
 export const caseStudyRouter = createTRPCRouter({
   getInfiniteScroll: publicProcedure
@@ -81,23 +127,7 @@ export const caseStudyRouter = createTRPCRouter({
       };
     }),
 
-  getUniqueTypes: publicProcedure.query(async ({ ctx }) => {
-    const rows = await ctx.db.query.caseStudies.findMany({
-      columns: { types: true },
-    });
+  getUniqueTypes: publicProcedure.query(() => getUniqueTypes()),
 
-    return [...new Set(rows.flatMap((row) => row.types ?? []))].filter(
-      (type) => type !== "",
-    );
-  }),
-
-  getUniqueIndustries: publicProcedure.query(async ({ ctx }) => {
-    const rows = await ctx.db.query.caseStudies.findMany({
-      columns: { industries: true },
-    });
-
-    return [...new Set(rows.flatMap((row) => row.industries ?? []))].filter(
-      (industry) => industry !== "",
-    );
-  }),
+  getUniqueIndustries: publicProcedure.query(() => getUniqueIndustries()),
 });

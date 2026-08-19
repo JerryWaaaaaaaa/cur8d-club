@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { type api as serverApi } from "@/trpc/server";
 import { cn } from "@/lib/utils";
 import { badgeScaleForPointer, type CoverBox } from "@/lib/cursor-badge";
+import { DescriptionPanel } from "./description-panel";
 import { ImagePlaceholder } from "./image-placeholder";
 import { Highlight } from "./highlight";
 
@@ -18,8 +19,6 @@ interface CaseStudyCardProps {
   /** The active search terms, marked wherever they appear. */
   terms: string[];
 }
-
-const HOVER_ROTATION_SEEDS = [2, 3, 4, 5, -2, -3, -4, -5] as const;
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -35,8 +34,13 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
   const coverRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const [mediaError, setMediaError] = useState(false);
-  const [hoverRotation, setHoverRotation] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  // The description panel has to mirror the cover's box, and on this grid that
+  // box is whatever shape the screenshot came back as — there is no ratio to
+  // give the panel instead. It also changes once, when the image lands and the
+  // assumed ratio is replaced by the real one, which is what the observer is
+  // for rather than a single measurement on mount.
+  const [coverHeight, setCoverHeight] = useState<number | null>(null);
 
   const hasVideo =
     caseStudy.mediaType === "video" &&
@@ -66,18 +70,25 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
     return () => observer.disconnect();
   }, [hasVideo]);
 
+  useEffect(() => {
+    const cover = coverRef.current;
+    if (!cover) return;
+
+    // offsetHeight rather than the entry's contentRect: the panel is laid over
+    // the whole cover, border included, and contentRect measures inside it.
+    const observer = new ResizeObserver(() =>
+      setCoverHeight(cover.offsetHeight),
+    );
+    observer.observe(cover);
+    return () => observer.disconnect();
+  }, []);
+
   const handleMouseEnter = (event: React.MouseEvent) => {
     // Place the badge before it becomes visible, otherwise it flashes at
     // wherever the pointer left it last.
     positionBadge(event);
     setIsHovered(true);
     if (hasVideo) void videoRef.current?.play().catch(() => undefined);
-    if (prefersReducedMotion()) return;
-    const seed =
-      HOVER_ROTATION_SEEDS[
-        Math.floor(Math.random() * HOVER_ROTATION_SEEDS.length)
-      ]!;
-    setHoverRotation(seed);
   };
 
   const handleMouseLeave = () => {
@@ -87,7 +98,6 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
       video.currentTime = 0;
     }
     setIsHovered(false);
-    setHoverRotation(0);
   };
 
   // Positioned by hand rather than through state: this fires on every mouse
@@ -103,9 +113,8 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    // Layout offsets rather than getBoundingClientRect: the cover is rotated
-    // while hovered, and its bounding box is the enlarged one that encloses
-    // the tilt, not the square the pointer actually sees.
+    // Layout offsets rather than a second getBoundingClientRect: the cover sits
+    // at a fixed place inside the card, so its box follows from the card's.
     const cover = coverRef.current;
     const coverBox: CoverBox | null = cover
       ? {
@@ -123,6 +132,11 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
     badge.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`;
   };
 
+  // Bleeds to the cover's edges and keeps its own proportions, so the card's
+  // height is whatever the screenshot's shape makes it. The width/height pair
+  // is only the ratio assumed while loading — nothing records the real
+  // dimensions, and the browser swaps in the natural ratio once the file
+  // arrives.
   const media = hasVideo ? (
     <video
       ref={videoRef}
@@ -132,99 +146,89 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
       loop
       playsInline
       preload="metadata"
-      className="h-full w-full object-contain p-16"
+      className="block h-auto w-full"
       onError={() => setMediaError(true)}
     />
   ) : caseStudy.coverImageUrl && !mediaError ? (
     <Image
       src={caseStudy.coverImageUrl}
       alt={caseStudy.name}
-      fill
+      width={1600}
+      height={1000}
       unoptimized
-      className="object-contain p-16"
+      className="block h-auto w-full"
       onError={() => setMediaError(true)}
     />
   ) : (
-    <ImagePlaceholder name={caseStudy.name} />
+    // The placeholder has no shape of its own to follow, so it is given one.
+    <div className="aspect-[16/10]">
+      <ImagePlaceholder name={caseStudy.name} />
+    </div>
   );
 
   const metadata = [caseStudy.infoRole, caseStudy.infoTeam].filter(Boolean);
 
+  // Type and industry read as one row of chips now that they are off the
+  // artwork and under the title. They were told apart by their colour while
+  // they sat on the screenshot; here the order carries it, type first.
+  const chips = [...(caseStudy.types ?? []), ...(caseStudy.industries ?? [])];
+
+  // Sized to the cover and rendered inside the full-card link, so the panel can
+  // take the pointer — it needs the wheel to scroll — without swallowing the
+  // click that opens the project.
+  //
+  // The panel sizes itself to its text; the whole cover is only the ceiling,
+  // and a summary reaches it by being long rather than by the cover being
+  // short. Letting it get there is what keeps scrolling rare: a description
+  // held to a band scrolls inside it with artwork going spare above.
+  const description = caseStudy.aiSummary ? (
+    <DescriptionPanel
+      text={caseStudy.aiSummary}
+      terms={terms}
+      isHovered={isHovered}
+      maxPanelHeight="100%"
+      style={{ height: coverHeight ?? 0 }}
+    />
+  ) : null;
+
   return (
     <div
       ref={containerRef}
-      // Lifted while hovered so the tilted frame and the cursor badge, which
-      // both spill past the card's bounds, aren't painted over by the
-      // neighbouring card.
+      // Lifted while hovered so the cursor badge, which spills past the card's
+      // bounds, isn't painted over by the neighbouring card.
       className={cn("group relative block cursor-none", isHovered && "z-30")}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onMouseMove={positionBadge}
     >
+      {/* The border is the cover's own background colour, which is what draws
+          the edge on a screenshot that is itself white — without it those run
+          straight into the page. */}
       <div
         ref={coverRef}
-        className={cn(
-          "relative z-0 mb-3 aspect-square overflow-hidden bg-muted",
-          "origin-center transition-transform duration-300 ease-out",
-          "motion-reduce:transition-none",
-        )}
-        style={{
-          transform:
-            hoverRotation !== 0 ? `rotate(${hoverRotation}deg)` : undefined,
-        }}
+        className="relative z-0 mb-3 overflow-hidden border border-muted bg-muted"
       >
-        <div
-          className={cn(
-            "absolute inset-0 origin-center",
-            "transition-transform duration-300 ease-out",
-            "motion-reduce:transition-none",
-          )}
-          style={{
-            transform:
-              hoverRotation !== 0
-                ? `rotate(${-hoverRotation * 2}deg) scale(1.05)`
-                : undefined,
-          }}
-        >
-          {media}
-        </div>
-
-        {caseStudy.types && caseStudy.types.length > 0 && (
-          <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
-            {caseStudy.types.map((type) => (
-              <span
-                key={type}
-                className="flex h-[22px] items-center rounded-full bg-foreground px-2 text-xs text-background"
-              >
-                <Highlight text={toTitleCase(type)} terms={terms} />
-              </span>
-            ))}
-          </div>
-        )}
-
-        {caseStudy.industries && caseStudy.industries.length > 0 && (
-          <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex flex-wrap gap-1.5">
-            {caseStudy.industries.map((industry) => (
-              <span
-                key={industry}
-                className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700"
-              >
-                <Highlight text={toTitleCase(industry)} terms={terms} />
-              </span>
-            ))}
-          </div>
-        )}
+        {media}
       </div>
 
+      {/* The summary is missing from this column on purpose: it now lives in
+          the panel that slides up over the cover on hover. */}
       <div className="mt-4 flex flex-col gap-1.5">
         <h2 className="font-medium text-neutral-900">
           <Highlight text={caseStudy.name} terms={terms} />
         </h2>
 
-        {caseStudy.aiSummary && (
-          <p className="line-clamp-2 text-sm leading-snug text-neutral-600">
-            <Highlight text={caseStudy.aiSummary} terms={terms} />
-          </p>
+        {chips.length > 0 && (
+          <div className="mt-0.5 flex flex-wrap gap-1.5">
+            {chips.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600"
+              >
+                <Highlight text={toTitleCase(chip)} terms={terms} />
+              </span>
+            ))}
+          </div>
         )}
 
         {metadata.length > 0 && (
@@ -234,16 +238,20 @@ export function CaseStudyCard({ caseStudy, terms }: CaseStudyCardProps) {
         )}
       </div>
 
-      {/* Covers the whole card — artwork, title and description are all one
-          click target. Sits above the media so it actually receives the click. */}
-      {caseStudy.websiteUrl && (
+      {/* Covers the whole card — artwork, title and chips are all one click
+          target. Sits above the media so it actually receives the click. */}
+      {caseStudy.websiteUrl ? (
         <a
           href={caseStudy.websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="absolute inset-0 z-20 cursor-none"
           aria-label={`Visit ${caseStudy.name}`}
-        />
+        >
+          {description}
+        </a>
+      ) : (
+        description
       )}
 
       {caseStudy.websiteUrl && (

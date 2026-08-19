@@ -3,7 +3,10 @@ import { fontFamily } from "tailwindcss/defaultTheme";
 
 export default {
   darkMode: ["class"],
-  content: ["./src/**/*.tsx"],
+  // `.ts` as well as `.tsx`: hooks that hand a component its classes are plain
+  // TypeScript, and a class named only there would otherwise be dropped from
+  // the build with nothing to show for it.
+  content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       fontFamily: {

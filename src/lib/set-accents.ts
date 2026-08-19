@@ -1,21 +1,29 @@
+import { hashKey, wordmarkColors } from "@/lib/colors";
+
 /**
  * The accent colours for skill set badges, taken from the balls in the
- * wordmark (`src/components/nav/logo.tsx`) rather than invented. Six distinct
- * hues is already a categorical palette, and drawing from the mark means a new
- * category can never arrive off-brand.
+ * wordmark rather than invented, so a new category can never arrive off-brand.
  *
- * `ink` is stored per colour instead of being derived, because the palette
- * does not take one rule: red, blue, maroon and purple clear AA against white
- * text (5.7 to 11.0), but yellow and orange sit at 1.7 and 2.4 and have to be
- * set in the near-black the logo already uses.
+ * Five of the six are `accentColors`; the sixth is the dark red, which that
+ * set leaves out. The two are answering different questions — `accentColors`
+ * is for text *painted in* a colour, where the dark red is too dark to read,
+ * and this is for text sitting *on* one, where it is among the best of them at
+ * 10.4:1 under white.
+ *
+ * `ink` is spelled out per colour rather than derived through
+ * `inkForBackground`, and orange is the reason. Its luminance is 0.384, just
+ * under that function's 0.4 threshold, so it comes back white — 2.42:1, which
+ * fails AA outright. The near-black here gives 6.89:1. Spelling the pairs out
+ * also means a colour added later has to have its ink chosen deliberately
+ * rather than inheriting a threshold that is wrong for this band.
  */
 export const BALL_ACCENTS = {
-  red: { fill: "#C5271E", ink: "#FFFFFF" },
-  yellow: { fill: "#E6C507", ink: "#1E1E1E" },
-  blue: { fill: "#193E83", ink: "#FFFFFF" },
-  maroon: { fill: "#860001", ink: "#FFFFFF" },
-  purple: { fill: "#522280", ink: "#FFFFFF" },
-  orange: { fill: "#FC881A", ink: "#1E1E1E" },
+  red: { fill: wordmarkColors.red, ink: "#FFFFFF" },
+  yellow: { fill: wordmarkColors.yellow, ink: "#1E1E1E" },
+  blue: { fill: wordmarkColors.blue, ink: "#FFFFFF" },
+  maroon: { fill: wordmarkColors.darkRed, ink: "#FFFFFF" },
+  purple: { fill: wordmarkColors.purple, ink: "#FFFFFF" },
+  orange: { fill: wordmarkColors.orange, ink: "#1E1E1E" },
 } as const;
 
 export type AccentToken = keyof typeof BALL_ACCENTS;
@@ -37,20 +45,12 @@ const USE_CASE_ACCENT: Record<string, AccentToken> = {
 const ACCENT_TOKENS = Object.keys(BALL_ACCENTS) as AccentToken[];
 
 /**
- * FNV-1a, for categories that arrive after this file was written. Any stable
- * hash would do; what matters is that it is a pure function of the name, so a
- * category keeps its colour across renders, machines and deploys without
- * anyone having to store one.
+ * For categories that arrive after this file was written. What matters is that
+ * it is a pure function of the name, so a category keeps its colour across
+ * renders, machines and deploys without anyone having to store one.
  */
 function hashToken(value: string): AccentToken {
-  let hash = 0x811c9dc5;
-
-  for (let i = 0; i < value.length; i++) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-
-  return ACCENT_TOKENS[Math.abs(hash) % ACCENT_TOKENS.length]!;
+  return ACCENT_TOKENS[hashKey(value) % ACCENT_TOKENS.length]!;
 }
 
 /** The accent for a set's category, falling back to a stable hash. */
