@@ -4,12 +4,24 @@ import { MobileNav } from "@/components/nav/mobile-nav";
 import { Logo } from "@/components/nav/logo";
 import CollectableGrid from "@/components/collectable-grid";
 import CaseStudyGrid from "@/components/case-study-grid";
+import SkillSetGrid from "@/components/skill-set-grid";
 import { SiteFooter } from "@/components/site-footer";
-import { CASE_STUDY_DEFAULT_SORT, DEFAULT_SORT } from "@/lib/sort-options";
+import {
+  CASE_STUDY_DEFAULT_SORT,
+  DEFAULT_SORT,
+  SKILL_SET_DEFAULT_SORT,
+} from "@/lib/sort-options";
 
 const COLLECTABLE_PER_PAGE = 12;
 
-async function readCaseStudyOptions(read: () => Promise<string[]>) {
+/**
+ * Filter options that must not take the page down with them.
+ *
+ * A view whose tables a deploy has not had its schema applied to yet comes back
+ * empty rather than 500ing the whole page — which is why the case study reads
+ * were wrapped, and the skill set read needs exactly the same protection.
+ */
+async function readFilterOptions(read: () => Promise<string[]>) {
   try {
     return await read();
   } catch (error) {
@@ -25,6 +37,7 @@ interface HomeProps {
 export default async function Home({ searchParams }: HomeProps) {
   const { view } = await searchParams;
   const isCaseStudyView = view === "case-study";
+  const isSkillView = view === "skill";
 
   const [allTags, allTypes] = await Promise.all([
     api.collectable.getUniqueTags(),
@@ -45,9 +58,14 @@ export default async function Home({ searchParams }: HomeProps) {
   const [caseStudyTypes, caseStudyIndustries] = await Promise.all([
     // Kept non-fatal so the designer view still stands up if the case study
     // table is absent — the filters come back empty rather than the page 500ing.
-    readCaseStudyOptions(() => api.caseStudy.getUniqueTypes()),
-    readCaseStudyOptions(() => api.caseStudy.getUniqueIndustries()),
+    readFilterOptions(() => api.caseStudy.getUniqueTypes()),
+    readFilterOptions(() => api.caseStudy.getUniqueIndustries()),
   ]);
+
+  // Ungated for the same reason, and wrapped for the same one.
+  const skillSetUseCases = await readFilterOptions(() =>
+    api.skillSet.getUniqueUseCases(),
+  );
 
   // One container for the whole page, split into a rail and a column: the rail
   // holds the two pieces of furniture that are neither control nor card — the
@@ -84,6 +102,7 @@ export default async function Home({ searchParams }: HomeProps) {
             typeOptions={allTypes}
             caseStudyTypeOptions={caseStudyTypes}
             caseStudyIndustryOptions={caseStudyIndustries}
+            skillSetUseCaseOptions={skillSetUseCases}
           />
 
           <main className="pb-72 pt-20 md:pb-28 md:pt-8">{grid}</main>
@@ -97,10 +116,25 @@ export default async function Home({ searchParams }: HomeProps) {
           typeOptions={allTypes}
           caseStudyTypeOptions={caseStudyTypes}
           caseStudyIndustryOptions={caseStudyIndustries}
+          skillSetUseCaseOptions={skillSetUseCases}
         />
       </div>
     </>
   );
+
+  if (isSkillView) {
+    // Unfiltered and unpaginated: there are twenty sets, and the whole list
+    // with its members costs two queries.
+    const initialSkillSets = await api.skillSet.getAll({
+      sort: SKILL_SET_DEFAULT_SORT,
+    });
+
+    return (
+      <HydrateClient>
+        {shell(<SkillSetGrid initialData={initialSkillSets} />)}
+      </HydrateClient>
+    );
+  }
 
   if (isCaseStudyView) {
     const initialCaseStudies = await api.caseStudy.getInfiniteScroll({

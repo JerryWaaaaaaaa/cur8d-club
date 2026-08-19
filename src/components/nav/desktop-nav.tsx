@@ -7,8 +7,10 @@ import { HorizontalFilter } from "./horizontal-filter";
 import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useCaseStudyFilterParams } from "@/hooks/params-parsers/use-case-study-filter-params";
+import { useSkillSetFilterParams } from "@/hooks/params-parsers/use-skill-set-filter-params";
 import { ViewToggle } from "./view-toggle";
 import { CaseStudyFilter } from "./case-study-filter";
+import { SkillSetFilter } from "./skill-set-filter";
 import { HeaderSearch } from "./header-search";
 
 interface DesktopNavProps {
@@ -16,6 +18,7 @@ interface DesktopNavProps {
   tagOptions: string[];
   caseStudyTypeOptions: string[];
   caseStudyIndustryOptions: string[];
+  skillSetUseCaseOptions: string[];
 }
 
 export function DesktopNav({
@@ -23,10 +26,12 @@ export function DesktopNav({
   tagOptions,
   caseStudyTypeOptions,
   caseStudyIndustryOptions,
+  skillSetUseCaseOptions,
 }: DesktopNavProps) {
   const [{ view }] = useViewParams();
   const [, setCollectableParams] = useCollectableFilterParams();
   const [, setCaseStudyParams] = useCaseStudyFilterParams();
+  const [, setSkillSetParams] = useSkillSetFilterParams();
 
   // Search and the filters share the row, so only one of them is up at a time.
   const [searchOpen, setSearchOpen] = useState(false);
@@ -45,12 +50,14 @@ export function DesktopNav({
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
 
-    if (view === "case-study") {
+    if (view === "skill") {
+      void setSkillSetParams({ q: null }, { shallow: true });
+    } else if (view === "case-study") {
       void setCaseStudyParams({ q: null }, { shallow: true });
     } else {
       void setCollectableParams({ q: null }, { shallow: true });
     }
-  }, [view, setCaseStudyParams, setCollectableParams]);
+  }, [view, setSkillSetParams, setCaseStudyParams, setCollectableParams]);
 
   // Held in a ref so the listener below is bound once per open rather than
   // torn down and rebound on every keystroke's re-render.
@@ -79,15 +86,21 @@ export function DesktopNav({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [searchOpen]);
 
-  const filters =
-    view === "case-study" ? (
+  let filters;
+  if (view === "skill") {
+    filters = <SkillSetFilter useCaseOptions={skillSetUseCaseOptions} />;
+  } else if (view === "case-study") {
+    filters = (
       <CaseStudyFilter
         typeOptions={caseStudyTypeOptions}
         industryOptions={caseStudyIndustryOptions}
       />
-    ) : (
+    );
+  } else {
+    filters = (
       <HorizontalFilter tagOptions={tagOptions} typeOptions={typeOptions} />
     );
+  }
 
   return (
     <header

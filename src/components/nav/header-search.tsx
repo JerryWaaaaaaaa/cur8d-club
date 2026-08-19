@@ -6,6 +6,7 @@ import { SearchInput } from "./search-input";
 import { useDebouncedSearch } from "@/hooks/use-debounced-search";
 import { useCollectableFilterParams } from "@/hooks/params-parsers/use-collectable-filter-params";
 import { useCaseStudyFilterParams } from "@/hooks/params-parsers/use-case-study-filter-params";
+import { useSkillSetFilterParams } from "@/hooks/params-parsers/use-skill-set-filter-params";
 import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 
 /**
@@ -42,7 +43,7 @@ function SearchTrigger({ onOpen }: { onOpen: () => void }) {
 }
 
 /**
- * The two views keep their query in different params, so each gets its own
+ * Each view keeps its query in a different param, so each gets its own
  * field. Both hand `onClose` straight through: clearing the query on the way
  * out belongs to the header, which has three ways in — this button, Escape,
  * and a click on the page behind the row.
@@ -88,10 +89,34 @@ function ProjectSearchField({ onClose }: { onClose: () => void }) {
   );
 }
 
+function SkillSetSearchField({ onClose }: { onClose: () => void }) {
+  const [params, setParams] = useSkillSetFilterParams();
+
+  const [searchDraft, setSearchDraft] = useDebouncedSearch(
+    params.q,
+    (q) => void setParams({ q }, { shallow: true }),
+  );
+
+  return (
+    <SearchInput
+      value={searchDraft}
+      onValueChange={setSearchDraft}
+      // Naming skills as well as sets, because the query reaches inside them:
+      // "expo" finds the four mobile sets, only one of which says so.
+      placeholder="Search sets, skills, repos"
+      autoFocus
+      onClose={onClose}
+      className="w-full"
+    />
+  );
+}
+
 export function HeaderSearch({ open, onOpen, onClose }: HeaderSearchProps) {
   const [{ view }] = useViewParams();
 
   if (!open) return <SearchTrigger onOpen={onOpen} />;
+
+  if (view === "skill") return <SkillSetSearchField onClose={onClose} />;
 
   return view === "case-study" ? (
     <ProjectSearchField onClose={onClose} />

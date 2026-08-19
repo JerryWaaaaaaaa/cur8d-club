@@ -1,5 +1,6 @@
 import { caseStudyRouter } from "@/server/api/routers/case-study";
 import { collectableRouter } from "@/server/api/routers/collectable";
+import { skillSetRouter } from "@/server/api/routers/skill-set";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
@@ -10,6 +11,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 export const appRouter = createTRPCRouter({
   collectable: collectableRouter,
   caseStudy: caseStudyRouter,
+  skillSet: skillSetRouter,
 });
 
 // export type definition of API

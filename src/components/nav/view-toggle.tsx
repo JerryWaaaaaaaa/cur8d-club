@@ -12,6 +12,7 @@ import {
 const OPTIONS: { value: View; label: string }[] = [
   { value: "designer", label: "Designers" },
   { value: "case-study", label: "Projects" },
+  { value: "skill", label: "Skills" },
 ];
 
 interface ViewToggleProps {

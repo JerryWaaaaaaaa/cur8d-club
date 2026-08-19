@@ -8,19 +8,40 @@
  */
 
 /**
+ * The wordmark's balls, by name.
+ *
+ * Named rather than positional because two different things draw from this now
+ * and they need different subsets: `accentColors` below wants the five that
+ * work as *text*, and the skill set badges want a sixth as a *background*.
+ * Reaching for a colour by index would have meant the two agreeing about the
+ * order of an array forever.
+ */
+export const wordmarkColors = {
+  red: "#C5271E", // the two `c` balls
+  yellow: "#E6C507", // the two `u` balls
+  blue: "#193E83", // the `r` ball
+  purple: "#522280", // the `l` ball
+  orange: "#FC881A", // the `b` ball
+  darkRed: "#860001",
+  nearBlack: "#0D0D0D",
+  cream: "#F1E9C2",
+} as const;
+
+/**
  * The wordmark's colours, minus the three that make poor backgrounds for text:
  * near-black `#0D0D0D`, dark red `#860001`, and the cream `#F1E9C2`, which is
  * too close to the page to register as a highlight.
  *
  * `src/components/nav/logo.tsx` paints its balls from these, so the set and the
- * mark cannot drift apart.
+ * mark cannot drift apart. Composed from `wordmarkColors` rather than repeating
+ * the hexes, but the values and their order are exactly as they were.
  */
 export const accentColors = [
-  "#C5271E", // red — the two `c` balls
-  "#E6C507", // yellow — the two `u` balls
-  "#193E83", // blue — the `r` ball
-  "#522280", // purple — the `l` ball
-  "#FC881A", // orange — the `b` ball
+  wordmarkColors.red,
+  wordmarkColors.yellow,
+  wordmarkColors.blue,
+  wordmarkColors.purple,
+  wordmarkColors.orange,
 ] as const;
 
 /** A colour from `accentColors`, chosen fresh each call. */
@@ -46,6 +67,21 @@ export function randomAccentColor(): string {
  * xor-shifts are what break that pattern.
  */
 export function accentForKey(key: string): string {
+  return accentColors[hashKey(key) % accentColors.length]!;
+}
+
+/**
+ * FNV-1a with a finalizer, for picking a stable bucket from a string.
+ *
+ * Exported because the skill set badges hash into a palette of their own and
+ * had grown a second copy of this. The finalizer is the part worth sharing:
+ * with a handful of buckets, plain FNV-1a's low bits send near-identical
+ * strings to neighbouring ones, and so does any multiplier congruent to 1 mod
+ * the bucket count — 31 included, which is why an earlier `hash * 31 + c`
+ * painted two thirds of a searched grid in two colours. The xor-shifts break
+ * that up.
+ */
+export function hashKey(key: string): number {
   let hash = 0x811c9dc5;
   for (let i = 0; i < key.length; i++) {
     hash ^= key.charCodeAt(i);
@@ -56,7 +92,7 @@ export function accentForKey(key: string): string {
   hash = Math.imul(hash, 0x2545f491);
   hash ^= hash >>> 13;
 
-  return accentColors[Math.abs(hash) % accentColors.length]!;
+  return Math.abs(hash);
 }
 
 // Expanded Bauhaus and Swiss style inspired color palette

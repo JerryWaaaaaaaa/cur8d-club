@@ -10,6 +10,7 @@
     "db:studio": "drizzle-kit studio",
     "dev": "next dev --turbo",
     "ingest:video": "tsx scripts/ingest-video.ts",
+    "import:skill-sets": "tsx scripts/import-skill-sets.ts",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "lint": "next lint",

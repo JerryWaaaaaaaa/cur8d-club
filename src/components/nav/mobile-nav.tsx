@@ -16,6 +16,7 @@ import { useViewParams } from "@/hooks/params-parsers/use-view-params";
 import { ViewToggle } from "./view-toggle";
 import { Logo } from "./logo";
 import { MobileCaseStudyFilter } from "./mobile-case-study-filter";
+import { MobileSkillSetFilter } from "./mobile-skill-set-filter";
 import {
   DEFAULT_SORT,
   SORT_OPTIONS,
@@ -31,6 +32,7 @@ interface MobileNavProps {
   typeOptions: string[];
   caseStudyTypeOptions: string[];
   caseStudyIndustryOptions: string[];
+  skillSetUseCaseOptions: string[];
 }
 
 export function MobileNav({
@@ -38,6 +40,7 @@ export function MobileNav({
   typeOptions,
   caseStudyTypeOptions,
   caseStudyIndustryOptions,
+  skillSetUseCaseOptions,
 }: MobileNavProps) {
   const [{ view }] = useViewParams();
   const [params, setParams] = useCollectableFilterParams();
@@ -152,7 +155,9 @@ export function MobileNav({
           ref={sheetContentRef}
           className="flex w-full flex-col gap-2.5 pb-5"
         >
-          {view === "case-study" ? (
+          {view === "skill" ? (
+            <MobileSkillSetFilter useCaseOptions={skillSetUseCaseOptions} />
+          ) : view === "case-study" ? (
             <MobileCaseStudyFilter
               typeOptions={caseStudyTypeOptions}
               industryOptions={caseStudyIndustryOptions}

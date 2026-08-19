@@ -1,0 +1,307 @@
+﻿Skillset Name,Type,Skill Count,What It's For,Skills (Domain),Skills (Universal),Included Skills — GitHub Links,Source Repos,Install (all skills)
+Brand Identity Foundation,Brand Design,9,"Build a brand from scratch: palette, type scale, logo direction, voice, and a theme you can hand to engineering.","brandkit, brand-guidelines, theme-factory, high-end-visual-design, typeset, colorize, canvas-design","grill-me, find-skills","brandkit — https://github.com/leonxlnx/taste-skill
+brand-guidelines — https://github.com/anthropics/skills
+theme-factory — https://github.com/anthropics/skills
+high-end-visual-design — https://github.com/leonxlnx/taste-skill
+typeset — https://github.com/pbakaus/impeccable
+colorize — https://github.com/pbakaus/impeccable
+canvas-design — https://github.com/anthropics/skills
+grill-me — https://github.com/mattpocock/skills
+find-skills — https://github.com/vercel-labs/skills","leonxlnx/taste-skill, anthropics/skills, pbakaus/impeccable, mattpocock/skills, vercel-labs/skills","npx skills add https://github.com/leonxlnx/taste-skill --skill brandkit
+npx skills add https://github.com/anthropics/skills --skill brand-guidelines
+npx skills add https://github.com/anthropics/skills --skill theme-factory
+npx skills add https://github.com/leonxlnx/taste-skill --skill high-end-visual-design
+npx skills add https://github.com/pbakaus/impeccable --skill typeset
+npx skills add https://github.com/pbakaus/impeccable --skill colorize
+npx skills add https://github.com/anthropics/skills --skill canvas-design
+npx skills add https://github.com/mattpocock/skills --skill grill-me
+npx skills add https://github.com/vercel-labs/skills --skill find-skills"
+Brand System & Tokens,Brand Design,8,Turn brand decisions into a documented token system and keep an existing codebase from drifting away from it.,"extract-design-system, theme-factory, brand-guidelines, normalize, extract, web-design-guidelines","writing-plans, find-skills","extract-design-system — https://github.com/arvindrk/extract-design-system
+theme-factory — https://github.com/anthropics/skills
+brand-guidelines — https://github.com/anthropics/skills
+normalize — https://github.com/pbakaus/impeccable
+extract — https://github.com/pbakaus/impeccable
+web-design-guidelines — https://github.com/vercel-labs/agent-skills
+writing-plans — https://github.com/obra/superpowers
+find-skills — https://github.com/vercel-labs/skills","arvindrk/extract-design-system, anthropics/skills, pbakaus/impeccable, vercel-labs/agent-skills, obra/superpowers, vercel-labs/skills","npx skills add https://github.com/arvindrk/extract-design-system --skill extract-design-system
+npx skills add https://github.com/anthropics/skills --skill theme-factory
+npx skills add https://github.com/anthropics/skills --skill brand-guidelines
+npx skills add https://github.com/pbakaus/impeccable --skill normalize
+npx skills add https://github.com/pbakaus/impeccable --skill extract
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/obra/superpowers --skill writing-plans
+npx skills add https://github.com/vercel-labs/skills --skill find-skills"
+Brand Campaign & Visual Assets,Brand Design,8,"Produce campaign visuals, generative brand imagery, copy, and the deck to present it all.","algorithmic-art, imagegen-frontend-web, canvas-design, brandkit, copywriting, pptx, high-end-visual-design",grill-me,"algorithmic-art — https://github.com/anthropics/skills
+imagegen-frontend-web — https://github.com/leonxlnx/taste-skill
+canvas-design — https://github.com/anthropics/skills
+brandkit — https://github.com/leonxlnx/taste-skill
+copywriting — https://github.com/coreyhaines31/marketingskills
+pptx — https://github.com/anthropics/skills
+high-end-visual-design — https://github.com/leonxlnx/taste-skill
+grill-me — https://github.com/mattpocock/skills","anthropics/skills, leonxlnx/taste-skill, coreyhaines31/marketingskills, mattpocock/skills","npx skills add https://github.com/anthropics/skills --skill algorithmic-art
+npx skills add https://github.com/leonxlnx/taste-skill --skill imagegen-frontend-web
+npx skills add https://github.com/anthropics/skills --skill canvas-design
+npx skills add https://github.com/leonxlnx/taste-skill --skill brandkit
+npx skills add https://github.com/coreyhaines31/marketingskills --skill copywriting
+npx skills add https://github.com/anthropics/skills --skill pptx
+npx skills add https://github.com/leonxlnx/taste-skill --skill high-end-visual-design
+npx skills add https://github.com/mattpocock/skills --skill grill-me"
+Rebrand & Brand Refresh,Brand Design,8,"Audit an existing brand, critique what's broken, and redesign against the new direction.","redesign-existing-projects, critique, audit, brandkit, brand-guidelines, extract-design-system","zoom-out, grill-me","redesign-existing-projects — https://github.com/leonxlnx/taste-skill
+critique — https://github.com/pbakaus/impeccable
+audit — https://github.com/pbakaus/impeccable
+brandkit — https://github.com/leonxlnx/taste-skill
+brand-guidelines — https://github.com/anthropics/skills
+extract-design-system — https://github.com/arvindrk/extract-design-system
+zoom-out — https://github.com/mattpocock/skills
+grill-me — https://github.com/mattpocock/skills","leonxlnx/taste-skill, pbakaus/impeccable, anthropics/skills, arvindrk/extract-design-system, mattpocock/skills","npx skills add https://github.com/leonxlnx/taste-skill --skill redesign-existing-projects
+npx skills add https://github.com/pbakaus/impeccable --skill critique
+npx skills add https://github.com/pbakaus/impeccable --skill audit
+npx skills add https://github.com/leonxlnx/taste-skill --skill brandkit
+npx skills add https://github.com/anthropics/skills --skill brand-guidelines
+npx skills add https://github.com/arvindrk/extract-design-system --skill extract-design-system
+npx skills add https://github.com/mattpocock/skills --skill zoom-out
+npx skills add https://github.com/mattpocock/skills --skill grill-me"
+Marketing Website Build,Website Design,9,"Ship a marketing site that looks good and converts — design guidelines, copy, CRO, SEO, and deploy.","web-design-guidelines, frontend-design, design-taste-frontend, copywriting, page-cro, seo-audit, deploy-to-vercel","grill-me, find-skills","web-design-guidelines — https://github.com/vercel-labs/agent-skills
+frontend-design — https://github.com/anthropics/skills
+design-taste-frontend — https://github.com/leonxlnx/taste-skill
+copywriting — https://github.com/coreyhaines31/marketingskills
+page-cro — https://github.com/coreyhaines31/marketingskills
+seo-audit — https://github.com/coreyhaines31/marketingskills
+deploy-to-vercel — https://github.com/vercel-labs/agent-skills
+grill-me — https://github.com/mattpocock/skills
+find-skills — https://github.com/vercel-labs/skills","vercel-labs/agent-skills, anthropics/skills, leonxlnx/taste-skill, coreyhaines31/marketingskills, mattpocock/skills, vercel-labs/skills","npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/leonxlnx/taste-skill --skill design-taste-frontend
+npx skills add https://github.com/coreyhaines31/marketingskills --skill copywriting
+npx skills add https://github.com/coreyhaines31/marketingskills --skill page-cro
+npx skills add https://github.com/coreyhaines31/marketingskills --skill seo-audit
+npx skills add https://github.com/vercel-labs/agent-skills --skill deploy-to-vercel
+npx skills add https://github.com/mattpocock/skills --skill grill-me
+npx skills add https://github.com/vercel-labs/skills --skill find-skills"
+Responsive & Accessible Web,Website Design,8,"Make it work on every breakpoint and pass accessibility, then actually verify it in a browser.","web-design-guidelines, adapt, harden, audit, frontend-design, webapp-testing","agent-browser, verification-before-completion","web-design-guidelines — https://github.com/vercel-labs/agent-skills
+adapt — https://github.com/pbakaus/impeccable
+harden — https://github.com/pbakaus/impeccable
+audit — https://github.com/pbakaus/impeccable
+frontend-design — https://github.com/anthropics/skills
+webapp-testing — https://github.com/anthropics/skills
+agent-browser — https://github.com/vercel-labs/agent-browser
+verification-before-completion — https://github.com/obra/superpowers","vercel-labs/agent-skills, pbakaus/impeccable, anthropics/skills, vercel-labs/agent-browser, obra/superpowers","npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/pbakaus/impeccable --skill adapt
+npx skills add https://github.com/pbakaus/impeccable --skill harden
+npx skills add https://github.com/pbakaus/impeccable --skill audit
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/anthropics/skills --skill webapp-testing
+npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
+npx skills add https://github.com/obra/superpowers --skill verification-before-completion"
+Web Motion & Interaction,Website Design,8,"Add motion with craft — timing, easing, choreography, micro-interactions — not just fade-ins.","emil-design-eng, animate, delight, overdrive, web-design-guidelines, frontend-design","agent-browser, grill-me","emil-design-eng — https://github.com/emilkowalski/skills
+animate — https://github.com/pbakaus/impeccable
+delight — https://github.com/pbakaus/impeccable
+overdrive — https://github.com/pbakaus/impeccable
+web-design-guidelines — https://github.com/vercel-labs/agent-skills
+frontend-design — https://github.com/anthropics/skills
+agent-browser — https://github.com/vercel-labs/agent-browser
+grill-me — https://github.com/mattpocock/skills","emilkowalski/skills, pbakaus/impeccable, vercel-labs/agent-skills, anthropics/skills, vercel-labs/agent-browser, mattpocock/skills","npx skills add https://github.com/emilkowalski/skills --skill emil-design-eng
+npx skills add https://github.com/pbakaus/impeccable --skill animate
+npx skills add https://github.com/pbakaus/impeccable --skill delight
+npx skills add https://github.com/pbakaus/impeccable --skill overdrive
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
+npx skills add https://github.com/mattpocock/skills --skill grill-me"
+Editorial & High-End Web,Website Design,8,"Premium editorial work: typography, layout, restraint, and a final polish pass.","high-end-visual-design, typeset, layout, minimalist-ui, polish, web-design-guidelines, content-strategy",find-skills,"high-end-visual-design — https://github.com/leonxlnx/taste-skill
+typeset — https://github.com/pbakaus/impeccable
+layout — https://github.com/pbakaus/impeccable
+minimalist-ui — https://github.com/leonxlnx/taste-skill
+polish — https://github.com/pbakaus/impeccable
+web-design-guidelines — https://github.com/vercel-labs/agent-skills
+content-strategy — https://github.com/coreyhaines31/marketingskills
+find-skills — https://github.com/vercel-labs/skills","leonxlnx/taste-skill, pbakaus/impeccable, vercel-labs/agent-skills, coreyhaines31/marketingskills, vercel-labs/skills","npx skills add https://github.com/leonxlnx/taste-skill --skill high-end-visual-design
+npx skills add https://github.com/pbakaus/impeccable --skill typeset
+npx skills add https://github.com/pbakaus/impeccable --skill layout
+npx skills add https://github.com/leonxlnx/taste-skill --skill minimalist-ui
+npx skills add https://github.com/pbakaus/impeccable --skill polish
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/coreyhaines31/marketingskills --skill content-strategy
+npx skills add https://github.com/vercel-labs/skills --skill find-skills"
+Product UX Foundations,Product Design,8,"Get the UX right before pixels — hierarchy, onboarding, flows, and a written spec.","ui-ux-pro-max, frontend-design, web-design-guidelines, clarify, onboard","to-spec, brainstorming, grill-me","ui-ux-pro-max — https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+frontend-design — https://github.com/anthropics/skills
+web-design-guidelines — https://github.com/vercel-labs/agent-skills
+clarify — https://github.com/pbakaus/impeccable
+onboard — https://github.com/pbakaus/impeccable
+to-spec — https://github.com/mattpocock/skills
+brainstorming — https://github.com/obra/superpowers
+grill-me — https://github.com/mattpocock/skills","nextlevelbuilder/ui-ux-pro-max-skill, anthropics/skills, vercel-labs/agent-skills, pbakaus/impeccable, mattpocock/skills, obra/superpowers","npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/pbakaus/impeccable --skill clarify
+npx skills add https://github.com/pbakaus/impeccable --skill onboard
+npx skills add https://github.com/mattpocock/skills --skill to-spec
+npx skills add https://github.com/obra/superpowers --skill brainstorming
+npx skills add https://github.com/mattpocock/skills --skill grill-me"
+Microinteractions & Delight,Product Design,8,"The details that make a product feel alive: hover states, transitions, feedback, and haptic-grade polish.","delight, animate, emil-design-eng, overdrive, ui-ux-pro-max, frontend-design","prototype, agent-browser","delight — https://github.com/pbakaus/impeccable
+animate — https://github.com/pbakaus/impeccable
+emil-design-eng — https://github.com/emilkowalski/skills
+overdrive — https://github.com/pbakaus/impeccable
+ui-ux-pro-max — https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+frontend-design — https://github.com/anthropics/skills
+prototype — https://github.com/mattpocock/skills
+agent-browser — https://github.com/vercel-labs/agent-browser","pbakaus/impeccable, emilkowalski/skills, nextlevelbuilder/ui-ux-pro-max-skill, anthropics/skills, mattpocock/skills, vercel-labs/agent-browser","npx skills add https://github.com/pbakaus/impeccable --skill delight
+npx skills add https://github.com/pbakaus/impeccable --skill animate
+npx skills add https://github.com/emilkowalski/skills --skill emil-design-eng
+npx skills add https://github.com/pbakaus/impeccable --skill overdrive
+npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/mattpocock/skills --skill prototype
+npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser"
+Product Design System,Product Design,8,"Extract, document, and enforce a component system so new work stops reinventing patterns.","extract-design-system, vercel-composition-patterns, normalize, theme-factory, web-design-guidelines, extract","writing-plans, find-skills","extract-design-system — https://github.com/arvindrk/extract-design-system
+vercel-composition-patterns — https://github.com/vercel-labs/agent-skills
+normalize — https://github.com/pbakaus/impeccable
+theme-factory — https://github.com/anthropics/skills
+web-design-guidelines — https://github.com/vercel-labs/agent-skills
+extract — https://github.com/pbakaus/impeccable
+writing-plans — https://github.com/obra/superpowers
+find-skills — https://github.com/vercel-labs/skills","arvindrk/extract-design-system, vercel-labs/agent-skills, pbakaus/impeccable, anthropics/skills, obra/superpowers, vercel-labs/skills","npx skills add https://github.com/arvindrk/extract-design-system --skill extract-design-system
+npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-composition-patterns
+npx skills add https://github.com/pbakaus/impeccable --skill normalize
+npx skills add https://github.com/anthropics/skills --skill theme-factory
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/pbakaus/impeccable --skill extract
+npx skills add https://github.com/obra/superpowers --skill writing-plans
+npx skills add https://github.com/vercel-labs/skills --skill find-skills"
+Product Design Critique & QA,Product Design,8,"Review pass on existing product UI — critique, audit, polish, then verify against the real app.","critique, audit, polish, ui-ux-pro-max, webapp-testing","verification-before-completion, zoom-out, grill-me","critique — https://github.com/pbakaus/impeccable
+audit — https://github.com/pbakaus/impeccable
+polish — https://github.com/pbakaus/impeccable
+ui-ux-pro-max — https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+webapp-testing — https://github.com/anthropics/skills
+verification-before-completion — https://github.com/obra/superpowers
+zoom-out — https://github.com/mattpocock/skills
+grill-me — https://github.com/mattpocock/skills","pbakaus/impeccable, nextlevelbuilder/ui-ux-pro-max-skill, anthropics/skills, obra/superpowers, mattpocock/skills","npx skills add https://github.com/pbakaus/impeccable --skill critique
+npx skills add https://github.com/pbakaus/impeccable --skill audit
+npx skills add https://github.com/pbakaus/impeccable --skill polish
+npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+npx skills add https://github.com/anthropics/skills --skill webapp-testing
+npx skills add https://github.com/obra/superpowers --skill verification-before-completion
+npx skills add https://github.com/mattpocock/skills --skill zoom-out
+npx skills add https://github.com/mattpocock/skills --skill grill-me"
+Mobile App Design Foundations,Mobile Design,8,"Design for real devices: safe areas, gestures, native conventions, and platform-appropriate layout.","sleek-design-mobile-apps, building-native-ui, ui-ux-pro-max, adapt, imagegen-frontend-mobile, frontend-design","grill-me, find-skills","sleek-design-mobile-apps — https://github.com/sleekdotdesign/agent-skills
+building-native-ui — https://github.com/expo/skills
+ui-ux-pro-max — https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+adapt — https://github.com/pbakaus/impeccable
+imagegen-frontend-mobile — https://github.com/leonxlnx/taste-skill
+frontend-design — https://github.com/anthropics/skills
+grill-me — https://github.com/mattpocock/skills
+find-skills — https://github.com/vercel-labs/skills","sleekdotdesign/agent-skills, expo/skills, nextlevelbuilder/ui-ux-pro-max-skill, pbakaus/impeccable, leonxlnx/taste-skill, anthropics/skills, mattpocock/skills, vercel-labs/skills","npx skills add https://github.com/sleekdotdesign/agent-skills --skill sleek-design-mobile-apps
+npx skills add https://github.com/expo/skills --skill building-native-ui
+npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+npx skills add https://github.com/pbakaus/impeccable --skill adapt
+npx skills add https://github.com/leonxlnx/taste-skill --skill imagegen-frontend-mobile
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/mattpocock/skills --skill grill-me
+npx skills add https://github.com/vercel-labs/skills --skill find-skills"
+React Native / Expo Build,Mobile Design,8,"Build the app — native UI primitives, styling, data fetching, and a plan-then-execute workflow.","vercel-react-native-skills, building-native-ui, expo-tailwind-setup, native-data-fetching, sleek-design-mobile-apps","writing-plans, executing-plans, systematic-debugging","vercel-react-native-skills — https://github.com/vercel-labs/agent-skills
+building-native-ui — https://github.com/expo/skills
+expo-tailwind-setup — https://github.com/expo/skills
+native-data-fetching — https://github.com/expo/skills
+sleek-design-mobile-apps — https://github.com/sleekdotdesign/agent-skills
+writing-plans — https://github.com/obra/superpowers
+executing-plans — https://github.com/obra/superpowers
+systematic-debugging — https://github.com/obra/superpowers","vercel-labs/agent-skills, expo/skills, sleekdotdesign/agent-skills, obra/superpowers","npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-native-skills
+npx skills add https://github.com/expo/skills --skill building-native-ui
+npx skills add https://github.com/expo/skills --skill expo-tailwind-setup
+npx skills add https://github.com/expo/skills --skill native-data-fetching
+npx skills add https://github.com/sleekdotdesign/agent-skills --skill sleek-design-mobile-apps
+npx skills add https://github.com/obra/superpowers --skill writing-plans
+npx skills add https://github.com/obra/superpowers --skill executing-plans
+npx skills add https://github.com/obra/superpowers --skill systematic-debugging"
+Mobile Motion & Gestures,Mobile Design,8,"Gesture handling, Reanimated patterns, and motion that feels native rather than web-ported.","sleek-design-mobile-apps, vercel-react-native-skills, animate, delight, emil-design-eng, building-native-ui","prototype, grill-me","sleek-design-mobile-apps — https://github.com/sleekdotdesign/agent-skills
+vercel-react-native-skills — https://github.com/vercel-labs/agent-skills
+animate — https://github.com/pbakaus/impeccable
+delight — https://github.com/pbakaus/impeccable
+emil-design-eng — https://github.com/emilkowalski/skills
+building-native-ui — https://github.com/expo/skills
+prototype — https://github.com/mattpocock/skills
+grill-me — https://github.com/mattpocock/skills","sleekdotdesign/agent-skills, vercel-labs/agent-skills, pbakaus/impeccable, emilkowalski/skills, expo/skills, mattpocock/skills","npx skills add https://github.com/sleekdotdesign/agent-skills --skill sleek-design-mobile-apps
+npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-native-skills
+npx skills add https://github.com/pbakaus/impeccable --skill animate
+npx skills add https://github.com/pbakaus/impeccable --skill delight
+npx skills add https://github.com/emilkowalski/skills --skill emil-design-eng
+npx skills add https://github.com/expo/skills --skill building-native-ui
+npx skills add https://github.com/mattpocock/skills --skill prototype
+npx skills add https://github.com/mattpocock/skills --skill grill-me"
+Mobile Polish & Ship,Mobile Design,8,"Pre-release pass: polish, harden, QA, SDK compatibility, and verification before you submit.","polish, harden, critique, upgrading-expo, sleek-design-mobile-apps, webapp-testing","qa, verification-before-completion","polish — https://github.com/pbakaus/impeccable
+harden — https://github.com/pbakaus/impeccable
+critique — https://github.com/pbakaus/impeccable
+upgrading-expo — https://github.com/expo/skills
+sleek-design-mobile-apps — https://github.com/sleekdotdesign/agent-skills
+webapp-testing — https://github.com/anthropics/skills
+qa — https://github.com/mattpocock/skills
+verification-before-completion — https://github.com/obra/superpowers","pbakaus/impeccable, expo/skills, sleekdotdesign/agent-skills, anthropics/skills, mattpocock/skills, obra/superpowers","npx skills add https://github.com/pbakaus/impeccable --skill polish
+npx skills add https://github.com/pbakaus/impeccable --skill harden
+npx skills add https://github.com/pbakaus/impeccable --skill critique
+npx skills add https://github.com/expo/skills --skill upgrading-expo
+npx skills add https://github.com/sleekdotdesign/agent-skills --skill sleek-design-mobile-apps
+npx skills add https://github.com/anthropics/skills --skill webapp-testing
+npx skills add https://github.com/mattpocock/skills --skill qa
+npx skills add https://github.com/obra/superpowers --skill verification-before-completion"
+Design Engineering Core,Design Engineering,8,The everyday design-engineer stack — craft sensibility plus idiomatic React and interface guidelines.,"emil-design-eng, frontend-design, web-design-guidelines, vercel-composition-patterns, vercel-react-best-practices, polish","grill-with-docs, grill-me","emil-design-eng — https://github.com/emilkowalski/skills
+frontend-design — https://github.com/anthropics/skills
+web-design-guidelines — https://github.com/vercel-labs/agent-skills
+vercel-composition-patterns — https://github.com/vercel-labs/agent-skills
+vercel-react-best-practices — https://github.com/vercel-labs/agent-skills
+polish — https://github.com/pbakaus/impeccable
+grill-with-docs — https://github.com/mattpocock/skills
+grill-me — https://github.com/mattpocock/skills","emilkowalski/skills, anthropics/skills, vercel-labs/agent-skills, pbakaus/impeccable, mattpocock/skills","npx skills add https://github.com/emilkowalski/skills --skill emil-design-eng
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-composition-patterns
+npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
+npx skills add https://github.com/pbakaus/impeccable --skill polish
+npx skills add https://github.com/mattpocock/skills --skill grill-with-docs
+npx skills add https://github.com/mattpocock/skills --skill grill-me"
+Design-to-Code Translation,Design Engineering,8,"Turn a mock, screenshot, or design system into faithful code that matches the spec.","image-to-code, extract-design-system, frontend-design, web-design-guidelines, design-taste-frontend, normalize","agent-browser, find-skills","image-to-code — https://github.com/leonxlnx/taste-skill
+extract-design-system — https://github.com/arvindrk/extract-design-system
+frontend-design — https://github.com/anthropics/skills
+web-design-guidelines — https://github.com/vercel-labs/agent-skills
+design-taste-frontend — https://github.com/leonxlnx/taste-skill
+normalize — https://github.com/pbakaus/impeccable
+agent-browser — https://github.com/vercel-labs/agent-browser
+find-skills — https://github.com/vercel-labs/skills","leonxlnx/taste-skill, arvindrk/extract-design-system, anthropics/skills, vercel-labs/agent-skills, pbakaus/impeccable, vercel-labs/agent-browser, vercel-labs/skills","npx skills add https://github.com/leonxlnx/taste-skill --skill image-to-code
+npx skills add https://github.com/arvindrk/extract-design-system --skill extract-design-system
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
+npx skills add https://github.com/leonxlnx/taste-skill --skill design-taste-frontend
+npx skills add https://github.com/pbakaus/impeccable --skill normalize
+npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser
+npx skills add https://github.com/vercel-labs/skills --skill find-skills"
+Rapid Prototyping & Iteration,Design Engineering,8,"Go from idea to a shareable deployed prototype fast, then hand off cleanly.","design-taste-frontend, frontend-design, web-artifacts-builder, imagegen-frontend-web, deploy-to-vercel","prototype, brainstorming, handoff","prototype — https://github.com/mattpocock/skills
+design-taste-frontend — https://github.com/leonxlnx/taste-skill
+frontend-design — https://github.com/anthropics/skills
+web-artifacts-builder — https://github.com/anthropics/skills
+imagegen-frontend-web — https://github.com/leonxlnx/taste-skill
+deploy-to-vercel — https://github.com/vercel-labs/agent-skills
+brainstorming — https://github.com/obra/superpowers
+handoff — https://github.com/mattpocock/skills","mattpocock/skills, leonxlnx/taste-skill, anthropics/skills, vercel-labs/agent-skills, obra/superpowers","npx skills add https://github.com/mattpocock/skills --skill prototype
+npx skills add https://github.com/leonxlnx/taste-skill --skill design-taste-frontend
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/anthropics/skills --skill web-artifacts-builder
+npx skills add https://github.com/leonxlnx/taste-skill --skill imagegen-frontend-web
+npx skills add https://github.com/vercel-labs/agent-skills --skill deploy-to-vercel
+npx skills add https://github.com/obra/superpowers --skill brainstorming
+npx skills add https://github.com/mattpocock/skills --skill handoff"
+Design Eng Ship & Handoff,Design Engineering,9,"Close the branch properly: review, QA, hardening, deploy, and git guardrails.","harden, deploy-to-vercel, webapp-testing","code-review, qa, handoff, verification-before-completion, git-guardrails-claude-code, triage","code-review — https://github.com/mattpocock/skills
+qa — https://github.com/mattpocock/skills
+handoff — https://github.com/mattpocock/skills
+verification-before-completion — https://github.com/obra/superpowers
+harden — https://github.com/pbakaus/impeccable
+deploy-to-vercel — https://github.com/vercel-labs/agent-skills
+webapp-testing — https://github.com/anthropics/skills
+git-guardrails-claude-code — https://github.com/mattpocock/skills
+triage — https://github.com/mattpocock/skills","mattpocock/skills, obra/superpowers, pbakaus/impeccable, vercel-labs/agent-skills, anthropics/skills","npx skills add https://github.com/mattpocock/skills --skill code-review
+npx skills add https://github.com/mattpocock/skills --skill qa
+npx skills add https://github.com/mattpocock/skills --skill handoff
+npx skills add https://github.com/obra/superpowers --skill verification-before-completion
+npx skills add https://github.com/pbakaus/impeccable --skill harden
+npx skills add https://github.com/vercel-labs/agent-skills --skill deploy-to-vercel
+npx skills add https://github.com/anthropics/skills --skill webapp-testing
+npx skills add https://github.com/mattpocock/skills --skill git-guardrails-claude-code
+npx skills add https://github.com/mattpocock/skills --skill triage"
