@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Highlight } from "@/components/highlight";
@@ -10,16 +10,8 @@ import { accentForUseCase } from "@/lib/set-accents";
 import { useSkillSetSelection } from "@/hooks/params-parsers/use-skill-set-filter-params";
 import type { SkillSet } from "@/components/skill-set-grid";
 
-/**
- * What the cover fits at its tightest — a 290px square at the four-column
- * breakpoint, measured with 12px to spare. Every set today holds eight or nine
- * skills, so this hides nothing; it is here so a longer set added later
- * summarises its tail rather than having a row sliced in half by the clip.
- */
-const MAX_ROWS = 9;
-
-/** Clears the avatar and its gap, so the summary lines up with the names. */
-const ROW_TEXT_INSET = 26;
+/** Three circles read as a stack; a fourth starts crowding the label. */
+const STACK_FACES = 3;
 
 /** Ramps the frost in over its first 28px, so the panel has no hard top edge. */
 const FROST_MASK = "linear-gradient(to bottom, transparent 0px, #000 28px)";
@@ -33,33 +25,40 @@ interface SkillSetCardProps {
  * A set, on the index.
  *
  * Built on the designer card's anatomy — square cover, chip at its top left,
- * pill at its bottom left, a panel that slides up over it on hover — so the
- * three grids read as one site.
+ * something small at its bottom left, a panel that slides up over it on hover —
+ * so the three grids read as one site.
  *
- * The cover is the contents. A designer card shows the work; a set's work is
- * the skills it collects, so the cover lists them: each one's owner and its
- * name, in the order the detail view will show them. Two earlier attempts made
- * artwork out of the owners' avatars instead, first as sampled colour and then
- * as the avatars themselves tiled across a grid, and both were decoration that
- * told you nothing — the name of a set says what it is for, but only the list
- * says what you are actually installing.
+ * The cover holds the set's own name and description. Three earlier versions
+ * put artwork there instead — colour sampled from the owners' avatars, then
+ * those avatars tiled, then the list of skill names — while the name and
+ * description sat underneath in the designer card's caption slot. The words
+ * were always the thing worth showing; the cover was inventing a picture to
+ * avoid saying them.
  *
- * Every set holds eight or nine skills, which is few enough to show whole. The
- * list is clipped rather than scrolled: the card is one click target, and a
- * scrollable region inside it would swallow the page's scroll on touch.
+ * Everything is on one left edge: the chip's fill, the text, and the stack of
+ * owner avatars in the corner, which says whose repositories a set draws on
+ * without listing nine of them. The count beside it is the whole inventory the
+ * card needs to give — the detail view is one click away and lists every skill.
  */
 export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
   const [, setSelection] = useSkillSetSelection();
   const [isHovered, setIsHovered] = useState(false);
   const accent = accentForUseCase(skillSet.useCase);
 
-  const overflows = skillSet.skills.length > MAX_ROWS;
-  // One row short of the cap when it overflows, since the summary needs a row
-  // of its own to sit in.
-  const shown = overflows
-    ? skillSet.skills.slice(0, MAX_ROWS - 1)
-    : skillSet.skills;
-  const hidden = skillSet.skills.length - shown.length;
+  // By owner, not by skill: a set drawing three skills from anthropics shows
+  // one face, not the same face three times.
+  const faces = useMemo(() => {
+    const seen: { author: string; avatarUrl: string | null }[] = [];
+
+    for (const skill of skillSet.skills) {
+      if (!skill.author) continue;
+      if (seen.some((owner) => owner.author === skill.author)) continue;
+      seen.push({ author: skill.author, avatarUrl: skill.authorAvatarUrl });
+      if (seen.length === STACK_FACES) break;
+    }
+
+    return seen;
+  }, [skillSet.skills]);
 
   return (
     <div
@@ -68,71 +67,59 @@ export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* The designer card's own neutral, so the three grids share a frame. */}
-      <div className="relative z-0 mb-3 aspect-square overflow-hidden bg-muted">
-        {/* Inset to clear the chip above and the count pill below, so the list
-            occupies the frame without either of them landing on a row, and
-            centred in what is left the way the designer card centres artwork —
-            a one-column cover is much taller than nine rows need. Centring is
-            only safe because MAX_ROWS keeps the list shorter than the frame:
-            content that overflowed would spill past both ends instead of one. */}
-        <ul className="absolute inset-x-0 bottom-0 top-0 flex flex-col justify-center gap-1 overflow-hidden px-3 pb-10 pt-11">
-          {shown.map((skill) => (
-            <li key={skill.id} className="flex items-center gap-2">
-              <SourceAvatar
-                author={skill.author}
-                avatarUrl={skill.authorAvatarUrl}
-                size={18}
-              />
-              {/* `min-w-0` is what lets a long name truncate: a flex child
-                  refuses to shrink below its content width without it, and the
-                  row would push its own avatar out of the frame instead. */}
-              <span className="min-w-0 flex-1 truncate text-xs text-neutral-700">
-                <Highlight text={skill.name} terms={terms} />
-              </span>
-            </li>
-          ))}
+      <div className="relative z-0 aspect-square overflow-hidden bg-muted">
+        {/* Inset to clear the chip above and the avatar stack below, and
+            padded to `px-3` so the text starts on the same left edge as both
+            of them rather than on a third one of its own. */}
+        <div className="absolute inset-0 flex flex-col justify-center px-3 pb-14 pt-12">
+          <h2 className="font-medium text-neutral-800">
+            <Highlight text={skillSet.name} terms={terms} />
+          </h2>
 
-          {hidden > 0 && (
-            <li
-              className="text-xs text-neutral-500"
-              style={{ paddingLeft: ROW_TEXT_INSET }}
-            >
-              +{hidden} more
-            </li>
+          {skillSet.description && (
+            <p className="mt-1.5 line-clamp-5 text-sm leading-snug text-neutral-500">
+              <Highlight text={skillSet.description} terms={terms} />
+            </p>
           )}
-        </ul>
+        </div>
 
         {/* Cleared on hover so the panel slides into an empty frame rather than
             up over the count, which is the designer card's move with its
             location pill. */}
-        <span
+        <div
           className={cn(
-            "pointer-events-none absolute bottom-3 left-3 z-10 flex items-center",
-            "rounded-full bg-white px-2 py-0.5 text-xs font-medium text-neutral-700",
+            "pointer-events-none absolute bottom-3 left-3 z-10 flex items-center gap-2",
             "transition-opacity duration-200 motion-reduce:transition-none",
             "group-hover:opacity-0",
           )}
         >
-          {skillSet.skills.length} skills
-        </span>
+          {faces.length > 0 && (
+            // Ringed in the cover's own colour rather than in white, so the
+            // overlap reads as each circle cut out of the surface. White is
+            // the usual idiom and is nearly invisible against this grey.
+            <div className="flex -space-x-2">
+              {faces.map((owner) => (
+                <SourceAvatar
+                  key={owner.author}
+                  author={owner.author}
+                  avatarUrl={owner.avatarUrl}
+                  size={22}
+                  className="ring-2 ring-muted"
+                />
+              ))}
+            </div>
+          )}
+
+          <span className="text-xs font-medium text-neutral-700">
+            {skillSet.skills.length} skills
+          </span>
+        </div>
       </div>
 
-      <div className="mt-3 flex flex-col items-center gap-1.5">
-        <h2 className="text-center font-medium text-neutral-700">
-          <Highlight text={skillSet.name} terms={terms} />
-        </h2>
-
-        {skillSet.description && (
-          <p className="line-clamp-3 text-center text-sm leading-snug text-neutral-500">
-            <Highlight text={skillSet.description} terms={terms} />
-          </p>
-        )}
-      </div>
-
-      {/* Covers the whole card, so the cover and the title are one target.
-          Deliberately a sibling of the panel below rather than its parent: the
-          copy controls are buttons too, and a button inside a button is invalid
-          markup React will complain about at runtime. */}
+      {/* Covers the whole card. Deliberately a sibling of the panel below
+          rather than its parent: the copy controls are buttons too, and a
+          button inside a button is invalid markup React will complain about at
+          runtime. */}
       <button
         type="button"
         onClick={() => void setSelection({ set: skillSet.slug })}
@@ -145,16 +132,21 @@ export function SkillSetCard({ skillSet, terms }: SkillSetCardProps) {
       <div className="pointer-events-none absolute left-0 top-0 z-30 aspect-square w-full overflow-hidden">
         <div
           className={cn(
-            // Stops short of the top so the category chip stays clear of it,
-            // matching the 22px chip row the designer card leaves alone.
-            "absolute inset-x-0 bottom-0 top-12",
+            // Starts at half height so the set's name stays sharp underneath
+            // it. The name is the card's only identifying text now that
+            // nothing sits below the cover, and a full-height panel blurred it
+            // away entirely. Measured across all twenty sets, the lowest title
+            // ends 131px into a 290px cover, so half clears every one of them
+            // by 14px — and both the text block and this panel are positioned
+            // as fractions of the cover, so that margin holds at every size.
+            "absolute inset-x-0 bottom-0 top-1/2",
             "flex items-end p-4",
             "transition-transform duration-300 ease-out motion-reduce:transition-none",
             isHovered ? "translate-y-0" : "translate-y-full",
           )}
         >
           {/* Masked at the top so the frost fades in rather than starting on a
-              hard line across the list. The designer card solves the same
+              hard line across the text. The designer card solves the same
               problem with four offset blur layers, which is worth it for text
               that scrolls under them and overkill for two buttons. */}
           <div

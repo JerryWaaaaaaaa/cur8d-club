@@ -97,7 +97,7 @@ export function SkillSetGrid({ initialData }: SkillSetGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-12 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {data.map((skillSet, index) => (
         <motion.div
           key={skillSet.id}
